@@ -317,15 +317,108 @@
         </div>
 
         <!-- Spin View -->
-        <div id="spin-view" class="view">
-            <h3 data-i18n="spin" class="section-h">Fortune Wheel</h3>
-            <div class="elite-card" style="text-align: center; padding: 30px 20px;">
-                <div id="spin-wheel" style="font-size: 3.5rem; margin-bottom: 20px; transition: transform 2.5s cubic-bezier(0.1, 0, 0, 1); display: inline-block;">🎯</div>
-                <button class="btn-elite" id="spin-btn" onclick="spinWheel()">Spin for 5 Points</button>
-                <button data-i18n="backBtn" class="btn-elite btn-ghost" onclick="showView('list-view')">Back to Tasks</button>
+<div id="spin-view" class="view">
+    <h3 data-i18n="spin" class="section-h">Fortune Wheel</h3>
+    <div class="elite-card" style="text-align: center; padding: 30px 20px; position: relative;">
+        
+        <div style="position: relative; width: 260px; height: 260px; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center;">
+            <div id="wheel-canvas-container" style="width: 100%; height: 100%; border-radius: 50%; border: 8px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0, 1);">
+                <canvas id="wheel-canvas" width="260" height="260"></canvas>
             </div>
+            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #6366f1; z-index: 10;"></div>
+            <div style="position: absolute; width: 40px; height: 40px; background: white; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 5; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #6366f1; border: 3px solid #6366f1;">WIN</div>
         </div>
+
+        <button class="btn-elite" id="spin-btn" onclick="enhancedSpinWheel()">Spin for 5 Points</button>
+        <button data-i18n="backBtn" class="btn-elite btn-ghost" onclick="showView('list-view')">Back to Tasks</button>
     </div>
+</div>
+
+<script>
+    // নির্ভুল পুরস্কারের তালিকা
+    const prizes = [
+        { label: "0", color: "#f43f5e" },
+        { label: "2", color: "#6366f1" },
+        { label: "5", color: "#10b981" },
+        { label: "10", color: "#f59e0b" },
+        { label: "20", color: "#a855f7" },
+        { label: "0", color: "#64748b" },
+        { label: "50", color: "#ec4899" },
+        { label: "5", color: "#06b6d4" }
+    ];
+
+    function drawWheel() {
+        const canvas = document.getElementById('wheel-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2;
+        const sliceAngle = (2 * Math.PI) / prizes.length;
+
+        prizes.forEach((prize, i) => {
+            const angle = i * sliceAngle;
+            ctx.beginPath();
+            ctx.fillStyle = prize.color;
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+            ctx.fill();
+
+            // টেক্সট ড্রয়িং
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle + sliceAngle / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px 'Plus Jakarta Sans'";
+            ctx.fillText(prize.label, radius - 20, 5);
+            ctx.restore();
+        });
+    }
+
+    // চাকা লোড হওয়া নিশ্চিত করা
+    setTimeout(drawWheel, 1000);
+
+    let isSpinning = false;
+    async function enhancedSpinWheel() {
+        if (isSpinning) return;
+        if (userPoints < 5) return showToast("Low points!");
+
+        isSpinning = true;
+        const wheel = document.getElementById('wheel-canvas-container');
+        const btn = document.getElementById('spin-btn');
+        btn.disabled = true;
+
+        // ৫ বার ঘুরে র‍্যান্ডম জায়গায় থামবে
+        const randomRotation = Math.floor(Math.random() * 360);
+        const totalSpin = (360 * 5) + randomRotation;
+        
+        wheel.style.transform = `rotate(${totalSpin}deg)`;
+
+        // সঠিক ইনডেক্স ক্যালকুলেশন (পয়েন্ট যেন উলটপালট না হয়)
+        // ক্যানভাসে ড্রয়িং ৩টা (0 rad) থেকে শুরু হয়, আর পয়েন্টার থাকে উপরে (270 deg)
+        const sliceSize = 360 / prizes.length;
+        const netRotation = totalSpin % 360;
+        const prizeIndex = Math.floor(((270 - netRotation + 360) % 360) / sliceSize);
+        const win = parseInt(prizes[prizeIndex].label);
+
+        setTimeout(async () => {
+            // Firebase-এ পয়েন্ট আপডেট
+            await db.ref(`artifacts/${appId}/users/${currentUserId}/stats/points`).set(userPoints - 5 + win);
+            showToast(win > 0 ? `Won ${win} Points!` : "Try again.");
+            
+            isSpinning = false;
+            btn.disabled = false;
+
+            // চাকা রিসেট কিন্তু পজিশন ঠিক রেখে
+            wheel.style.transition = 'none';
+            wheel.style.transform = `rotate(${netRotation}deg)`;
+            setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.1, 0, 0, 1)'; }, 50);
+        }, 4000);
+    }
+</script>
+
+
 
     <!-- Nav Bar -->
     <div class="nav-bar">
