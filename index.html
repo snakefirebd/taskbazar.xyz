@@ -312,7 +312,7 @@
                     <span data-i18n="refLabel" style="font-size: 0.55rem; font-weight: 800; color: #94a3b8;">REFERRAL:</span>
                     <span id="p-refer" style="font-weight: 800; color: #6366f1; font-size: 0.8rem;">...</span>
                 </div>
-                <button data-i18n="logout" class="btn-elite" style="background: #fee2e2; color: #ef4444; box-shadow: none; margin-top: 20px;" onclick="auth.signOut()">Logout</button>
+                <button data-i18n="logout" class="btn-elite" style="background: #fee2e2; color: #ef4444; box-shadow: none; margin-top: 20px;" onclick="handleLogout()">Logout</button>
             </div>
         </div>
 
@@ -575,44 +575,109 @@
         }
     }
 
-    function checkAuthState(user) {
-        if (user) {
-            if (!user.emailVerified) {
-                document.getElementById('auth-view').style.display = 'none';
-                document.getElementById('app-content').style.display = 'none';
-                document.getElementById('verify-email-view').style.display = 'block';
-                document.querySelector('.header').style.display = 'none';
-                document.querySelector('.nav-bar').style.display = 'none';
-            } else {
-                currentUserId = user.uid;
-                document.getElementById('auth-view').style.display = 'none';
-                document.getElementById('verify-email-view').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                document.querySelector('.header').style.display = 'block';
-                document.querySelector('.nav-bar').style.display = 'flex';
-                syncUserData(); loadAllTasks(); loadSystemNotice(); initNotificationListener();
-            }
+// Logout করার সময় ক্যাশ মুছে ফেলা
+async function handleLogout() {
+    await auth.signOut();
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user_cache_data');
+    localStorage.removeItem('last_view');
+    location.reload(); 
+}
+
+// আপনার HTML-এর Logout বাটনে onclick="handleLogout()" করে দিন
+
+
+function checkAuthState(user) {
+    const authView = document.getElementById('auth-view');
+    const verifyView = document.getElementById('verify-email-view');
+    const appContent = document.getElementById('app-content');
+    const header = document.querySelector('.header');
+    const navBar = document.querySelector('.nav-bar');
+
+    // ক্যাশ থেকে চেক করা ইউজার আগে লগইন ছিল কিনা
+    const isCachedLogin = localStorage.getItem('isLoggedIn') === 'true';
+
+    if (user) {
+        // লগইন সফল হলে ক্যাশ সেভ করা
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        if (!user.emailVerified) {
+            authView.style.display = 'none';
+            verifyView.style.display = 'block';
         } else {
-            document.getElementById('auth-view').style.display = 'block';
-            document.getElementById('verify-email-view').style.display = 'none';
-            document.getElementById('app-content').style.display = 'none';
-            document.querySelector('.header').style.display = 'none';
-            document.querySelector('.nav-bar').style.display = 'none';
+            currentUserId = user.uid;
+            
+            // কন্টেন্ট দেখানো
+            appContent.style.display = 'block';
+            header.style.display = 'block';
+            navBar.style.display = 'flex';
+            authView.style.display = 'none';
+
+            // শেষ যে ভিউতে ছিল সেটি দেখানো
+            const lastView = localStorage.getItem('last_view') || 'list-view';
+            showView(lastView);
+            
+            syncUserData(); 
+            loadAllTasks(); 
+            loadSystemNotice(); 
+            initNotificationListener();
         }
+    } else {
+        // লগআউট থাকলে ক্যাশ ক্লিয়ার করা
+        localStorage.removeItem('isLoggedIn');
+        authView.style.display = 'block';
+        appContent.style.display = 'none';
+        header.style.display = 'none';
+        navBar.style.display = 'none';
     }
+}
+
 
     auth.onAuthStateChanged(checkAuthState);
+// স্ক্রিপ্টের শেষে এটি যোগ করুন
+window.addEventListener('DOMContentLoaded', () => {
+    const isCachedLogin = localStorage.getItem('isLoggedIn') === 'true';
+    const lastView = localStorage.getItem('last_view') || 'list-view';
+    const cachedData = localStorage.getItem('user_cache_data');
 
-    function syncUserData() {
-        db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).on('value', snap => {
-            const d = snap.val() || {};
-            userPoints = d.points || 0;
-            document.getElementById('user-points').innerText = userPoints;
-            document.getElementById('user-display-name').innerText = d.name || "User";
-            document.getElementById('p-name').innerText = d.name || "User";
-            document.getElementById('p-refer').innerText = d.referralCode || "...";
-        });
+    if (isCachedLogin) {
+        // ১. দ্রুত ইন্টারফেস দেখানো
+        document.getElementById('app-content').style.display = 'block';
+        document.querySelector('.header').style.display = 'block';
+        document.querySelector('.nav-bar').style.display = 'flex';
+        document.getElementById('auth-view').style.display = 'none';
+        showView(lastView);
+
+        // ২. যদি ক্যাশে ইউজারের ডাটা থাকে তবে তা সাথে সাথে দেখানো
+        if (cachedData) {
+            const parsedData = JSON.parse(cachedData);
+            updateUI(parsedData); // ফায়ারবেস লোড হওয়ার আগেই UI আপডেট হবে
+        }
     }
+});
+
+
+function syncUserData() {
+    db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).on('value', snap => {
+        const d = snap.val() || {};
+        
+        // ১. ক্যাশে ডাটা সেভ করা
+        localStorage.setItem('user_cache_data', JSON.stringify(d));
+        
+        // ২. স্ক্রিনে ডাটা আপডেট করা
+        updateUI(d);
+    });
+}
+
+// UI আপডেট করার জন্য একটি কমন ফাংশন
+function updateUI(d) {
+    userPoints = d.points || 0;
+    document.getElementById('user-points').innerText = userPoints;
+    document.getElementById('user-display-name').innerText = d.name || "User";
+    document.getElementById('p-name').innerText = d.name || "User";
+    document.getElementById('p-refer').innerText = d.referralCode || "...";
+}
+
 
     function loadSystemNotice() {
         db.ref(`artifacts/${appId}/public/settings/notice`).on('value', s => {
