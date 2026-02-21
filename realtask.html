@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TaskPro Elite - Earn & Promote</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.85);
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --accent: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 90px; overflow-x: hidden; }
+
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+            display: none;
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+        
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .header-lang-switch {
+            display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+        }
+        .h-lang-btn {
+            padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6);
+        }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill {
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px;
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; flex-shrink: 0;
+        }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .notif-btn { position: relative; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; }
+
+        .container { padding: 0 18px; margin-top: -8px; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .view { display: none; animation: viewIn 0.4s ease-out; }
+        .view.active { display: block; }
+        @keyframes viewIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .elite-card {
+            background: var(--glass); backdrop-filter: blur(20px); border-radius: 22px; padding: 18px;
+            margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            transition: 0.3s;
+        }
+        .section-h { font-size: 1rem; font-weight: 800; margin: 15px 0 10px 5px; color: #1e293b; }
+
+        .btn-elite {
+            width: 100%; padding: 14px; border: none; border-radius: 16px;
+            background: var(--p-gradient); color: white; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s; box-shadow: var(--p-glow);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-elite:active { transform: scale(0.97); }
+        .btn-ghost { background: #f1f5f9; color: var(--text-p); box-shadow: none; margin-top: 10px; }
+
+        .nav-bar {
+            position: fixed; bottom: 15px; left: 15px; right: 15px; height: 65px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px;
+            display: none; align-items: center; justify-content: space-around;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; z-index: 1000;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; text-align: center; white-space: nowrap; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem;
+        }
+
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 600; display: none; z-index: 3000; box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .chat-container { height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 5px; }
+        .bubble { padding: 10px 14px; border-radius: 15px; font-size: 0.8rem; max-width: 80%; font-weight: 500; }
+        .bubble-me { background: var(--p-gradient); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .bubble-admin { background: #f1f5f9; color: var(--text-h); align-self: flex-start; border-bottom-left-radius: 4px; }
+
+        /* Notification Styling */
+        .notif-card { background: white; padding: 15px; border-radius: 18px; margin-bottom: 12px; border-left: 5px solid #6366f1; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .notif-card h4 { font-size: 0.85rem; font-weight: 800; color: #1e293b; }
+        .notif-card p { font-size: 0.75rem; color: #64748b; margin-top: 5px; }
+        .notif-card small { font-size: 0.6rem; color: #94a3b8; display: block; margin-top: 8px; font-weight: 700; }
+
+        .complaint-item { background: #fff; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #6366f1; box-shadow: 0 3px 8px rgba(0,0,0,0.01); }
+        .complaint-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .complaint-status { font-size: 0.55rem; padding: 2px 6px; border-radius: 5px; font-weight: 800; text-transform: uppercase; }
+        .status-open { background: #fef3c7; color: #92400e; }
+        .status-solved { background: #dcfce7; color: #166534; }
+        
+        .admin-reply { margin-top: 8px; padding: 8px; background: #f8fafc; border-radius: 10px; font-size: 0.7rem; border: 1px dashed #cbd5e1; }
+        .admin-reply b { color: #6366f1; display: block; margin-bottom: 1px; }
+
+        .lang-switch { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+        .lang-btn { padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer; background: #f1f5f9; color: #64748b; }
+        .lang-btn.active { background: var(--p-gradient); color: white; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<!-- Auth View -->
+<div id="auth-view" class="view active" style="padding: 50px 25px; max-width: 400px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2rem; font-weight: 800; background: var(--p-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EliteTask</h1>
+        <p data-i18n="authTagline" style="color: var(--text-p); font-weight: 600; font-size: 0.85rem;">The Premium Micro-Task Platform</p>
+    </div>
+    <div class="elite-card">
+        <div id="auth-fields">
+            <div class="input-group" id="name-box" style="display: none;"><label data-i18n="fullName">Full Name</label><input type="text" id="reg-name" placeholder="আপনার নাম লিখুন"></div>
+            <div class="input-group" id="refer-box" style="display: none;"><label data-i18n="referCode">Refer Code (Optional)</label><input type="text" id="reg-refer" placeholder="কোড থাকলে দিন"></div>
+            <div class="input-group"><label data-i18n="email">Email Address</label><input type="email" id="auth-email" placeholder="email@example.com"></div>
+            <div class="input-group"><label data-i18n="password">Secret Password</label><input type="password" id="auth-password" placeholder="••••••••"></div>
+            <button class="btn-elite" id="main-auth-btn" onclick="handleAuthAction()">Authenticate</button>
+        </div>
+        <div style="margin-top: 20px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+            <p id="toggle-msg" style="font-size: 0.75rem; color: var(--text-p); font-weight: 600;">New to the community? <span id="toggle-link" onclick="toggleAuthMode(true)" style="color: #6366f1; font-weight: 800; cursor: pointer;">Register Now</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Email Verification View -->
+<div id="verify-email-view" class="view" style="padding: 50px 25px; max-width: 400px; margin: 0 auto;">
+    <div class="elite-card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 15px;">📧</div>
+        <h2 style="font-weight: 800; margin-bottom: 10px;" data-i18n="verifyEmailTitle">ইমেইল ভেরিফাই করুন</h2>
+        <p style="font-size: 0.8rem; color: var(--text-p); margin-bottom: 20px;" data-i18n="verifyEmailMsg">আমরা আপনার ইমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠিয়েছি। অনুগ্রহ করে আপনার ইনবক্স (বা স্প্যাম) চেক করুন।</p>
+        <button class="btn-elite" onclick="reloadUser()" data-i18n="checkVerifyBtn">Check Verification Status</button>
+        <button class="btn-elite btn-ghost" onclick="resendVerification()" data-i18n="resendLinkBtn" style="font-size: 0.75rem;">রিসেন্ড লিঙ্ক</button>
+        <button class="btn-elite btn-ghost" onclick="auth.signOut()" style="margin-top: 10px; color: var(--danger);">Logout & Change Email</button>
+    </div>
+</div>
+
+<div id="app-content" style="display: none;">
+    <div class="header">
+        <div class="header-content">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="avatar-frame" onclick="showView('profile-view')"><img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"></div>
+                <div>
+                    <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Elite Member</h2>
+                    <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+                </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div class="notif-btn" onclick="openNotifications()">
+                    🔔 <div id="notif-badge" class="notif-badge"></div>
+                </div>
+                <div class="header-lang-switch">
+                    <div id="h-btn-bn" class="h-lang-btn" onclick="setLang('bn')">BN</div>
+                    <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+                </div>
+                <div class="wallet-pill"><span data-i18n="points">Points</span><b id="user-points">0</b></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Home / Missions -->
+        <div id="list-view" class="view active">
+            <div id="notice-board" style="background:#fff7ed; border:1px solid #ffedd5; padding:10px; border-radius:15px; margin-top:20px; color:#9a3412; font-size: 0.75rem; font-weight:700; display:none;">
+                <marquee id="notice-text"></marquee>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px;">
+                <div class="elite-card" style="padding: 15px; text-align: center; cursor: pointer; margin-bottom:0;" onclick="showView('spin-view')">
+                    <div style="font-size: 1.5rem; margin-bottom: 3px;">🎡</div>
+                    <p data-i18n="spin" style="font-size: 0.65rem; font-weight: 800; color: #6366f1;">Lucky Spin</p>
+                </div>
+                <div class="elite-card" style="padding: 15px; text-align: center; cursor: pointer; margin-bottom:0;" onclick="claimDailyBonus()">
+                    <div style="font-size: 1.5rem; margin-bottom: 3px;">🎁</div>
+                    <p data-i18n="gift" style="font-size: 0.65rem; font-weight: 800; color: #10b981;">Daily Gift</p>
+                </div>
+            </div>
+            <h3 data-i18n="missions" class="section-h">Available Missions</h3>
+            <div id="task-container"></div>
+        </div>
+
+        <!-- Notification View -->
+        <div id="notification-view" class="view">
+            <h3 class="section-h" data-i18n="notifTitle">System Notifications</h3>
+            <div id="notif-list" style="margin-top:10px;"></div>
+            <button class="btn-elite btn-ghost" onclick="showView('list-view')" style="margin-top:15px;" data-i18n="backBtn">পিছনে যান</button>
+        </div>
+
+        <!-- Complaint & History -->
+        <div id="complaint-view" class="view">
+            <h3 data-i18n="complaintTitle" class="section-h">Support & Complaint</h3>
+            <div class="elite-card" style="padding: 20px 15px;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 2.5rem;">🛡️</div>
+                    <h4 style="font-weight: 800; margin-top: 5px;" data-i18n="complaintCenter">অভিযোগ কেন্দ্র</h4>
+                </div>
+                <div class="input-group">
+                    <label data-i18n="issuePage">কোন পেজে সমস্যা হচ্ছে?</label>
+                    <select id="complaint-page">
+                        <option value="Home/Missions" data-i18n="pageHome">Home / Missions</option>
+                        <option value="Promote" data-i18n="pagePromote">Promote Page</option>
+                        <option value="Profile" data-i18n="pageProfile">Profile Page</option>
+                        <option value="Spin/Bonus" data-i18n="pageSpin">Spin / Daily Bonus</option>
+                        <option value="Payment" data-i18n="pagePayment">Payment/Withdraw</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label data-i18n="complaintDetails">বিস্তারিত লিখুন</label>
+                    <textarea id="complaint-details" rows="3" placeholder="আপনার সমস্যাটি বিস্তারিত লিখুন..."></textarea>
+                </div>
+                <button data-i18n="submitComplaintBtn" class="btn-elite" onclick="submitComplaint()">অভিযোগ জমা দিন</button>
+            </div>
+            <h4 class="section-h" data-i18n="historyTitle" style="font-size: 0.85rem;">আমার অভিযোগের ইতিহাস</h4>
+            <div id="complaint-history-list" style="margin-bottom: 25px;"></div>
+            <div style="padding-bottom: 30px; text-align: center;">
+                <p style="font-size: 0.7rem; color: var(--text-p); margin-bottom: 10px;" data-i18n="directChatText">সরাসরি এডমিনের সাথে কথা বলতে:</p>
+                <button data-i18n="adminSupportBtn" class="btn-elite" onclick="showView('support-view'); initChat()"><i>💬</i> এডমিন সাপোর্ট (চ্যাট)</button>
+            </div>
+        </div>
+
+        <!-- Support Chat -->
+        <div id="support-view" class="view">
+            <h3 data-i18n="support" class="section-h">Elite Support Chat</h3>
+            <div class="elite-card">
+                <div id="chat-box" class="chat-container"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="chat-input" placeholder="Message..." style="flex:1; padding:12px 15px; border-radius:12px; border:1px solid #e2e8f0; outline:none; font-size:0.85rem;">
+                    <button class="btn-elite" onclick="sendMessage()" style="width: 45px; padding:0; height: 45px;">➤</button>
+                </div>
+                <button class="btn-elite btn-ghost" onclick="showView('complaint-view')" style="margin-top: 12px; font-size: 0.7rem;">← ফিরে যান</button>
+            </div>
+        </div>
+
+        <!-- Create Campaign -->
+        <div id="order-view" class="view">
+            <h3 data-i18n="createCampaign" class="section-h">Create Campaign</h3>
+            <div class="elite-card">
+                <div class="input-group">
+                    <label data-i18n="actionCat">Action Category</label>
+                    <select id="order-type" onchange="calculateCost()">
+                        <option value="YouTube Subscribe">YouTube Subscribe (5 pts)</option>
+                        <option value="Facebook Like">Facebook Like (3 pts)</option>
+                        <option value="Telegram Join">Telegram Join (4 pts)</option>
+                        <option value="App Install">App Download (10 pts)</option>
+                    </select>
+                </div>
+                <div class="input-group"><label data-i18n="title">Title</label><input type="text" id="order-title" placeholder="e.g. Subscribe to my channel"></div>
+                <div class="input-group"><label data-i18n="url">Direct URL</label><input type="url" id="order-link" placeholder="https://youtube.com/..."></div>
+                <div class="input-group"><label data-i18n="targetQty">Target Quantity (Min 10)</label><input type="number" id="order-qty" placeholder="100" oninput="calculateCost()"></div>
+                <div style="background:#f0fdf4; padding:10px; border-radius:12px; margin-bottom:12px; text-align:center; border: 1px dashed #10b981;">
+                    <p style="font-size:0.7rem; font-weight:700; color:#166534;"><span data-i18n="totalCost">Total Cost:</span> <b id="order-total">0</b> <span data-i18n="points">Points</span></p>
+                </div>
+                <button data-i18n="launchBtn" class="btn-elite" onclick="placeOrder()">Launch Campaign</button>
+            </div>
+        </div>
+
+        <!-- Task Details -->
+        <div id="detail-view" class="view">
+            <div class="elite-card" style="margin-top: 30px;">
+                <div id="detail-content"></div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+                    <div class="input-group">
+                        <label data-i18n="proofLabel">Submission Proof (Username/Link)</label>
+                        <textarea id="task-proof" rows="2" placeholder="প্রমাণ হিসেবে আপনার ইউজারনেম বা আইডি দিন"></textarea>
+                    </div>
+                    <button data-i18n="submitBtn" class="btn-elite" onclick="submitProof()">Submit Proof</button>
+                    <button data-i18n="cancelBtn" class="btn-elite btn-ghost" onclick="showView('list-view')">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile -->
+        <div id="profile-view" class="view">
+            <h3 data-i18n="identity" class="section-h">My Identity</h3>
+            <div class="elite-card" style="text-align: center;">
+                <div style="width: 70px; height: 70px; margin: 0 auto 12px; border-radius: 20px; border: 3px solid #6366f1; overflow: hidden; padding: 2px;"><img id="p-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;"></div>
+                <h2 id="p-name" style="font-size: 1rem; font-weight: 800;">Loading...</h2>
+                <div class="lang-switch">
+                    <div id="btn-bn" class="lang-btn" onclick="setLang('bn')">বাংলা</div>
+                    <div id="btn-en" class="lang-btn" onclick="setLang('en')">English</div>
+                </div>
+                <div style="background: #f8fafc; padding: 8px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; border: 1px solid #e2e8f0; cursor: pointer;" onclick="copyRefer()">
+                    <span data-i18n="refLabel" style="font-size: 0.55rem; font-weight: 800; color: #94a3b8;">REFERRAL:</span>
+                    <span id="p-refer" style="font-weight: 800; color: #6366f1; font-size: 0.8rem;">...</span>
+                </div>
+                <button data-i18n="logout" class="btn-elite" style="background: #fee2e2; color: #ef4444; box-shadow: none; margin-top: 20px;" onclick="auth.signOut()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Spin View -->
+        <div id="spin-view" class="view">
+            <h3 data-i18n="spin" class="section-h">Fortune Wheel</h3>
+            <div class="elite-card" style="text-align: center; padding: 30px 20px;">
+                <div id="spin-wheel" style="font-size: 3.5rem; margin-bottom: 20px; transition: transform 2.5s cubic-bezier(0.1, 0, 0, 1); display: inline-block;">🎯</div>
+                <button class="btn-elite" id="spin-btn" onclick="spinWheel()">Spin for 5 Points</button>
+                <button data-i18n="backBtn" class="btn-elite btn-ghost" onclick="showView('list-view')">Back to Tasks</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav Bar -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showView('list-view'); updateNav(this)"><i>🏠</i><span data-i18n="navMissions">Missions</span></div>
+        <div class="nav-item" onclick="showView('order-view'); updateNav(this)"><i>🚀</i><span data-i18n="navPromote">Promote</span></div>
+        <div class="nav-item" onclick="showView('complaint-view'); updateNav(this)"><i>💬</i><span data-i18n="navChat">Complaint</span></div>
+        <div class="nav-item" onclick="showView('profile-view'); updateNav(this)"><i>👤</i><span data-i18n="navProfile">Profile</span></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+
+    let currentUserId = null;
+    let userPoints = 0;
+    let selectedTaskId = null;
+    let isSignupMode = false;
+    let currentLang = 'bn';
+
+    const translations = {
+        bn: {
+            authTagline: "প্রিমিয়াম মাইক্রো-টাস্ক প্ল্যাটফর্ম",
+            fullName: "সম্পূর্ণ নাম", referCode: "রেফার কোড (ঐচ্ছিক)", email: "ইমেইল অ্যাড্রেস", password: "গোপন পাসওয়ার্ড",
+            points: "পয়েন্ট", spin: "লাকি স্পিন", gift: "প্রতিদিনের উপহার", missions: "উপলব্ধ মিশন",
+            complaintTitle: "অভিযোগ ও সাপোর্ট", complaintCenter: "অভিযোগ কেন্দ্র", issuePage: "কোন পেজে সমস্যা হচ্ছে?",
+            complaintDetails: "বিস্তারিত লিখুন", submitComplaintBtn: "অভিযোগ জমা দিন", historyTitle: "আমার অভিযোগের ইতিহাস",
+            directChatText: "সরাসরি এডমিনের সাথে কথা বলতে:", adminSupportBtn: "এডমিন সাপোর্ট (চ্যাট)",
+            pageHome: "হোম / মিশন", pagePromote: "প্রমোট পেজ", pageProfile: "প্রোফাইল পেজ", pageSpin: "স্পিন / বোনাস", pagePayment: "পেমেন্ট সমস্যা",
+            navMissions: "মিশন", navPromote: "প্রমোট", navChat: "অভিযোগ", navProfile: "প্রোফাইল",
+            complaintSuccess: "আপনার অভিযোগ জমা হয়েছে। ইতিহাস দেখুন।", noComplaints: "কোন অভিযোগ পাওয়া যায়নি",
+            adminReply: "এডমিনের উত্তর:", statusPending: "পেন্ডিং", statusSolved: "সমাধান হয়েছে", logout: "লগআউট",
+            performTask: "কাজটি সম্পন্ন করুন 🔗", missionReward: "মিশন রিওয়ার্ড:", proofLabel: "প্রমাণ (ইউজারনেম/লিঙ্ক)", submitBtn: "সাবমিট করুন", cancelBtn: "বাতিল", backBtn: "পিছনে যান",
+            verifyEmailTitle: "ইমেইল ভেরিফাই করুন", verifyEmailMsg: "আমরা আপনার ইমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠিয়েছি। অনুগ্রহ করে আপনার ইনবক্স চেক করুন।",
+            checkVerifyBtn: "ভেরিফিকেশন চেক করুন", resendLinkBtn: "লিঙ্ক পুনরায় পাঠান",
+            notifTitle: "সিস্টেম নোটিফিকেশন", noNotif: "নতুন কোন নোটিফিকেশন নেই"
+        },
+        en: {
+            authTagline: "The Premium Micro-Task Platform",
+            fullName: "Full Name", referCode: "Refer Code (Optional)", email: "Email Address", password: "Secret Password",
+            points: "Points", spin: "Lucky Spin", gift: "Daily Gift", missions: "Available Missions",
+            complaintTitle: "Support & Complaint", complaintCenter: "Complaint Center", issuePage: "Which page has the issue?",
+            complaintDetails: "Describe Details", submitComplaintBtn: "Submit Complaint", historyTitle: "My Complaint History",
+            directChatText: "To talk directly with Admin:", adminSupportBtn: "Admin Support (Chat)",
+            pageHome: "Home / Missions", pagePromote: "Promote Page", pageProfile: "Profile Page", pageSpin: "Spin / Bonus", pagePayment: "Payment Issue",
+            navMissions: "Missions", navPromote: "Promote", navChat: "Complaint", navProfile: "Profile",
+            complaintSuccess: "Complaint submitted. Check history.", noComplaints: "No complaints found",
+            adminReply: "Admin Reply:", statusPending: "Pending", statusSolved: "Solved", logout: "Logout",
+            performTask: "Perform Task 🔗", missionReward: "Mission Reward:", proofLabel: "Proof (Username/Link)", submitBtn: "Submit", cancelBtn: "Cancel", backBtn: "Back",
+            verifyEmailTitle: "Verify Your Email", verifyEmailMsg: "We've sent a verification link to your email. Please check your inbox.",
+            checkVerifyBtn: "Check Verification Status", resendLinkBtn: "Resend Link",
+            notifTitle: "System Notifications", noNotif: "No notifications found"
+        }
+    };
+
+    const taskRates = { "YouTube Subscribe": 5, "Facebook Like": 3, "Telegram Join": 4, "App Install": 10 };
+
+    function showToast(msg) { 
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
+    }
+
+    function showView(id) { 
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
+        document.getElementById(id).classList.add('active');
+        if(id === 'complaint-view') loadComplaintHistory();
+    }
+
+    function updateNav(el) { 
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); 
+        el.classList.add('active'); 
+    }
+
+    function toggleAuthMode(isSignup) {
+        isSignupMode = isSignup;
+        document.getElementById('name-box').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('refer-box').style.display = isSignup ? 'block' : 'none';
+        applyTranslations();
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('elite_lang', lang);
+        applyTranslations();
+        document.querySelectorAll('.h-lang-btn').forEach(b => b.classList.remove('active'));
+        if(document.getElementById(`h-btn-${lang}`)) document.getElementById(`h-btn-${lang}`).classList.add('active');
+    }
+
+    function applyTranslations() {
+        const t = translations[currentLang];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) el.innerText = t[key];
+        });
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if(document.getElementById(`btn-${currentLang}`)) document.getElementById(`btn-${currentLang}`).classList.add('active');
+        
+        const toggleLink = document.getElementById('toggle-link');
+        const toggleMsg = document.getElementById('toggle-msg');
+        if (toggleLink) {
+            if (isSignupMode) {
+                toggleMsg.innerHTML = `${t.alreadyMember || 'Already member?'} <span onclick="toggleAuthMode(false)" style="color:#6366f1; font-weight:800; cursor:pointer;">Login Now</span>`;
+                document.getElementById('main-auth-btn').innerText = "Create Account";
+            } else {
+                toggleMsg.innerHTML = `${t.newCommunity || 'New here?'} <span onclick="toggleAuthMode(true)" style="color:#6366f1; font-weight:800; cursor:pointer;">Register Now</span>`;
+                document.getElementById('main-auth-btn').innerText = "Authenticate";
+            }
+        }
+    }
+
+    async function handleAuthAction() {
+        const e = document.getElementById('auth-email').value.trim();
+        const p = document.getElementById('auth-password').value.trim();
+        if (!e || p.length < 6) return showToast("Email & 6-char password required!");
+        try {
+            if (isSignupMode) {
+                const n = document.getElementById('reg-name').value.trim();
+                if (!n) return showToast("Name required!");
+                const res = await auth.createUserWithEmailAndPassword(e, p);
+                await res.user.sendEmailVerification();
+                showToast("Verification email sent!");
+                await db.ref(`artifacts/${appId}/users/${res.user.uid}/stats`).set({
+                    name: n, points: 50, referralCode: res.user.uid.substring(0, 6).toUpperCase(), 
+                    language: currentLang, createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            } else { await auth.signInWithEmailAndPassword(e, p); }
+        } catch (err) { showToast(err.message); }
+    }
+
+    async function resendVerification() {
+        const user = auth.currentUser;
+        if (user) {
+            try { await user.sendEmailVerification(); showToast("Verification email resent!"); } catch (err) { showToast(err.message); }
+        }
+    }
+
+    async function reloadUser() {
+        const user = auth.currentUser;
+        if (user) {
+            await user.reload();
+            if (user.emailVerified) { showToast("Email Verified!"); checkAuthState(user); } else { showToast("Check your email."); }
+        }
+    }
+
+    function checkAuthState(user) {
+        if (user) {
+            if (!user.emailVerified) {
+                document.getElementById('auth-view').style.display = 'none';
+                document.getElementById('app-content').style.display = 'none';
+                document.getElementById('verify-email-view').style.display = 'block';
+                document.querySelector('.header').style.display = 'none';
+                document.querySelector('.nav-bar').style.display = 'none';
+            } else {
+                currentUserId = user.uid;
+                document.getElementById('auth-view').style.display = 'none';
+                document.getElementById('verify-email-view').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.querySelector('.header').style.display = 'block';
+                document.querySelector('.nav-bar').style.display = 'flex';
+                syncUserData(); loadAllTasks(); loadSystemNotice(); initNotificationListener();
+            }
+        } else {
+            document.getElementById('auth-view').style.display = 'block';
+            document.getElementById('verify-email-view').style.display = 'none';
+            document.getElementById('app-content').style.display = 'none';
+            document.querySelector('.header').style.display = 'none';
+            document.querySelector('.nav-bar').style.display = 'none';
+        }
+    }
+
+    auth.onAuthStateChanged(checkAuthState);
+
+    function syncUserData() {
+        db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).on('value', snap => {
+            const d = snap.val() || {};
+            userPoints = d.points || 0;
+            document.getElementById('user-points').innerText = userPoints;
+            document.getElementById('user-display-name').innerText = d.name || "User";
+            document.getElementById('p-name').innerText = d.name || "User";
+            document.getElementById('p-refer').innerText = d.referralCode || "...";
+        });
+    }
+
+    function loadSystemNotice() {
+        db.ref(`artifacts/${appId}/public/settings/notice`).on('value', s => {
+            const n = s.val(); const board = document.getElementById('notice-board');
+            if(n && board) { document.getElementById('notice-text').innerText = n; board.style.display = 'block'; }
+        });
+    }
+
+    // Hybrid Notification Logic (Public + Private)
+    function initNotificationListener() {
+        if(!currentUserId) return;
+        const badge = document.getElementById('notif-badge');
+        const container = document.getElementById('notif-list');
+        const lastChecked = localStorage.getItem('last_notif_check') || 0;
+        
+        const pubRef = db.ref(`artifacts/${appId}/public/notifications`);
+        const pvtRef = db.ref(`artifacts/${appId}/users/${currentUserId}/notifications`);
+
+        const handleNotifs = () => {
+            pubRef.once('value', pubSnap => {
+                pvtRef.once('value', pvtSnap => {
+                    const pubs = pubSnap.val() || {};
+                    const pvts = pvtSnap.val() || {};
+                    const combined = [];
+                    
+                    // Collect Public Notifs
+                    Object.keys(pubs).forEach(id => combined.push({...pubs[id], id, scope: 'public'}));
+                    // Collect Private Notifs
+                    Object.keys(pvts).forEach(id => combined.push({...pvts[id], id, scope: 'private'}));
+
+                    // Sort combined list by timestamp (descending)
+                    combined.sort((a,b) => b.timestamp - a.timestamp);
+
+                    if(!container) return;
+                    container.innerHTML = '';
+                    
+                    let hasNew = false;
+                    combined.forEach(n => {
+                        if(n.timestamp > lastChecked) hasNew = true;
+                        
+                        const isPvt = n.scope === 'private';
+                        container.innerHTML += `
+                            <div class="notif-card" style="${isPvt ? 'border-left: 5px solid #f59e0b; background: #fffbeb;' : ''}">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <h4 style="font-size:0.85rem; font-weight:800;">${n.title}</h4>
+                                    <span style="font-size:0.5rem; padding:2px 6px; border-radius:5px; background:${isPvt ? '#fef3c7' : '#eef2ff'}; color:${isPvt ? '#92400e' : '#4338ca'}; font-weight:800; border: 1px solid rgba(0,0,0,0.05);">
+                                        ${isPvt ? 'PRIVATE' : 'PUBLIC'}
+                                    </span>
+                                </div>
+                                <p style="font-size:0.75rem; color:#64748b; margin-top:5px;">${n.message}</p>
+                                <small style="font-size:0.6rem; color:#94a3b8; display:block; margin-top:8px;">${new Date(n.timestamp).toLocaleString()}</small>
+                            </div>
+                        `;
+                    });
+                    
+                    if(combined.length === 0) container.innerHTML = `<p style="text-align:center; padding:20px; font-size:0.8rem; color:var(--text-p);">${translations[currentLang].noNotif}</p>`;
+                    badge.style.display = hasNew ? 'block' : 'none';
+                });
+            });
+        };
+
+        // Re-run listener on any value change
+        pubRef.on('value', handleNotifs);
+        pvtRef.on('value', handleNotifs);
+    }
+
+    function openNotifications() {
+        localStorage.setItem('last_notif_check', Date.now());
+        document.getElementById('notif-badge').style.display = 'none';
+        showView('notification-view');
+    }
+
+    function loadAllTasks() {
+        db.ref(`artifacts/${appId}/public/data/microtasks`).on('value', taskSnap => {
+            const tasks = taskSnap.val() || {};
+            db.ref(`artifacts/${appId}/public/data/submissions`).on('value', subSnap => {
+                const subs = subSnap.val() || {};
+                const container = document.getElementById('task-container');
+                if(!container) return; container.innerHTML = '';
+                Object.keys(tasks).reverse().forEach(id => {
+                    const item = tasks[id];
+                    if (item.creatorId === currentUserId) return;
+                    let mySubStatus = null;
+                    if(subs[id]) {
+                        Object.keys(subs[id]).forEach(sId => {
+                            if(subs[id][sId].userId === currentUserId) mySubStatus = subs[id][sId].status;
+                        });
+                    }
+                    if (mySubStatus === 'approved' || mySubStatus === 'rejected') return;
+                    const isPending = mySubStatus === 'pending';
+                    const t = translations[currentLang];
+                    container.innerHTML += `
+                        <div class="elite-card ${isPending ? 'pending-task' : ''}" 
+                             onclick="${isPending ? '' : `openTaskDetails('${id}')`}" 
+                             style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h4 style="font-size:0.85rem; font-weight:800;">${item.title}</h4>
+                                <p style="color:#10b981; font-weight:800; font-size:0.75rem;">+${item.reward} ${t.points}</p>
+                            </div>
+                            <div style="background:#f1f5f9; width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                ${isPending ? '🔒' : '→'}
+                            </div>
+                        </div>`;
+                });
+            });
+        });
+    }
+
+    async function openTaskDetails(id) {
+        const snap = await db.ref(`artifacts/${appId}/public/data/microtasks/${id}`).once('value');
+        const t = snap.val(); selectedTaskId = id;
+        const trans = translations[currentLang];
+        document.getElementById('detail-content').innerHTML = `
+            <h3 style="font-weight:800; margin-bottom:8px; font-size:1rem;">${t.title}</h3>
+            <span style="background:#f0fdf4; color:#10b981; font-weight:800; padding:4px 10px; border-radius:8px; font-size:0.7rem;">${trans.missionReward} ${t.reward}</span>
+            <p style="font-size:0.75rem; color:#64748b; margin:15px 0;">নির্দেশনা অনুসরণ করে মিশনটি সম্পন্ন করুন।</p>
+            <a href="${t.link}" target="_blank" class="btn-elite" style="display:block; text-align:center; text-decoration:none; margin-bottom:12px; background:#f1f5f9; color:#6366f1; box-shadow:none;">${trans.performTask}</a>
+        `;
+        showView('detail-view');
+    }
+
+    async function submitProof() {
+        const proof = document.getElementById('task-proof').value.trim();
+        if(!proof) return showToast("Proof required!");
+        await db.ref(`artifacts/${appId}/public/data/submissions/${selectedTaskId}/${Date.now()}`).set({
+            userId: currentUserId, proof, status: 'pending', timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        document.getElementById('task-proof').value = '';
+        showToast("Submitted!"); showView('list-view');
+    }
+
+    async function submitComplaint() {
+        const page = document.getElementById('complaint-page').value;
+        const details = document.getElementById('complaint-details').value.trim();
+        if(!details) return showToast("Description required!");
+        const cid = "comp_" + Date.now();
+        await db.ref(`artifacts/${appId}/public/data/complaints/${cid}`).set({
+            userId: currentUserId, userName: document.getElementById('p-name').innerText,
+            page, details, status: 'pending', reply: '', timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        showToast("Complaint submitted!"); document.getElementById('complaint-details').value = '';
+    }
+
+    function loadComplaintHistory() {
+        const container = document.getElementById('complaint-history-list');
+        const t = translations[currentLang];
+        db.ref(`artifacts/${appId}/public/data/complaints`).on('value', snap => {
+            const all = snap.val() || {}; container.innerHTML = '';
+            const myComplaints = Object.keys(all).map(k => ({id: k, ...all[k]})).filter(c => c.userId === currentUserId).sort((a,b) => b.timestamp - a.timestamp);
+            if (myComplaints.length === 0) { container.innerHTML = `<p style="text-align:center; font-size:0.7rem; color:var(--text-p); padding:15px;">${t.noComplaints}</p>`; return; }
+            myComplaints.forEach(c => {
+                const statusText = c.status === 'solved' ? t.statusSolved : t.statusPending;
+                container.innerHTML += `
+                    <div class="complaint-item" style="border-left-color: ${c.status === 'solved' ? '#10b981' : '#6366f1'}">
+                        <div class="complaint-header">
+                            <div><b>${c.page}</b><br><small style="color:var(--text-p); font-size:0.55rem;">${new Date(c.timestamp).toLocaleDateString()}</small></div>
+                            <span class="complaint-status ${c.status === 'solved' ? 'status-solved' : 'status-open'}">${statusText}</span>
+                        </div>
+                        <p style="font-size:0.7rem;">${c.details}</p>
+                        ${c.reply ? `<div class="admin-reply"><b>${t.adminReply}</b>${c.reply}</div>` : ''}
+                    </div>`;
+            });
+        });
+    }
+
+    async function claimDailyBonus() {
+        const ref = db.ref(`artifacts/${appId}/users/${currentUserId}/stats`);
+        const snap = await ref.once('value'); const now = new Date().setHours(0,0,0,0);
+        if (snap.val().lastBonusDate === now) return showToast("Already claimed today!");
+        await ref.update({ points: userPoints + 10, lastBonusDate: now });
+        showToast("Claimed 10 points!");
+    }
+
+    async function spinWheel() {
+        if (userPoints < 5) return showToast("Low points!");
+        const wheel = document.getElementById('spin-wheel');
+        wheel.style.transform = `rotate(${Math.floor(Math.random() * 3600) + 720}deg)`;
+        const win = [0, 2, 5, 10, 20, 0, 50, 5][Math.floor(Math.random() * 8)];
+        setTimeout(async () => {
+            await db.ref(`artifacts/${appId}/users/${currentUserId}/stats/points`).set(userPoints - 5 + win);
+            showToast(win > 0 ? `Won ${win} Points!` : "Try again.");
+        }, 2500);
+    }
+
+    function calculateCost() {
+        const qty = parseInt(document.getElementById('order-qty').value) || 0;
+        const total = qty * taskRates[document.getElementById('order-type').value];
+        document.getElementById('order-total').innerText = total; return total;
+    }
+
+    async function placeOrder() {
+        const title = document.getElementById('order-title').value.trim();
+        const link = document.getElementById('order-link').value.trim();
+        const qty = parseInt(document.getElementById('order-qty').value) || 0;
+        const total = calculateCost();
+        if(!title || !link || qty < 10) return showToast("Min 10 targets!");
+        if(total > userPoints) return showToast("Insufficient points!");
+        const oid = "t_" + Date.now();
+        await db.ref(`artifacts/${appId}/public/data/microtasks/${oid}`).set({
+            title, type: document.getElementById('order-type').value, link, qty, reward: Math.max(1, taskRates[document.getElementById('order-type').value] - 1), 
+            creatorId: currentUserId, timestamp: firebase.database.ServerValue.TIMESTAMP 
+        });
+        await db.ref(`artifacts/${appId}/users/${currentUserId}/stats/points`).set(userPoints - total);
+        showToast("Launched!"); showView('list-view');
+    }
+
+    function initChat() {
+        db.ref(`artifacts/${appId}/support/${currentUserId}/messages`).on('value', snap => {
+            const box = document.getElementById('chat-box'); box.innerHTML = '';
+            const msgs = snap.val() || {};
+            Object.keys(msgs).forEach(k => {
+                const m = msgs[k]; const d = document.createElement('div');
+                d.className = `bubble ${m.role === 'admin' ? 'bubble-admin' : 'bubble-me'}`; d.innerText = m.text;
+                box.appendChild(d);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    async function sendMessage() {
+        const inp = document.getElementById('chat-input'); const text = inp.value.trim(); if(!text) return;
+        await db.ref(`artifacts/${appId}/support/${currentUserId}/messages/${Date.now()}`).set({ text, role: 'user', timestamp: firebase.database.ServerValue.TIMESTAMP });
+        await db.ref(`artifacts/${appId}/support_list/${currentUserId}`).set({ lastMsg: text, name: document.getElementById('p-name').innerText, timestamp: firebase.database.ServerValue.TIMESTAMP });
+        inp.value = '';
+    }
+
+    function copyRefer() {
+        const c = document.getElementById('p-refer').innerText; if(c === "...") return;
+        const d = document.createElement("input"); document.body.appendChild(d); d.value = c; d.select(); 
+        document.execCommand("copy"); document.body.removeChild(d);
+        showToast("Copied!");
+    }
+
+    const savedLang = localStorage.getItem('elite_lang');
+    if(savedLang) currentLang = savedLang;
+    applyTranslations();
+</script>
+</body>
+</html>
+
