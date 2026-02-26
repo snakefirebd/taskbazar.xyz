@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task Bazar - Authenticate</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.85);
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --accent: #10b981;
+            --danger: #f43f5e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+        .elite-card {
+            background: var(--glass); backdrop-filter: blur(20px); border-radius: 22px; padding: 25px;
+            width: 100%; max-width: 400px; border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-elite {
+            width: 100%; padding: 14px; border: none; border-radius: 16px;
+            background: var(--p-gradient); color: white; font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s; box-shadow: var(--p-glow);
+            margin-top: 10px;
+        }
+        .btn-elite:active { transform: scale(0.97); }
+        .btn-ghost { background: #f1f5f9; color: var(--text-p); box-shadow: none; margin-top: 15px; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
+        .input-group input {
+            width: 100%; padding: 14px 18px; background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem;
+        }
+        .input-group input:focus { border-color: #6366f1; }
+
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600; display: none; z-index: 3000;
+        }
+
+        .view { display: none; }
+        .view.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<!-- Login/Signup View -->
+<div id="auth-view" class="view active">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.5rem; font-weight: 800; background: var(--p-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TaskBazar</h1>
+        <p id="tagline" style="color: var(--text-p); font-weight: 600; font-size: 0.9rem;">The Premium Micro-Task Platform</p>
+    </div>
+    
+    <div class="elite-card">
+        <div id="auth-fields">
+            <div class="input-group" id="name-box" style="display: none;">
+                <label>সম্পূর্ণ নাম</label>
+                <input type="text" id="reg-name" placeholder="আপনার নাম লিখুন">
+            </div>
+            <div class="input-group" id="refer-box" style="display: none;">
+                <label>রেফার কোড (ঐচ্ছিক)</label>
+                <input type="text" id="reg-refer" placeholder="কোড থাকলে দিন">
+            </div>
+            <div class="input-group">
+                <label>ইমেইল অ্যাড্রেস</label>
+                <input type="email" id="auth-email" placeholder="email@example.com">
+            </div>
+            <div class="input-group">
+                <label>গোপন পাসওয়ার্ড</label>
+                <input type="password" id="auth-password" placeholder="••••••••">
+            </div>
+            <button class="btn-elite" id="main-auth-btn" onclick="handleAuthAction()">Login</button>
+            
+            <!-- পাসওয়ার্ড ভুলে গেছেন বাটন -->
+            <div id="forgot-pass-box" style="text-align: center; margin-top: 15px;">
+                <span onclick="resetPassword()" style="font-size: 0.75rem; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s;">পাসওয়ার্ড ভুলে গেছেন?</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+            <p id="toggle-msg" style="font-size: 0.8rem; color: var(--text-p); font-weight: 600;">
+                New to the community? <span id="toggle-link" onclick="toggleAuthMode(true)" style="color: #6366f1; font-weight: 800; cursor: pointer;">Register Now</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Email Verification View -->
+<div id="verify-view" class="view">
+    <div class="elite-card" style="text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 20px;">📧</div>
+        <h2 style="font-weight: 800; margin-bottom: 10px;">ইমেইল ভেরিফাই করুন</h2>
+        <p style="font-size: 0.9rem; color: var(--text-p); margin-bottom: 25px;">আমরা আপনার ইমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠিয়েছি। অনুগ্রহ করে আপনার ইনবক্স চেক করুন।</p>
+        <button class="btn-elite" onclick="reloadUser()">Check Status</button>
+        <button class="btn-elite btn-ghost" onclick="resendVerification()">রিসেন্ড লিঙ্ক</button>
+        <button class="btn-elite btn-ghost" onclick="firebase.auth().signOut().then(()=>location.reload())" style="color: var(--danger);">Logout</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+
+    let isSignupMode = false;
+
+    function showToast(msg) { 
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
+    }
+
+    // লগইন এবং সাইনআপ মুড টগল
+    function toggleAuthMode(isSignup) {
+        isSignupMode = isSignup;
+        document.getElementById('name-box').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('refer-box').style.display = isSignup ? 'block' : 'none';
+        
+        // সাইনআপ এর সময় "পাসওয়ার্ড ভুলে গেছেন" লেখা হাইড করা হবে
+        document.getElementById('forgot-pass-box').style.display = isSignup ? 'none' : 'block';
+        
+        document.getElementById('main-auth-btn').innerText = isSignup ? "Create Account" : "Login";
+        document.getElementById('toggle-msg').innerHTML = isSignup ? 
+            `Already a member? <span onclick="toggleAuthMode(false)" style="color:#6366f1; font-weight:800; cursor:pointer;">Login Now</span>` : 
+            `New to the community? <span onclick="toggleAuthMode(true)" style="color:#6366f1; font-weight:800; cursor:pointer;">Register Now</span>`;
+    }
+
+    // পাসওয়ার্ড রিসেট ফাংশন
+    async function resetPassword() {
+        const email = document.getElementById('auth-email').value.trim();
+        if (!email) {
+            return showToast("প্রথমে ইমেইল বক্সে আপনার ইমেইলটি লিখুন!");
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showToast("পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে! 📧");
+        } catch (err) {
+            let msg = err.message;
+            if(err.code === 'auth/user-not-found') msg = "এই ইমেইলে কোন অ্যাকাউন্ট নেই!";
+            if(err.code === 'auth/invalid-email') msg = "সঠিক ইমেইল অ্যাড্রেস দিন!";
+            showToast(msg);
+        }
+    }
+
+    // রেফারেল কোড চেক করে বোনাস দেওয়া
+    async function processReferral(referCode, newUserId, newUserName) {
+        if (!referCode) return;
+        
+        try {
+            const usersRef = db.ref(`artifacts/${appId}/users`);
+            const snapshot = await usersRef.once('value');
+            const allUsers = snapshot.val();
+            
+            if (allUsers) {
+                // সব ইউজারের মধ্যে কার রেফার কোড মিলছে তা খোঁজা
+                for (const uid in allUsers) {
+                    const userData = allUsers[uid].stats;
+                    if (userData && userData.referralCode === referCode) {
+                        
+                        // রেফারারের (যে রেফার করেছে) বর্তমান পয়েন্ট নিয়ে আসা
+                        const currentPoints = userData.points || 0;
+                        const bonusAmount = 50; // রেফারেল বোনাস 
+                        
+                        // রেফারারের পয়েন্ট আপডেট করা
+                        await db.ref(`artifacts/${appId}/users/${uid}/stats/points`).set(currentPoints + bonusAmount);
+                        
+                        // রেফারারের ট্রানজেকশন হিস্ট্রিতে যুক্ত করা
+                        await db.ref(`artifacts/${appId}/users/${uid}/transactions`).push({
+                            type: 'referral', 
+                            amount: bonusAmount, 
+                            desc: `Referral Bonus (Joined: ${newUserName})`, 
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+
+                        // রেফারারের নোটিফিকেশন পাঠানো
+                        await db.ref(`artifacts/${appId}/users/${uid}/notifications`).push({
+                            title: 'রেফারেল বোনাস! 🎁',
+                            message: `আপনার রেফার কোড ব্যবহার করে ${newUserName} জয়েন করেছে। আপনি ${bonusAmount} পয়েন্ট বোনাস পেয়েছেন!`,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+
+                        console.log("Referral bonus processed successfully!");
+                        break; // কাজ শেষ, লুপ থেকে বেরিয়ে আসা
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error processing referral: ", error);
+        }
+    }
+
+    async function handleAuthAction() {
+        const e = document.getElementById('auth-email').value.trim();
+        const p = document.getElementById('auth-password').value.trim();
+        if (!e || p.length < 6) return showToast("Email & 6-char password required!");
+        
+        try {
+            if (isSignupMode) {
+                const n = document.getElementById('reg-name').value.trim();
+                const rCode = document.getElementById('reg-refer').value.trim(); // রেফার কোড নেওয়া
+                
+                if (!n) return showToast("Name required!");
+                const res = await auth.createUserWithEmailAndPassword(e, p);
+                await res.user.sendEmailVerification();
+                
+                // ইউজারের নিজস্ব ডাটা তৈরি
+                await db.ref(`artifacts/${appId}/users/${res.user.uid}/stats`).set({
+                    name: n, 
+                    points: 50, // সাইন আপ বোনাস
+                    referralCode: res.user.uid.substring(0, 6).toUpperCase(), 
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                // রেফারেল লজিক কল করা
+                if (rCode) {
+                    await processReferral(rCode, res.user.uid, n);
+                }
+
+                showToast("Verification email sent!");
+                document.getElementById('auth-view').classList.remove('active');
+                document.getElementById('verify-view').classList.add('active');
+            } else { 
+                await auth.signInWithEmailAndPassword(e, p);
+                // logic handled by onAuthStateChanged
+            }
+        } catch (err) { 
+            let errorMsg = err.message;
+            if(err.code === 'auth/wrong-password') errorMsg = "পাসওয়ার্ড ভুল হয়েছে!";
+            if(err.code === 'auth/user-not-found') errorMsg = "এই ইমেইলে কোন অ্যাকাউন্ট নেই!";
+            if(err.code === 'auth/email-already-in-use') errorMsg = "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!";
+            showToast(errorMsg); 
+        }
+    }
+
+    async function reloadUser() {
+        const user = auth.currentUser;
+        if (user) {
+            await user.reload();
+            if (user.emailVerified) { window.location.href = 'index.html'; } 
+            else { showToast("Please verify email first."); }
+        }
+    }
+
+    async function resendVerification() {
+        const user = auth.currentUser;
+        if (user) {
+            try { await user.sendEmailVerification(); showToast("Verification email resent!"); } 
+            catch (err) { showToast(err.message); }
+        }
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            if (user.emailVerified) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('auth-view').classList.remove('active');
+                document.getElementById('verify-view').classList.add('active');
+            }
+        }
+    });
+</script>
+</body>
+</html>
+
+
