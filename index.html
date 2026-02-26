@@ -149,7 +149,8 @@
     <!-- আপডেট করা হেডার সেকশন -->
     <div class="header">
         <div class="header-content">
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- লগ-ইন করা ইউজারদের প্রোফাইল অংশ -->
+            <div id="header-profile-info" style="display: flex; align-items: center; gap: 8px;">
                 <div class="avatar-frame" onclick="location.href='profile.html'">
                     <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                 </div>
@@ -157,6 +158,11 @@
                     <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Elite Member</h2>
                     <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
                 </div>
+            </div>
+
+            <!-- গেস্ট ইউজারদের জন্য লগইন বাটন (প্রাথমিকভাবে লুকানো থাকবে) -->
+            <div id="header-login-btn" style="display: none; align-items: center;">
+                <button onclick="location.href='login.html'" style="background: white; color: #6366f1; border: none; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Login</button>
             </div>
 
             <div style="display:flex; align-items:center; gap:8px;">
@@ -341,7 +347,8 @@
     function hideAuthPopup() {
         document.getElementById('auth-popup-overlay').style.display = 'none';
         clearTimeout(authPopupTimer);
-        authPopupTimer = setTimeout(showAuthPopup, 15000);
+        // ১৫০০০ এর বদলে ৬০০০০ (১ মিনিট) করে দিন
+        authPopupTimer = setTimeout(showAuthPopup, 60000); 
     }
 
     function requireAuth() {
@@ -396,9 +403,16 @@
         loadSystemNotice(); 
         loadAllTasks();
 
+        const profileInfo = document.getElementById('header-profile-info');
+        const loginBtn = document.getElementById('header-login-btn');
+
         if (user && user.emailVerified) {
             localStorage.setItem('isLoggedIn', 'true');
             currentUserId = user.uid;
+            
+            // ইউজার লগ-ইন থাকলে প্রোফাইল দেখাবে এবং লগইন বাটন লুকাবে
+            if(profileInfo) profileInfo.style.display = 'flex';
+            if(loginBtn) loginBtn.style.display = 'none';
             
             syncUserData(); 
             initNotificationListener();
@@ -408,7 +422,11 @@
         } else {
             localStorage.removeItem('isLoggedIn');
             currentUserId = null;
-            document.getElementById('user-display-name').innerText = "Guest User";
+            
+            // ইউজার লগ-ইন না থাকলে প্রোফাইল লুকাবে এবং লগইন বাটন দেখাবে
+            if(profileInfo) profileInfo.style.display = 'none';
+            if(loginBtn) loginBtn.style.display = 'flex';
+
             document.getElementById('user-points').innerText = "0";
             
             showAuthPopup();
@@ -557,14 +575,33 @@
         showToast("Submitted!"); showView('list-view');
     }
 
-    async function claimDailyBonus() {
-        if(!requireAuth()) return;
-        const ref = db.ref(`artifacts/${appId}/users/${currentUserId}/stats`);
-        const snap = await ref.once('value'); const now = new Date().setHours(0,0,0,0);
-        if (snap.val().lastBonusDate === now) return showToast("Already claimed today!");
-        await ref.update({ points: userPoints + 10, lastBonusDate: now });
-        showToast("Claimed 10 points!");
+async function claimDailyBonus() {
+    if(!requireAuth()) return;
+    
+    try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('https://taskbajar-backend.vercel.app/api/daily-bonus', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showToast(data.error || "Something went wrong!");
+            return;
+        }
+
+        showToast(data.message);
+        
+    } catch (error) {
+        showToast("Network Error!");
     }
+}
+
 
     function initChat() {
         if(!requireAuth()) return;
@@ -670,5 +707,4 @@ async function enhancedSpinWheel() {
 </script>
 </body>
 </html>
-
 

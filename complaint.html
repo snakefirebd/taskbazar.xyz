@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Support & Complaints - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.85);
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --danger: #f43f5e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-h); padding-bottom: 120px; line-height: 1.6; }
+
+        /* হেডার স্টাইল (index.html থেকে) */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .header-lang-switch {
+            display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+        }
+        .h-lang-btn {
+            padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6);
+        }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill {
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px;
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; flex-shrink: 0;
+        }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .notif-btn { position: relative; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; }
+
+        /* কন্টেন্ট এরিয়া */
+        .container { padding: 18px; max-width: 480px; margin: 0 auto; }
+        .elite-card { background: white; border-radius: 22px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
+        
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
+        .input-group select, .input-group textarea { width: 100%; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; outline: none; font-size: 0.9rem; }
+        
+        .btn-elite { width: 100%; padding: 14px; border: none; border-radius: 16px; background: var(--p-gradient); color: white; font-weight: 700; cursor: pointer; box-shadow: var(--p-glow); }
+
+        .complaint-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #6366f1; }
+        .status-badge { font-size: 0.6rem; padding: 3px 8px; border-radius: 5px; font-weight: 800; float: right; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-solved { background: #dcfce7; color: #166534; }
+
+        /* নতুন নেভিগেশন স্টাইল (index.html থেকে) */
+        .nav-bar-container {
+            position: fixed; bottom: 15px; left: 15px; right: 15px;
+            z-index: 1000; display: flex; flex-direction: column; gap: 10px;
+        }
+        .expanded-menu {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 12px; display: flex; gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff;
+            opacity: 0; transform: translateY(20px); pointer-events: none;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        
+        .nav-bar {
+            height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; display: flex; align-items: center; justify-content: space-around;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; white-space: nowrap; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; display: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- আপডেট করা হেডার সেকশন -->
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame" onclick="location.href='profile.html'">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Member</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="notif-btn" onclick="openNotifications()">
+                🔔 <div id="notif-badge" class="notif-badge"></div>
+            </div>
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span>Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 style="font-size: 1rem; font-weight: 800; margin: 15px 0 10px 5px;">অভিযোগ কেন্দ্র</h3>
+    <div class="elite-card">
+        <div class="input-group">
+            <label>কোন পেজে সমস্যা হচ্ছে?</label>
+            <select id="complaint-page">
+                <option value="Home/Missions">Home / Missions</option>
+                <option value="Promote">Promote Page</option>
+                <option value="Profile">Profile Page</option>
+                <option value="Spin/Bonus">Spin / Daily Bonus</option>
+                <option value="Payment">Payment/Withdraw</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>বিস্তারিত লিখুন</label>
+            <textarea id="complaint-details" rows="4" placeholder="আপনার সমস্যাটি বিস্তারিত লিখুন..."></textarea>
+        </div>
+        <button class="btn-elite" onclick="submitComplaint()">অভিযোগ জমা দিন 🚀</button>
+    </div>
+
+    <h3 style="font-size: 0.9rem; font-weight: 800; margin: 20px 0 10px 5px;">আমার অভিযোগের ইতিহাস</h3>
+    <div id="history-list"></div>
+</div>
+
+<!-- আপডেট করা ফুটার (নেভিগেশন বার) সেকশন -->
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="leaderboard.html" class="nav-item">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;">Leaderboard</span>
+        </a>
+        
+        <a href="complaint.html" class="nav-item active">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span>Missions</span></a>
+        <a href="order.html" class="nav-item"><i>🚀</i><span>Promote</span></a>
+        <a href="profile.html" class="nav-item"><i>👤</i><span>Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span>Menu</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+
+    let currentUserId = null;
+
+    function showToast(msg) {
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // নতুন মেনু এবং নোটিফিকেশন ফাংশন
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        
+        if(container.classList.contains('open')) {
+            icon.style.transform = 'rotate(45deg)';
+        } else {
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function openNotifications() {
+        showToast("নোটিফিকেশন দেখতে হোম পেইজে যান।");
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+    }
+
+    function setLang(lang) {
+        document.querySelectorAll('.h-lang-btn').forEach(b => b.classList.remove('active'));
+        if(document.getElementById(`h-btn-${lang}`)) document.getElementById(`h-btn-${lang}`).classList.add('active');
+        localStorage.setItem('elite_lang', lang);
+        showToast("Language changed to " + lang.toUpperCase());
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            syncUserData();
+            loadComplaintHistory();
+        } else {
+            location.href = 'index.html';
+        }
+    });
+
+    function syncUserData() {
+        db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).on('value', snap => {
+            const d = snap.val() || {};
+            document.getElementById('user-points').innerText = d.points || 0;
+            document.getElementById('user-display-name').innerText = d.name || "Member";
+            
+            const avatarImg = document.getElementById('top-avatar');
+            const defaultIcon = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            
+            if(d.avatar && d.avatar !== "" && d.avatar !== "null" && d.avatar !== "undefined") {
+                avatarImg.src = d.avatar;
+            } else {
+                avatarImg.src = defaultIcon;
+            }
+
+            avatarImg.onerror = function() {
+                this.src = defaultIcon;
+            };
+        });
+    }
+
+    async function submitComplaint() {
+        const page = document.getElementById('complaint-page').value;
+        const details = document.getElementById('complaint-details').value.trim();
+        if(!details) return showToast("বিবরণ লিখুন!");
+
+        const cid = "comp_" + Date.now();
+        try {
+            await db.ref(`artifacts/${appId}/public/data/complaints/${cid}`).set({
+                userId: currentUserId,
+                page: page,
+                details: details,
+                status: 'pending',
+                reply: '',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            showToast("অভিযোগ জমা হয়েছে!");
+            document.getElementById('complaint-details').value = '';
+        } catch (e) { showToast("ত্রুটি হয়েছে!"); }
+    }
+
+    function loadComplaintHistory() {
+        const container = document.getElementById('history-list');
+        db.ref(`artifacts/${appId}/public/data/complaints`).on('value', snap => {
+            const all = snap.val() || {};
+            container.innerHTML = '';
+            const myComplaints = Object.keys(all)
+                .map(k => ({id: k, ...all[k]}))
+                .filter(c => c.userId === currentUserId)
+                .sort((a,b) => b.timestamp - a.timestamp);
+
+            if (myComplaints.length === 0) {
+                container.innerHTML = '<p style="text-align:center; font-size:0.75rem; color:#64748b; padding:20px;">কোন ইতিহাস পাওয়া যায়নি।</p>';
+                return;
+            }
+
+            myComplaints.forEach(c => {
+                const isSolved = c.status === 'solved';
+                container.innerHTML += `
+                    <div class="complaint-item" style="border-left-color: ${isSolved ? '#10b981' : '#6366f1'}">
+                        <span class="status-badge ${isSolved ? 'status-solved' : 'status-pending'}">
+                            ${isSolved ? 'SOLVED' : 'PENDING'}
+                        </span>
+                        <div style="font-size:0.85rem; font-weight:800;">${c.page}</div>
+                        <div style="font-size:0.55rem; color:#94a3b8; margin-bottom:8px;">${new Date(c.timestamp).toLocaleString()}</div>
+                        <p style="font-size:0.75rem; color:#475569;">${c.details}</p>
+                        ${c.reply ? `<div style="margin-top:10px; padding:10px; background:#f8fafc; border-radius:10px; font-size:0.7rem; border:1px dashed #cbd5e1;\"><b>Admin:</b> ${c.reply}</div>` : ''}
+                    </div>`;
+            });
+        });
+    }
+
+    // ল্যাঙ্গুয়েজ প্রেফারেন্স লোড করা
+    const savedLang = localStorage.getItem('elite_lang') || 'bn';
+    setLang(savedLang);
+</script>
+</body>
+</html>
+

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leaderboard - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg: #f8fafc;
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --gold: #fbbf24;
+            --danger: #f43f5e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-h); padding-bottom: 170px; }
+
+        /* হেডার স্টাইল (index.html থেকে কপি করা) */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .header-lang-switch {
+            display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+        }
+        .h-lang-btn {
+            padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6);
+        }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill {
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px;
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; flex-shrink: 0;
+        }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .notif-btn { position: relative; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; }
+
+
+        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; position: relative; z-index: 5; }
+        
+        /* টপ ৩ ডিজাইন */
+        .top-three {
+            display: flex; justify-content: center; align-items: flex-end;
+            gap: 12px; margin-bottom: 30px; min-height: 140px;
+        }
+        .top-user { text-align: center; position: relative; flex: 1; transition: 0.3s; }
+        .top-user img { 
+            width: 60px; height: 60px; border-radius: 50%; 
+            border: 3px solid white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); background: #eee;
+        }
+        .top-user.first img { 
+            width: 85px; height: 85px; border: 4px solid var(--gold); 
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+        }
+        .crown { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+        .top-name { font-size: 0.7rem; font-weight: 800; margin-top: 8px; color: var(--text-h); }
+        .top-pts { font-size: 0.65rem; font-weight: 800; color: #6366f1; }
+
+        /* লিডারবোর্ড লিস্ট */
+        .leaderboard-card { background: white; border-radius: 28px; padding: 10px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        
+        .user-row {
+            display: flex; align-items: center; gap: 12px; padding: 14px 12px;
+            border-bottom: 1px solid #f1f5f9; transition: 0.2s;
+        }
+        .user-row:last-child { border-bottom: none; }
+        .user-row.highlight { background: #f5f3ff; border-radius: 18px; border-bottom: none; transform: scale(1.01); }
+        
+        .rank-badge {
+            width: 30px; height: 30px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.85rem; background: #f1f5f9; color: var(--text-p);
+        }
+        .rank-1 { background: #fffbeb; color: #92400e; border: 1px solid #fbbf24; }
+        .rank-2 { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; }
+        .rank-3 { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+
+        .user-img { width: 42px; height: 42px; border-radius: 14px; object-fit: cover; background: #f1f5f9; }
+        .user-info-box { flex: 1; min-width: 0; }
+        .user-name { font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-h); }
+        .user-tasks { font-size: 0.6rem; color: var(--text-p); font-weight: 700; text-transform: uppercase; }
+
+        .user-points { text-align: right; font-weight: 800; color: #6366f1; font-size: 1rem; }
+        .user-points span { display: block; font-size: 0.55rem; color: var(--text-p); text-transform: uppercase; opacity: 0.7; }
+
+        /* মাই র‍্যাঙ্ক বার */
+        .my-rank-bar {
+            position: fixed; bottom: 95px; left: 15px; right: 15px;
+            background: #1e293b; color: white; padding: 14px 18px;
+            border-radius: 22px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25); z-index: 100;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp { from { transform: translateY(120px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .share-btn {
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            padding: 6px 12px; border-radius: 10px; font-size: 0.65rem; font-weight: 800;
+            cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+
+        /* নতুন নেভিগেশন স্টাইল */
+        .nav-bar-container {
+            position: fixed; bottom: 15px; left: 15px; right: 15px;
+            z-index: 1000; display: flex; flex-direction: column; gap: 10px;
+        }
+        .expanded-menu {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 12px; display: flex; gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff;
+            opacity: 0; transform: translateY(20px); pointer-events: none;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        
+        .nav-bar {
+            height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; display: flex; align-items: center; justify-content: space-around;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; }
+        .nav-item.active { color: #6366f1; }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- আপডেট করা হেডার সেকশন (index.html থেকে) -->
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame" onclick="location.href='profile.html'">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Guest User</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="notif-btn" onclick="openNotifications()">
+                🔔 <div id="notif-badge" class="notif-badge"></div>
+            </div>
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span data-i18n="points">Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">🏆 Leaderboard</h2>
+        <p style="font-size: 0.7rem; color: #64748b; font-weight: 600;">Top 20 Performers of TaskBazar</p>
+    </div>
+
+    <div id="top-three" class="top-three"></div>
+    <div class="leaderboard-card" id="leaderboard-list">
+        <p style="text-align: center; padding: 30px; font-size: 0.8rem; color: var(--text-p);">Loading rankings...</p>
+    </div>
+</div>
+
+<div id="my-rank-bar" class="my-rank-bar" style="display: none;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="my-rank-num" style="background: var(--p-gradient); padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 0.85rem;">#--</div>
+        <div>
+            <div style="font-weight: 800; font-size: 0.85rem;">You</div>
+            <div id="my-pts-sub" style="font-size: 0.6rem; color: #94a3b8;">0 Points</div>
+        </div>
+    </div>
+    <button class="share-btn" onclick="shareRank()">
+        <i>🔗</i> SHARE
+    </button>
+</div>
+
+<!-- ফুটার (নেভিগেশন বার) সেকশন -->
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="leaderboard.html" class="nav-item active">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;">Leaderboard</span>
+        </a>
+        
+        <a href="complaint.html" class="nav-item">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span>Missions</span></a>
+        <a href="order.html" class="nav-item"><i>🚀</i><span>Promote</span></a>
+        <a href="profile.html" class="nav-item"><i>👤</i><span>Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span>Menu</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    const appId = "exchange-project-d4028";
+    const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    function showToast(msg) {
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // হেডারের ল্যাঙ্গুয়েজ এবং নোটিফিকেশন বাটন সাপোর্ট
+    function setLang(lang) {
+        document.querySelectorAll('.h-lang-btn').forEach(b => b.classList.remove('active'));
+        if(document.getElementById(`h-btn-${lang}`)) document.getElementById(`h-btn-${lang}`).classList.add('active');
+        localStorage.setItem('elite_lang', lang);
+    }
+
+    function openNotifications() {
+        showToast("নোটিফিকেশন দেখতে হোম পেইজে যান।");
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+    }
+
+    // হেডারে ইউজার ডাটা (নাম, ছবি, পয়েন্ট) আপডেট করা
+    function syncUserData(uid) {
+        db.ref(`artifacts/${appId}/users/${uid}/stats`).on('value', snap => {
+            const d = snap.val() || {};
+            document.getElementById('user-points').innerText = d.points || 0;
+            document.getElementById('user-display-name').innerText = d.name || "User";
+            
+            const avatarImg = document.getElementById('top-avatar');
+            if(d.avatar && d.avatar !== "null" && d.avatar !== "undefined") {
+                avatarImg.src = d.avatar;
+            }
+        });
+    }
+
+    function shareRank() {
+        const rank = document.getElementById('my-rank-num').innerText;
+        const pts = document.getElementById('my-pts-sub').innerText;
+        const text = `I am ranked ${rank} on TaskBazar with ${pts}! Join me and start earning.`;
+        if (navigator.share) {
+            navigator.share({ title: 'TaskBazar Rank', text: text, url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(text); showToast("Rank copied to clipboard!");
+        }
+    }
+
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        
+        if(container.classList.contains('open')) {
+            icon.style.transform = 'rotate(45deg)';
+        } else {
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function loadLeaderboard() {
+        const listDiv = document.getElementById('leaderboard-list');
+        const topThreeDiv = document.getElementById('top-three');
+        const myRankBar = document.getElementById('my-rank-bar');
+
+        db.ref(`artifacts/${appId}/users`).orderByChild('stats/points').limitToLast(50).on('value', snap => {
+            let users = [];
+            snap.forEach(userSnap => {
+                const data = userSnap.val();
+                if (data.stats) {
+                    users.push({
+                        uid: userSnap.key,
+                        name: data.stats.name || "User",
+                        points: data.stats.points || 0,
+                        tasks: data.stats.tasksCompleted || 0,
+                        avatar: data.stats.avatar || defaultAvatar
+                    });
+                }
+            });
+
+            users.sort((a, b) => b.points - a.points);
+
+            // টপ ৩ রেন্ডারিং
+            topThreeDiv.innerHTML = '';
+            if(users.length >= 3) {
+                const topOrder = [users[1], users[0], users[2]]; // ২য়, ১ম, ৩য়
+                topOrder.forEach((u, i) => {
+                    topThreeDiv.innerHTML += `
+                        <div class="top-user ${i === 1 ? 'first' : ''}">
+                            ${i === 1 ? '<div class="crown">👑</div>' : ''}
+                            <img src="${u.avatar}" onerror="this.src='${defaultAvatar}'">
+                            <div class="top-name">${u.name.split(' ')[0]}</div>
+                            <div class="top-pts">${u.points} Pts</div>
+                        </div>`;
+                });
+            }
+
+            // নিজের র‍্যাঙ্ক আপডেট
+            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
+            if(currentUid) {
+                const myIdx = users.findIndex(u => u.uid === currentUid);
+                if(myIdx !== -1) {
+                    myRankBar.style.display = 'flex';
+                    document.getElementById('my-rank-num').innerText = `#${myIdx + 1}`;
+                    document.getElementById('my-pts-sub').innerText = `${users[myIdx].points} Points`;
+                }
+            }
+
+            // মেইন লিস্ট
+            listDiv.innerHTML = '';
+            users.slice(0, 20).forEach((user, index) => {
+                const rank = index + 1;
+                const isMe = user.uid === currentUid;
+                let rankClass = '';
+                if(rank === 1) rankClass = 'rank-1';
+                else if(rank === 2) rankClass = 'rank-2';
+                else if(rank === 3) rankClass = 'rank-3';
+
+                listDiv.innerHTML += `
+                    <div class="user-row ${isMe ? 'highlight' : ''}">
+                        <div class="rank-badge ${rankClass}">${rank}</div>
+                        <img src="${user.avatar}" class="user-img" onerror="this.src='${defaultAvatar}'">
+                        <div class="user-info-box">
+                            <div class="user-name">${user.name} ${isMe ? '⭐' : ''}</div>
+                            <div class="user-tasks">${user.tasks} Missions Completed</div>
+                        </div>
+                        <div class="user-points">
+                            ${user.points}
+                            <span>Points</span>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    auth.onAuthStateChanged((user) => {
+        if(user) {
+            syncUserData(user.uid); // হেডারে লাইভ ডাটা দেখানোর জন্য
+        }
+        loadLeaderboard();
+    });
+</script>
+</body>
+</html>
+
+

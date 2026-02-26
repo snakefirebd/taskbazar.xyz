@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profile - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --danger: #f43f5e;
+            --accent: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; overflow-x: hidden; }
+
+        /* হেডার স্টাইল */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        
+        .avatar-frame img, .big-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        img[src=""], img:not([src]) { opacity: 0; }
+
+        .notif-btn { position: relative; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; }
+
+        .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        /* প্রোফাইল কন্টেন্ট */
+        .container { padding: 0 18px; max-width: 480px; margin: -15px auto 0; position: relative; z-index: 5; }
+        .profile-card { background: white; border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .big-avatar { width: 90px; height: 90px; border-radius: 30px; margin: 0 auto 15px; border: 3px solid white; box-shadow: 0 8px 20px rgba(99,102,241,0.2); overflow: hidden; background: #f1f5f9; position: relative; }
+        
+        .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #6366f1; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; border: 2px solid white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .stat-box { background: #f8fafc; padding: 15px; border-radius: 20px; border: 1px solid #e2e8f0; }
+        .stat-box span { display: block; font-size: 0.65rem; font-weight: 800; color: var(--text-p); text-transform: uppercase; }
+        .stat-box b { font-size: 1.1rem; color: #6366f1; }
+
+        /* রেফারেল বক্স */
+        .referral-box { margin-top: 20px; background: #f0fdf4; border: 1px dashed #10b981; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .referral-box span { font-size: 0.65rem; font-weight: 800; color: #166534; text-transform: uppercase; }
+        .referral-box b { display: block; font-size: 1.2rem; color: #10b981; letter-spacing: 2px; }
+        .btn-copy { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+        .btn-copy:active { transform: scale(0.95); }
+
+        /* হিস্ট্রি সেকশন */
+        .history-section { margin-top: 25px; text-align: left; }
+        .history-section h3 { font-size: 0.95rem; font-weight: 800; color: #1e293b; margin-bottom: 15px; margin-left: 5px; }
+        .history-item { background: #f8fafc; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f1f5f9; }
+        .history-icon { width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .history-details h4 { font-size: 0.8rem; font-weight: 800; color: #0f172a; }
+        .history-details p { font-size: 0.6rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+        .amt-plus { color: #10b981; font-weight: 800; font-size: 0.9rem; }
+        .amt-minus { color: #f43f5e; font-weight: 800; font-size: 0.9rem; }
+        .btn-more-history { width: 100%; background: #f1f5f9; border: 1px dashed #cbd5e1; color: #64748b; font-weight: 800; font-size: 0.75rem; padding: 10px; border-radius: 12px; cursor: pointer; margin-top: 5px; transition: 0.2s; }
+        .btn-more-history:active { transform: scale(0.98); }
+
+        /* মডাল স্টাইল */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; width: 100%; max-width: 350px; border-radius: 22px; padding: 20px; text-align: left; animation: popUp 0.3s ease-out; }
+        .modal-history-content { background: white; width: 100%; max-width: 400px; border-radius: 22px; padding: 20px; text-align: left; animation: popUp 0.3s ease-out; max-height: 80vh; display: flex; flex-direction: column; }
+        
+        @keyframes popUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
+        .input-group input { width: 100%; padding: 12px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 0.85rem; }
+        .btn-save { width: 100%; padding: 12px; border: none; border-radius: 12px; background: var(--p-gradient); color: white; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        .btn-cancel { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #f1f5f9; color: var(--text-p); font-weight: 800; cursor: pointer; margin-top: 10px; }
+
+        /* কাস্টম স্ক্রলবার হিস্ট্রির জন্য */
+        #full-transaction-list::-webkit-scrollbar { width: 5px; }
+        #full-transaction-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* নেভিগেশন বার */
+        .nav-bar-container { position: fixed; bottom: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .expanded-menu { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 12px; display: flex; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff; opacity: 0; transform: translateY(20px); pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .nav-bar { height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; white-space: nowrap; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<!-- এডিট প্রোফাইল মডাল -->
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="lang-edit-title" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 15px; color: #0f172a;">Edit Profile</h3>
+        <div class="input-group">
+            <label id="lang-edit-name">আপনার নাম</label>
+            <input type="text" id="edit-name" placeholder="Enter full name">
+        </div>
+        <div class="input-group">
+            <label id="lang-edit-avatar">প্রোফাইল ছবির লিংক (URL)</label>
+            <input type="url" id="edit-avatar" placeholder="https://example.com/image.png">
+        </div>
+        <button class="btn-save" onclick="saveProfile()" id="lang-btn-save">Save Changes</button>
+        <button class="btn-cancel" onclick="closeEditModal()" id="lang-btn-cancel">Cancel</button>
+    </div>
+</div>
+
+<!-- সম্পূর্ণ হিস্ট্রি মডাল -->
+<div id="history-modal" class="modal-overlay">
+    <div class="modal-history-content">
+        <h3 id="lang-full-history-title" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 15px; color: #0f172a;">Transaction History</h3>
+        
+        <div id="full-transaction-list" style="overflow-y: auto; flex: 1; padding-right: 5px; margin-bottom: 10px;">
+            <!-- সমস্ত হিস্ট্রি এখানে লোড হবে -->
+        </div>
+
+        <button class="btn-cancel" onclick="closeHistoryModal()" id="lang-btn-history-close">Close History</button>
+    </div>
+</div>
+
+<!-- হেডার -->
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Member</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="notif-btn" onclick="openNotifications()">
+                🔔 <div id="notif-badge" class="notif-badge"></div>
+            </div>
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span id="lang-header-points">Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="profile-card">
+        <div style="position: relative; display: inline-block; margin-bottom: 15px;">
+            <div class="big-avatar" style="margin-bottom: 0;">
+                <img id="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div class="edit-badge" onclick="openEditModal()">✏️</div>
+        </div>
+        
+        <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <h2 id="user-name-main" style="font-size: 1.2rem; font-weight: 800; color: #0f172a;">Loading...</h2>
+        </div>
+        
+        <p id="user-email" style="font-size: 0.75rem; color: var(--text-p); font-weight: 600;">••••@gmail.com</p>
+        <p style="font-size: 0.65rem; color: #94a3b8; font-weight: 600; margin-top: 3px;"><span id="lang-join">Joined:</span> <span id="user-join-date">Loading...</span></p>
+        
+        <div class="stat-grid">
+            <div class="stat-box"><span id="lang-points-text">Total Points</span><b id="stat-points">0</b></div>
+            <div class="stat-box"><span id="lang-tasks-text">Tasks Done</span><b id="stat-tasks">0</b></div>
+        </div>
+
+        <div class="referral-box">
+            <div>
+                <span id="lang-refer-text">Your Referral Code</span>
+                <b id="referral-code">------</b>
+            </div>
+            <button class="btn-copy" onclick="copyReferral()" id="lang-btn-copy">Copy</button>
+        </div>
+
+        <!-- হিস্ট্রি সেকশন (শুধুমাত্র লেটেস্ট দেখাবে) -->
+        <div class="history-section">
+            <h3 id="lang-history-title">Recent Transactions</h3>
+            <div id="latest-transaction">
+                <p style="text-align: center; font-size: 0.75rem; color: #94a3b8; padding: 10px;">Loading history...</p>
+            </div>
+            <button id="lang-btn-more-history" class="btn-more-history" style="display: none;" onclick="openHistoryModal()">
+                View More History ⬇
+            </button>
+        </div>
+
+        <button onclick="auth.signOut()" id="lang-btn-logout" style="margin-top:25px; width:100%; padding:12px; border-radius:15px; border:1px solid #fee2e2; background:#fff5f5; color:var(--danger); font-weight:800; font-size:0.8rem; cursor:pointer; transition: 0.2s;">
+            Logout Account
+        </button>
+    </div>
+</div>
+
+<!-- ফুটার (নেভিগেশন বার) -->
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="leaderboard.html" class="nav-item">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;">Leaderboard</span>
+        </a>
+        <a href="complaint.html" class="nav-item">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span>Missions</span></a>
+        <a href="order.html" class="nav-item"><i>🚀</i><span>Promote</span></a>
+        <a href="profile.html" class="nav-item active"><i>👤</i><span>Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span>Menu</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+    const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    let currentAvatarUrl = "";
+    let currentUserId = null;
+
+    function showToast(msg) { 
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
+    }
+
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        icon.style.transform = container.classList.contains('open') ? 'rotate(45deg)' : 'rotate(0deg)';
+    }
+
+    function openNotifications() {
+        showToast("নোটিফিকেশন দেখতে হোম পেইজে যান।");
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+    }
+
+    // প্রোফাইল এডিট লজিক
+    function openEditModal() {
+        document.getElementById('edit-name').value = document.getElementById('user-name-main').innerText;
+        document.getElementById('edit-avatar').value = currentAvatarUrl && currentAvatarUrl !== "null" ? currentAvatarUrl : "";
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    // ফুল হিস্ট্রি মডাল লজিক
+    function openHistoryModal() {
+        document.getElementById('history-modal').style.display = 'flex';
+    }
+
+    function closeHistoryModal() {
+        document.getElementById('history-modal').style.display = 'none';
+    }
+
+    async function saveProfile() {
+        const newName = document.getElementById('edit-name').value.trim();
+        const newAvatar = document.getElementById('edit-avatar').value.trim();
+        
+        if (!newName) return showToast("নাম ফাঁকা রাখা যাবে না!");
+        
+        try {
+            await db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).update({
+                name: newName,
+                avatar: newAvatar || defaultAvatar
+            });
+            showToast("প্রোফাইল আপডেট হয়েছে! ✅");
+            closeEditModal();
+        } catch (error) {
+            showToast("আপডেট করতে সমস্যা হয়েছে।");
+        }
+    }
+
+    // রেফারেল কপি লজিক
+    function copyReferral() {
+        const code = document.getElementById('referral-code').innerText;
+        if(code && code !== "------") {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast("Referral Code Copied! 📋");
+            });
+        }
+    }
+
+    function loadTransactionHistory() {
+        const latestDiv = document.getElementById('latest-transaction');
+        const fullListDiv = document.getElementById('full-transaction-list');
+        const moreBtn = document.getElementById('lang-btn-more-history');
+        const isBn = localStorage.getItem('elite_lang') === 'bn';
+        
+        // সর্বশেষ ২০ টি লেনদেন নিয়ে আসছি
+        db.ref(`artifacts/${appId}/users/${currentUserId}/transactions`).limitToLast(20).on('value', snap => {
+            latestDiv.innerHTML = '';
+            fullListDiv.innerHTML = '';
+            moreBtn.style.display = 'none';
+
+            const tr = snap.val();
+            const noTxHtml = `<p style="text-align: center; font-size: 0.75rem; color: #94a3b8; padding: 10px;">${isBn ? 'কোন লেনদেন পাওয়া যায়নি' : 'No transactions found'}</p>`;
+            
+            if(!tr) {
+                latestDiv.innerHTML = noTxHtml;
+                fullListDiv.innerHTML = noTxHtml;
+                return;
+            }
+
+            const trArray = Object.keys(tr).map(k => tr[k]).sort((a,b) => b.timestamp - a.timestamp);
+            
+            // যদি একাধিক হিস্ট্রি থাকে তবেই "More" বাটন দেখাবে
+            if(trArray.length > 1) {
+                moreBtn.style.display = 'block';
+            }
+
+            trArray.forEach((t, index) => {
+                const date = new Date(t.timestamp).toLocaleDateString(isBn ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const isPositive = t.amount > 0;
+                
+                // আইকন ও টাইটেল সেট আপ
+                let icon = '🔄'; let title = t.desc;
+                if(t.type === 'spin') { icon = '🎡'; title = isBn ? 'স্পিন থেকে জয়' : 'Won from Spin'; }
+                if(t.type === 'campaign') { icon = '🚀'; title = isBn ? 'ক্যাম্পেইন তৈরি' : 'Created Campaign'; }
+                if(t.type === 'bonus') { icon = '🎁'; title = isBn ? 'ডেইলি বোনাস' : 'Daily Bonus'; }
+                if(t.type === 'mission') { icon = '✅'; title = isBn ? 'মিশন সম্পন্ন' : 'Mission Completed'; }
+
+                const htmlContent = `
+                    <div class="history-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="history-icon">${icon}</div>
+                            <div class="history-details">
+                                <h4>${title}</h4>
+                                <p>${date}</p>
+                            </div>
+                        </div>
+                        <div class="${isPositive ? 'amt-plus' : 'amt-minus'}">
+                            ${isPositive ? '+' : ''}${t.amount}
+                        </div>
+                    </div>
+                `;
+
+                // সম্পূর্ণ লিস্টে সবগুলো যোগ হবে
+                fullListDiv.innerHTML += htmlContent;
+
+                // শুধুমাত্র প্রথম (Latest) আইটেমটি মেইন পেজে দেখাবে
+                if(index === 0) {
+                    latestDiv.innerHTML = htmlContent;
+                }
+            });
+        });
+    }
+
+    function setLang(lang) {
+        const isBn = lang === 'bn';
+        document.getElementById('h-btn-bn').classList.toggle('active', isBn);
+        document.getElementById('h-btn-en').classList.toggle('active', !isBn);
+        
+        // Translations
+        document.getElementById('lang-header-points').innerText = isBn ? 'পয়েন্ট' : 'Points';
+        document.getElementById('lang-join').innerText = isBn ? 'যোগদান:' : 'Joined:';
+        document.getElementById('lang-points-text').innerText = isBn ? 'মোট পয়েন্ট' : 'Total Points';
+        document.getElementById('lang-tasks-text').innerText = isBn ? 'সম্পন্ন মিশন' : 'Tasks Done';
+        document.getElementById('lang-refer-text').innerText = isBn ? 'আপনার রেফার কোড' : 'Your Referral Code';
+        document.getElementById('lang-btn-copy').innerText = isBn ? 'কপি' : 'Copy';
+        document.getElementById('lang-btn-logout').innerText = isBn ? 'লগআউট করুন' : 'Logout Account';
+        document.getElementById('lang-history-title').innerText = isBn ? 'সাম্প্রতিক লেনদেন' : 'Recent Transactions';
+        document.getElementById('lang-btn-more-history').innerText = isBn ? 'আরও লেনদেন দেখুন ⬇' : 'View More History ⬇';
+        
+        // Modal Translations
+        document.getElementById('lang-edit-title').innerText = isBn ? 'প্রোফাইল এডিট' : 'Edit Profile';
+        document.getElementById('lang-edit-name').innerText = isBn ? 'আপনার নাম' : 'Your Name';
+        document.getElementById('lang-edit-avatar').innerText = isBn ? 'প্রোফাইল ছবির লিংক (URL)' : 'Avatar Link (URL)';
+        document.getElementById('lang-btn-save').innerText = isBn ? 'সেভ করুন' : 'Save Changes';
+        document.getElementById('lang-btn-cancel').innerText = isBn ? 'বাতিল' : 'Cancel';
+        
+        document.getElementById('lang-full-history-title').innerText = isBn ? 'সকল লেনদেন' : 'Transaction History';
+        document.getElementById('lang-btn-history-close').innerText = isBn ? 'বন্ধ করুন' : 'Close History';
+        
+        localStorage.setItem('elite_lang', lang);
+        if(currentUserId) loadTransactionHistory(); // রি-লোড হিস্ট্রি ইন কারেন্ট ল্যাঙ্গুয়েজ
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            document.getElementById('user-email').innerText = user.email;
+            
+            db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
+                const d = snap.val() || {};
+                
+                document.getElementById('user-points').innerText = d.points || 0;
+                document.getElementById('stat-points').innerText = d.points || 0;
+                document.getElementById('stat-tasks').innerText = d.tasksCompleted || 0;
+                document.getElementById('user-name-main').innerText = d.name || "TaskBazar User";
+                document.getElementById('user-display-name').innerText = d.name || "Member";
+
+                // রেফারেল কোড লোড
+                const refCode = d.referralCode || user.uid.substring(0, 6).toUpperCase();
+                document.getElementById('referral-code').innerText = refCode;
+
+                // যোগদানের তারিখ
+                if(d.createdAt) {
+                    const date = new Date(d.createdAt);
+                    document.getElementById('user-join-date').innerText = date.toLocaleDateString(localStorage.getItem('elite_lang') === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                } else {
+                    document.getElementById('user-join-date').innerText = "N/A";
+                }
+
+                // প্রোফাইল ছবি
+                const topImg = document.getElementById('top-avatar');
+                const profileImg = document.getElementById('profile-avatar');
+                
+                currentAvatarUrl = d.avatar;
+                
+                if(d.avatar && d.avatar !== "" && d.avatar !== "null" && d.avatar !== "undefined") {
+                    topImg.src = d.avatar;
+                    profileImg.src = d.avatar;
+                } else {
+                    topImg.src = defaultAvatar;
+                    profileImg.src = defaultAvatar;
+                }
+            });
+
+            loadTransactionHistory(); // হিস্ট্রি লোড
+        } else {
+            location.href = 'index.html';
+        }
+    });
+
+    // ল্যাঙ্গুয়েজ প্রেফারেন্স লোড করা
+    const savedLang = localStorage.getItem('elite_lang') || 'bn';
+    setLang(savedLang);
+</script>
+</body>
+</html>
+
+

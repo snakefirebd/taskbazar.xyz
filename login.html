@@ -172,51 +172,32 @@
     }
 
     // রেফারেল কোড চেক করে বোনাস দেওয়া
-    async function processReferral(referCode, newUserId, newUserName) {
-        if (!referCode) return;
+async function processReferral(referCode, newUserId, newUserName) {
+    if (!referCode) return;
+    
+    try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('https://taskbajar-backend.vercel.app/api/referral', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                referCode: referCode,
+                newUserName: newUserName
+            })
+        });
         
-        try {
-            const usersRef = db.ref(`artifacts/${appId}/users`);
-            const snapshot = await usersRef.once('value');
-            const allUsers = snapshot.val();
-            
-            if (allUsers) {
-                // সব ইউজারের মধ্যে কার রেফার কোড মিলছে তা খোঁজা
-                for (const uid in allUsers) {
-                    const userData = allUsers[uid].stats;
-                    if (userData && userData.referralCode === referCode) {
-                        
-                        // রেফারারের (যে রেফার করেছে) বর্তমান পয়েন্ট নিয়ে আসা
-                        const currentPoints = userData.points || 0;
-                        const bonusAmount = 50; // রেফারেল বোনাস 
-                        
-                        // রেফারারের পয়েন্ট আপডেট করা
-                        await db.ref(`artifacts/${appId}/users/${uid}/stats/points`).set(currentPoints + bonusAmount);
-                        
-                        // রেফারারের ট্রানজেকশন হিস্ট্রিতে যুক্ত করা
-                        await db.ref(`artifacts/${appId}/users/${uid}/transactions`).push({
-                            type: 'referral', 
-                            amount: bonusAmount, 
-                            desc: `Referral Bonus (Joined: ${newUserName})`, 
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-
-                        // রেফারারের নোটিফিকেশন পাঠানো
-                        await db.ref(`artifacts/${appId}/users/${uid}/notifications`).push({
-                            title: 'রেফারেল বোনাস! 🎁',
-                            message: `আপনার রেফার কোড ব্যবহার করে ${newUserName} জয়েন করেছে। আপনি ${bonusAmount} পয়েন্ট বোনাস পেয়েছেন!`,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-
-                        console.log("Referral bonus processed successfully!");
-                        break; // কাজ শেষ, লুপ থেকে বেরিয়ে আসা
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Error processing referral: ", error);
+        const data = await response.json();
+        if (data.success) {
+            console.log("Referral bonus processed successfully securely!");
         }
+    } catch (error) {
+        console.error("Error processing referral: ", error);
     }
+}
+
 
     async function handleAuthAction() {
         const e = document.getElementById('auth-email').value.trim();

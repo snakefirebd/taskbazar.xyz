@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Create Campaign - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --danger: #f43f5e;
+            --accent: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; overflow-x: hidden; }
+
+        /* হেডার স্টাইল */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; }
+        .section-h { font-size: 1rem; font-weight: 800; margin: 0 0 15px 5px; color: #1e293b; }
+        .elite-card { background: white; border-radius: 22px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem; }
+        .btn-elite { width: 100%; padding: 14px; border: none; border-radius: 16px; background: var(--p-gradient); color: white; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: var(--p-glow); }
+
+        /* নতুন নেভিগেশন স্টাইল */
+        .nav-bar-container {
+            position: fixed; bottom: 15px; left: 15px; right: 15px;
+            z-index: 1000; display: flex; flex-direction: column; gap: 10px;
+        }
+        .expanded-menu {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 12px; display: flex; gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff;
+            opacity: 0; transform: translateY(20px); pointer-events: none;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        
+        .nav-bar {
+            height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; display: flex; align-items: center; justify-content: space-around;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; }
+        .nav-item.active { color: #6366f1; }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame" onclick="location.href='profile.html'">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Elite Member</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span id="lang-points">Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 id="lang-title" class="section-h">Create New Campaign</h3>
+    <div class="elite-card">
+        <div class="input-group">
+            <label id="lang-cat">অ্যাকশন ক্যাটাগরি</label>
+            <select id="order-type" onchange="calculateCost()">
+                <option value="YouTube Subscribe">YouTube Subscribe (5 pts)</option>
+                <option value="Facebook Like">Facebook Like (3 pts)</option>
+                <option value="Telegram Join">Telegram Join (4 pts)</option>
+                <option value="App Install">App Download (10 pts)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="lang-item-title">ক্যাম্পেইন টাইটেল</label>
+            <input type="text" id="order-title" placeholder="যেমন: আমার চ্যানেলটি সাবস্ক্রাইব করুন">
+        </div>
+        <div class="input-group">
+            <label id="lang-url">সরাসরি লিঙ্ক (URL)</label>
+            <input type="url" id="order-link" placeholder="https://youtube.com/...">
+        </div>
+        <div class="input-group">
+            <label id="lang-qty">টার্গেট পরিমাণ (নূন্যতম ১০)</label>
+            <input type="number" id="order-qty" placeholder="10" oninput="calculateCost()">
+        </div>
+        
+        <div style="background:#f0fdf4; padding:15px; border-radius:15px; margin-bottom:15px; text-align:center; border: 1px dashed #10b981;">
+            <p style="font-size:0.75rem; font-weight:700; color:#166534;"><span id="lang-total-cost">মোট খরচ</span>: <b id="order-total" style="font-size: 1.1rem; color: #10b981;">0</b></p>
+        </div>
+        
+        <button id="lang-btn-submit" class="btn-elite" onclick="placeOrder()">লঞ্চ ক্যাম্পেইন 🚀</button>
+    </div>
+</div>
+
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="leaderboard.html" class="nav-item">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;">Leaderboard</span>
+        </a>
+        
+        <a href="complaint.html" class="nav-item">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span>Missions</span></a>
+        <a href="order.html" class="nav-item active"><i>🚀</i><span>Promote</span></a>
+        <a href="profile.html" class="nav-item"><i>👤</i><span>Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span>Menu</span>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+
+    let currentUserId = null;
+    let userPoints = 0;
+    const taskRates = { "YouTube Subscribe": 5, "Facebook Like": 3, "Telegram Join": 4, "App Install": 10 };
+
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        icon.style.transform = container.classList.contains('open') ? 'rotate(45deg)' : 'rotate(0deg)';
+    }
+
+    // স্ক্রিনের বাইরে ক্লিক করলে মেনু বন্ধ হবে
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('navContainer');
+        if (!container.contains(e.target) && container.classList.contains('open')) toggleMenu();
+    });
+
+    // বাকি ফাংশনগুলো (setLang, calculateCost, placeOrder, auth listener) আগের মতোই থাকবে...
+    function setLang(lang) {
+        const isBn = lang === 'bn';
+        document.getElementById('h-btn-bn').classList.toggle('active', isBn);
+        document.getElementById('h-btn-en').classList.toggle('active', !isBn);
+        document.getElementById('lang-points').innerText = isBn ? 'পয়েন্ট' : 'Points';
+        document.getElementById('lang-title').innerText = isBn ? 'নতুন ক্যাম্পেইন তৈরি করুন' : 'Create New Campaign';
+        document.getElementById('lang-cat').innerText = isBn ? 'অ্যাকশন ক্যাটাগরি' : 'Action Category';
+        document.getElementById('lang-item-title').innerText = isBn ? 'ক্যাম্পেইন টাইটেল' : 'Campaign Title';
+        document.getElementById('lang-url').innerText = isBn ? 'সরাসরি লিঙ্ক (URL)' : 'Direct Link (URL)';
+        document.getElementById('lang-qty').innerText = isBn ? 'টার্গেট পরিমাণ (নূন্যতম ১০)' : 'Target Quantity (Min 10)';
+        document.getElementById('lang-total-cost').innerText = isBn ? 'মোট খরচ' : 'Total Cost';
+        document.getElementById('lang-btn-submit').innerText = isBn ? 'লঞ্চ ক্যাম্পেইন 🚀' : 'Launch Campaign 🚀';
+    }
+
+    function showToast(msg) { 
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
+    }
+
+    function calculateCost() {
+        const qty = parseInt(document.getElementById('order-qty').value) || 0;
+        const total = qty * (taskRates[document.getElementById('order-type').value] || 0);
+        document.getElementById('order-total').innerText = total; 
+        return total;
+    }
+
+async function placeOrder() {
+    if (!currentUserId) return showToast("Please login first!");
+    
+    // একাধিক ক্লিক রোধ করতে বাটন ডিজেবল করা
+    const btn = document.getElementById('lang-btn-submit');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    const title = document.getElementById('order-title').value.trim();
+    const type = document.getElementById('order-type').value;
+    const link = document.getElementById('order-link').value.trim();
+    const qty = parseInt(document.getElementById('order-qty').value) || 0;
+    const totalCost = calculateCost();
+    const reward = Math.max(1, (taskRates[type] || 1) - 1);
+
+    if(!title || !link || qty < 10) {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        return showToast("সব তথ্য সঠিকভাবে দিন!");
+    }
+    if(totalCost > userPoints) {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        return showToast("পর্যাপ্ত পয়েন্ট নেই!");
+    }
+
+    try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('https://taskbajar-backend.vercel.app/api/create-campaign', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                type: type,
+                link: link,
+                qty: qty,
+                totalCost: totalCost,
+                reward: reward
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showToast(data.error || "Server Error!");
+        } else {
+            showToast("ক্যাম্পেইন সফল হয়েছে! ✅");
+            // ফর্ম ক্লিয়ার করা
+            document.getElementById('order-title').value = '';
+            document.getElementById('order-link').value = '';
+            document.getElementById('order-qty').value = '';
+            document.getElementById('order-total').innerText = '0';
+        }
+    } catch (err) { 
+        showToast("Network Error!"); 
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+}
+
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
+                const d = snap.val() || {};
+                userPoints = d.points || 0;
+                document.getElementById('user-points').innerText = userPoints;
+                document.getElementById('user-display-name').innerText = d.name || "Elite Member";
+                
+                const avatarImg = document.getElementById('top-avatar');
+                const defaultIcon = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                if(d.avatar && d.avatar !== "" && d.avatar !== "null" && d.avatar !== "undefined") {
+                    avatarImg.src = d.avatar;
+                } else {
+                    avatarImg.src = defaultIcon;
+                }
+            });
+        } else { location.href = 'index.html'; }
+    });
+</script>
+</body>
+</html>

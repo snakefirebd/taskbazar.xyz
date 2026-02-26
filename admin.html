@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Elite Pro</title>
+    <title>Admin Elite Pro - TaskBazar</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -21,7 +21,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; display: none; }
 
         .sidebar {
             background: var(--surface); color: var(--text); padding: 15px 30px;
@@ -30,7 +30,7 @@
         }
 
         .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { background: var(--surface); padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); border: 1.5px solid #eef2ff; }
         .stat-card h3 { font-size: 0.7rem; font-weight: 800; color: var(--text-l); text-transform: uppercase; }
         .stat-card p { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
@@ -42,7 +42,7 @@
 
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { background: var(--surface); border-radius: 22px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .btn { padding: 8px 18px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.8rem; }
@@ -50,14 +50,17 @@
         .btn-success { background: var(--success); color: white; }
         .btn-del { background: #fee2e2; color: var(--danger); }
         .btn-warn { background: #fef3c7; color: var(--warning); }
+        .btn:active { transform: scale(0.96); }
 
         .complaint-box { border-bottom: 1px solid #f1f5f9; padding: 15px 0; }
         .complaint-box:last-child { border-bottom: none; }
         .badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
         .badge-pending { background: #fef3c7; color: #92400e; }
         .badge-solved { background: #dcfce7; color: #166534; }
+        .badge-admin { background: #c084fc; color: white; }
 
         .support-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 30px; width: 95%; max-width: 500px; }
         .chat-window { height: 300px; overflow-y: auto; background: #f8fafc; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -68,7 +71,6 @@
         textarea.reply-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px; font-size: 0.85rem; outline: none; transition: 0.3s; }
         textarea.reply-input:focus { border-color: var(--primary); }
 
-        /* Notification Styling */
         .notif-item { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .notif-info b { font-size: 0.9rem; color: var(--text); display: block; }
         .notif-info small { color: var(--text-l); font-size: 0.75rem; }
@@ -87,14 +89,16 @@
     <div class="stats-grid">
         <div class="stat-card"><h3>Total Elites</h3><p id="stat-users">0</p></div>
         <div class="stat-card"><h3>Campaigns</h3><p id="stat-orders">0</p></div>
-        <div class="stat-card"><h3>Chat Inbox</h3><p id="stat-tickets">0</p></div>
+        <div class="stat-card"><h3>Reports 🚩</h3><p id="stat-reports" style="color: var(--danger);">0</p></div>
         <div class="stat-card"><h3>Complaints</h3><p id="stat-complaints">0</p></div>
     </div>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('orders-view', this)">Active Orders</button>
+        <button class="tab-btn" onclick="switchTab('reports-view', this)">Spam Reports 🚩</button>
         <button class="tab-btn" onclick="switchTab('proofs-view', this)">Proof Review</button>
         <button class="tab-btn" onclick="switchTab('complaints-view', this)">Complaints</button>
+        <button class="tab-btn" onclick="switchTab('users-view', this)">Manage Admins</button>
         <button class="tab-btn" onclick="switchTab('notifications-view', this)">System Alerts</button>
         <button class="tab-btn" onclick="switchTab('support-view', this)">Support Chat</button>
         <button class="tab-btn" onclick="switchTab('settings-view', this)">Settings</button>
@@ -102,6 +106,14 @@
 
     <div id="orders-view" class="view active">
         <div class="card"><h3>User Campaigns</h3><div id="orders-list" style="margin-top: 15px;">Loading...</div></div>
+    </div>
+
+    <div id="reports-view" class="view">
+        <div class="card">
+            <h3 style="color: var(--danger);">User Submitted Fake Proof Reports</h3>
+            <p style="font-size: 0.8rem; color: var(--text-l); margin-bottom: 15px;">Review the fake proofs reported by campaign creators.</p>
+            <div id="reports-list">Loading reports...</div>
+        </div>
     </div>
 
     <div id="proofs-view" class="view">
@@ -115,7 +127,15 @@
         </div>
     </div>
 
-    <!-- Notifications View -->
+    <div id="users-view" class="view">
+        <div class="card">
+            <h3>Manage User Roles (Admins)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-l); margin-bottom: 15px;">Search users and assign or remove admin privileges.</p>
+            <input type="text" id="user-search" placeholder="Search by Name or UID..." onkeyup="filterUsers()" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; outline:none; margin-bottom: 15px;">
+            <div id="all-users-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">Loading users...</div>
+        </div>
+    </div>
+
     <div id="notifications-view" class="view">
         <div class="card">
             <h3>Send Alert (Public/Private)</h3>
@@ -133,10 +153,10 @@
 
                 <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-l); margin-left: 5px;">Alert Title</label>
                 <input type="text" id="notif-title" placeholder="Notification Title" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; margin-bottom: 10px;">
-                
+
                 <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-l); margin-left: 5px;">Message Details</label>
                 <textarea id="notif-msg" rows="3" placeholder="Message content..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; margin-bottom: 10px;"></textarea>
-                
+
                 <button class="btn btn-ok" onclick="sendNotification()">Send Notification</button>
             </div>
         </div>
@@ -187,9 +207,12 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
     const appId = "exchange-project-d4028";
     let activeChatUid = null;
+    
     let cachedUsers = {};
+    let cachedAdmins = {};
 
     function switchTab(id, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -202,20 +225,42 @@
         document.getElementById('user-selector-container').style.display = (target === 'private') ? 'flex' : 'none';
     }
 
+    // অ্যাডমিন ভেরিফিকেশন সিস্টেম
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const adminSnap = await db.ref(`artifacts/${appId}/admins/${user.uid}`).once('value');
+            if (adminSnap.exists() && adminSnap.val() === true) {
+                document.body.style.display = 'block'; // অ্যাডমিন হলে পেজ দেখাবে
+                init();
+            } else {
+                alert("Access Denied! 🚫\nআপনি অ্যাডমিন নন, তাই এই পেজে প্রবেশ করতে পারবেন না।");
+                location.href = 'index.html';
+            }
+        } else {
+            location.href = 'login.html';
+        }
+    });
+
     function init() {
-        // Load Statistics and Cache Users for Private Notifications
+        // অ্যাডমিনদের লিস্ট রিয়েল-টাইম লোড করা
+        db.ref(`artifacts/${appId}/admins`).on('value', snap => {
+            cachedAdmins = snap.val() || {};
+            renderUsersList();
+        });
+
+        // ইউজার লিস্ট রিয়েল-টাইম লোড করা
         db.ref(`artifacts/${appId}/users`).on('value', s => { 
             const users = s.val() || {};
             cachedUsers = users;
             document.getElementById('stat-users').innerText = Object.keys(users).length; 
-            
-            // Populate user list for private notification
+
             const list = document.getElementById('notif-user-list');
             list.innerHTML = '';
             Object.keys(users).forEach(uid => {
                 const name = users[uid].stats?.name || "Unknown";
                 list.innerHTML += `<option value="${uid}">${name} (${uid.substring(0,6)})</option>`;
             });
+            renderUsersList();
         });
 
         db.ref(`artifacts/${appId}/public/settings`).on('value', s => { document.getElementById('set-notice').value = s.val()?.notice || ''; });
@@ -227,6 +272,38 @@
                 container.innerHTML += `<div class="support-list-item"><div><b>${o.title}</b><br><small>${o.type} | ${o.qty} Targets</small></div><button class="btn btn-del" onclick="deleteOrder('${id}')">Delete</button></div>`;
             });
             document.getElementById('stat-orders').innerText = count;
+        });
+
+        db.ref(`artifacts/${appId}/public/data/reports`).on('value', snap => {
+            const all = snap.val() || {}; 
+            const container = document.getElementById('reports-list'); 
+            container.innerHTML = '';
+            let reportsCount = 0;
+            
+            Object.keys(all).reverse().forEach(id => {
+                const r = all[id];
+                reportsCount++;
+                container.innerHTML += `
+                    <div class="support-list-item" style="flex-direction:column; align-items:flex-start; gap:10px; background:#fff1f2; padding:15px; border-radius:15px; margin-bottom:12px; border:1px solid #fecdd3;">
+                        <div style="width: 100%;">
+                            <b style="color:var(--danger); font-size: 0.95rem;">🚩 Fake Proof Reported</b>
+                            <div style="font-size: 0.8rem; margin-top: 5px; color: #475569; line-height: 1.5;">
+                                <b>Worker UID:</b> ${r.workerId}<br>
+                                <b>Reporter UID:</b> ${r.reporterId}<br>
+                                <b>Task ID:</b> ${r.taskId}<br>
+                                <b>Reason:</b> ${r.reason}<br>
+                                <b>Date:</b> ${new Date(r.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px; width:100%; margin-top: 8px;">
+                            <button class="btn btn-del" style="flex:1;" onclick="resolveReport('${id}', 'warn', '${r.workerId}', '${r.taskId}', '${r.subId}')">⚠️ Warn Worker & Delete</button>
+                            <button class="btn btn-ok" style="flex:1; background:#94a3b8;" onclick="resolveReport('${id}', 'dismiss', null, null, null)">Dismiss Report</button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('stat-reports').innerText = reportsCount;
+            if(reportsCount === 0) container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-l);">No pending spam reports.</p>';
         });
 
         db.ref(`artifacts/${appId}/public/data/complaints`).on('value', snap => {
@@ -241,7 +318,7 @@
                     <div class="complaint-box">
                         <div style="display:flex; justify-content:space-between; align-items:start;">
                             <div>
-                                <b style="font-size:0.9rem;">${c.userName}</b> ${statusBadge}<br>
+                                <b style="font-size:0.9rem;">${c.userName || 'User'}</b> ${statusBadge}<br>
                                 <small style="color:var(--text-l);">Page: ${c.page} | ${new Date(c.timestamp).toLocaleString()}</small>
                             </div>
                             <div style="display:flex; gap:5px;">
@@ -282,7 +359,6 @@
             });
         });
 
-        // Load Public Notifications List
         db.ref(`artifacts/${appId}/public/notifications`).on('value', snap => {
             const all = snap.val() || {}; const container = document.getElementById('notifications-list'); container.innerHTML = '';
             const keys = Object.keys(all).reverse();
@@ -303,73 +379,174 @@
         });
     }
 
+    // ইউজার লিস্ট রেন্ডার করা এবং ফিল্টার করা
+    function renderUsersList() {
+        const container = document.getElementById('all-users-list');
+        if(!container) return;
+        
+        const searchQ = (document.getElementById('user-search') ? document.getElementById('user-search').value : '').toLowerCase();
+        let usersHtml = '';
+        
+        Object.keys(cachedUsers).forEach(uid => {
+            const u = cachedUsers[uid].stats || {};
+            const name = u.name || "Unknown User";
+            
+            // সার্চ লজিক
+            if(searchQ && !name.toLowerCase().includes(searchQ) && !uid.toLowerCase().includes(searchQ)) return;
+            
+            const isAdmin = cachedAdmins[uid] === true;
+            
+            usersHtml += `
+                <div class="support-list-item" style="background:#f8fafc; padding:12px 15px; border-radius:12px; margin-bottom:10px; border: 1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b style="color:var(--text); font-size:0.9rem;">${name}</b> 
+                        ${isAdmin ? '<span class="badge badge-admin">ADMIN</span>' : '<span class="badge badge-pending">USER</span>'}
+                        <br>
+                        <small style="color:var(--text-l); font-size:0.7rem;">UID: ${uid}</small>
+                    </div>
+                    <div>
+                        ${isAdmin 
+                            ? `<button class="btn btn-del" onclick="toggleAdmin('${uid}', false)">Remove Admin</button>`
+                            : `<button class="btn btn-success" onclick="toggleAdmin('${uid}', true)">Make Admin</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = usersHtml || '<p style="text-align:center; padding:15px; color:var(--text-l);">কোন ইউজার পাওয়া যায়নি।</p>';
+    }
+
+    function filterUsers() {
+        renderUsersList();
+    }
+
+    // অ্যাডমিন প্রমোশন বা ডিমোশন লজিক
+    async function toggleAdmin(uid, makeAdmin) {
+        // নিজের আইডি নিজে ডিলিট করা বন্ধ করা
+        if(uid === auth.currentUser.uid && !makeAdmin) {
+            return alert("সতর্কতা: আপনি নিজের অ্যাডমিন অ্যাক্সেস রিমুভ করতে পারবেন না!");
+        }
+        
+        const msg = makeAdmin 
+            ? "আপনি কি নিশ্চিত যে এই ইউজারকে ADMIN বানাতে চান?" 
+            : "আপনি কি নিশ্চিত যে এই ইউজারের ADMIN অ্যাক্সেস বাতিল করতে চান?";
+            
+        if(!confirm(msg)) return;
+        
+        try {
+            if(makeAdmin) {
+                await db.ref(`artifacts/${appId}/admins/${uid}`).set(true);
+                alert("সফলভাবে অ্যাডমিন বানানো হয়েছে! ✅");
+            } else {
+                await db.ref(`artifacts/${appId}/admins/${uid}`).remove();
+                alert("অ্যাডমিন অ্যাক্সেস বাতিল করা হয়েছে! ❌");
+            }
+        } catch(error) {
+            alert("ফেইল! আপনার ফায়ারবেস রুলস ঠিকমতো আপডেট করা হয়েছে কিনা চেক করুন।");
+        }
+    }
+
+    async function resolveReport(reportId, action, workerId, taskId, subId) {
+        if(!confirm("Are you sure you want to " + action + " this report?")) return;
+        try {
+            if (action === 'warn') {
+                await db.ref(`artifacts/${appId}/users/${workerId}/notifications`).push({
+                    title: 'অ্যাকাউন্ট ওয়ার্নিং ⚠️',
+                    message: 'অ্যাডমিন রিভিউ: আপনার জমা দেওয়া একটি প্রুফ ফেইক প্রমাণিত হয়েছে।',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                if(taskId && subId) {
+                    await db.ref(`artifacts/${appId}/public/data/submissions/${taskId}/${subId}`).remove();
+                }
+            }
+            await db.ref(`artifacts/${appId}/public/data/reports/${reportId}`).remove();
+            alert("Report resolved successfully!");
+        } catch (error) { alert("Error resolving report!"); }
+    }
+
     async function sendNotification() {
         const target = document.getElementById('notif-target').value;
         const title = document.getElementById('notif-title').value.trim();
         const msg = document.getElementById('notif-msg').value.trim();
-        
-        if(!title || !msg) return alert("Fill all fields");
 
+        if(!title || !msg) return alert("Fill all fields");
         const id = "notif_" + Date.now();
-        const notifData = {
-            title, 
-            message: msg, 
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            type: target
-        };
+        const notifData = { title, message: msg, timestamp: firebase.database.ServerValue.TIMESTAMP, type: target };
 
         if (target === 'all') {
-            // Send to Public Path
             await db.ref(`artifacts/${appId}/public/notifications/${id}`).set(notifData);
-            alert("Public Notification sent successfully!");
+            alert("Public Notification sent!");
         } else {
-            // Send to Specific User Path
             const targetUid = document.getElementById('notif-user-list').value;
-            if(!targetUid) return alert("Select a user first!");
+            if(!targetUid) return alert("Select a user!");
             await db.ref(`artifacts/${appId}/users/${targetUid}/notifications/${id}`).set(notifData);
-            alert("Private Notification sent to user!");
+            alert("Private Notification sent!");
         }
-
         document.getElementById('notif-title').value = '';
         document.getElementById('notif-msg').value = '';
     }
 
-    async function deleteNotification(id) {
-        if(confirm("Delete this public alert?")) await db.ref(`artifacts/${appId}/public/notifications/${id}`).remove();
-    }
+    async function deleteNotification(id) { if(confirm("Delete this alert?")) await db.ref(`artifacts/${appId}/public/notifications/${id}`).remove(); }
 
     async function saveComplaintReply(id) {
         const replyText = document.getElementById(`reply-${id}`).value.trim();
         await db.ref(`artifacts/${appId}/public/data/complaints/${id}`).update({ reply: replyText });
+        
+        db.ref(`artifacts/${appId}/public/data/complaints/${id}`).once('value').then(snap => {
+            const complaintData = snap.val();
+            if(complaintData && complaintData.userId) {
+                db.ref(`artifacts/${appId}/users/${complaintData.userId}/notifications`).push({
+                    title: 'সাপোর্ট রিপ্লাই 🛠️',
+                    message: `আপনার করা অভিযোগের উত্তর দিয়েছেন অ্যাডমিন। কমপ্লেইন্ট পেজে চেক করুন।`,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        });
         alert("Reply saved successfully!");
     }
 
-    async function updateComplaintStatus(id, status) {
-        if(confirm(`Mark this as ${status}?`)) {
-            await db.ref(`artifacts/${appId}/public/data/complaints/${id}`).update({ status: status });
-        }
-    }
-
-    async function deleteComplaint(id) {
-        if(confirm("Delete this complaint permanently?")) {
-            await db.ref(`artifacts/${appId}/public/data/complaints/${id}`).remove();
-        }
-    }
-
+    async function updateComplaintStatus(id, status) { if(confirm(`Mark this as ${status}?`)) await db.ref(`artifacts/${appId}/public/data/complaints/${id}`).update({ status: status }); }
+    async function deleteComplaint(id) { if(confirm("Delete this complaint?")) await db.ref(`artifacts/${appId}/public/data/complaints/${id}`).remove(); }
     async function deleteOrder(id) { if(confirm("Delete this campaign?")) await db.ref(`artifacts/${appId}/public/data/microtasks/${id}`).remove(); }
 
+    // অ্যাডমিন প্রুফ এপ্রুভ 
     async function reviewProof(tId, sId, status, uId) {
         await db.ref(`artifacts/${appId}/public/data/submissions/${tId}/${sId}`).update({ status });
         if (status === 'approved') {
             const tSnap = await db.ref(`artifacts/${appId}/public/data/microtasks/${tId}`).once('value');
             if(tSnap.exists()){
-                const reward = tSnap.val().reward; const uRef = db.ref(`artifacts/${appId}/users/${uId}/stats`);
+                const reward = tSnap.val().reward; 
+                const uRef = db.ref(`artifacts/${appId}/users/${uId}/stats`);
                 const currSnap = await uRef.once('value');
                 const curr = currSnap.val() || {}; 
-                await uRef.update({ points: (curr.points || 0) + reward, completedCount: (curr.completedCount || 0) + 1 });
-                alert("Proof Approved! Points added to user.");
+                
+                await uRef.update({ 
+                    points: (curr.points || 0) + reward, 
+                    tasksCompleted: (curr.tasksCompleted || 0) + 1 
+                });
+                
+                await db.ref(`artifacts/${appId}/users/${uId}/transactions`).push({
+                    type: 'mission', 
+                    amount: reward, 
+                    desc: 'Proof Approved by Admin', 
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                await db.ref(`artifacts/${appId}/users/${uId}/notifications`).push({
+                    title: 'Mission Approved! ✅', 
+                    message: `Admin approved your proof, +${reward} points.`, 
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                alert("Proof Approved! Points added successfully.");
             }
         } else {
+            await db.ref(`artifacts/${appId}/users/${uId}/notifications`).push({
+                title: 'Mission Rejected ❌', 
+                message: `Admin rejected your proof.`, 
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
             alert("Proof Denied!");
         }
     }
@@ -385,11 +562,8 @@
 
     function closeChat() { if(activeChatUid) db.ref(`artifacts/${appId}/support/${activeChatUid}/messages`).off(); document.getElementById('chat-modal').style.display = 'none'; activeChatUid = null; }
     async function replyMessage() { const inp = document.getElementById('chat-reply'); const text = inp.value.trim(); if(!text || !activeChatUid) return; await db.ref(`artifacts/${appId}/support/${activeChatUid}/messages/${Date.now()}`).set({ text, role: 'admin', timestamp: firebase.database.ServerValue.TIMESTAMP }); inp.value = ''; }
-    
-    async function saveSettings() { const n = document.getElementById('set-notice').value.trim(); await db.ref(`artifacts/${appId}/public/settings`).update({ notice: n }); alert("Settings Saved!"); }
 
-    init();
+    async function saveSettings() { const n = document.getElementById('set-notice').value.trim(); await db.ref(`artifacts/${appId}/public/settings`).update({ notice: n }); alert("Settings Saved!"); }
 </script>
 </body>
 </html>
-

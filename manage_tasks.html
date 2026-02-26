@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Manage My Campaigns - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --danger: #f43f5e;
+            --accent: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; }
+
+        /* হেডার স্টাইল */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        img[src=""], img:not([src]) { opacity: 0; }
+
+        .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; }
+        
+        /* ট্যাব ডিজাইন */
+        .tab-container { display: flex; background: white; border-radius: 15px; padding: 5px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .tab-btn { flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; font-weight: 800; color: var(--text-p); border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: #6366f1; color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
+
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* কার্ড ও প্রোগ্রেস বার ডিজাইন */
+        .elite-card { background: white; border-radius: 22px; padding: 18px; margin-bottom: 15px; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
+        .campaign-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #cbd5e1; position: relative; }
+        .campaign-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .c-title { font-size: 0.9rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; padding-right: 30px; }
+        .c-info { font-size: 0.7rem; color: #64748b; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 10px; }
+        
+        .progress-container { background: #f1f5f9; border-radius: 10px; height: 8px; width: 100%; overflow: hidden; margin-top: 5px; }
+        .progress-fill { background: var(--p-gradient); height: 100%; border-radius: 10px; transition: width 0.4s; }
+        
+        .btn-delete { position: absolute; top: 0; right: 0; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .btn-delete:active { transform: scale(0.9); }
+
+        /* ফিল্টার ও প্রুফ লিস্ট ডিজাইন */
+        .filter-select { width: 100%; padding: 12px 15px; background: white; border: 1px solid #e2e8f0; border-radius: 15px; outline: none; font-size: 0.85rem; font-weight: 700; color: var(--text-h); margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        
+        .proof-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; padding: 12px; margin-bottom: 12px; }
+        .proof-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .proof-text { font-size: 0.8rem; font-weight: 600; color: #1e293b; background: white; padding: 10px; border-radius: 10px; border: 1px dashed #cbd5e1; word-break: break-all; }
+        
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-approve { background: #10b981; color: white; border: none; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); transition: 0.2s; }
+        .btn-reject { background: #f43f5e; color: white; border: none; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; cursor: pointer; box-shadow: 0 4px 10px rgba(244, 63, 94, 0.2); transition: 0.2s; }
+        .btn-report { grid-column: span 2; background: #fffbeb; color: #d97706; border: 1px solid #fde68a; padding: 8px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+        .btn-approve:active, .btn-reject:active, .btn-report:active { transform: scale(0.96); }
+
+        /* কাস্টম কনফার্মেশন মডাল */
+        .confirm-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        .confirm-modal-content { background: white; width: 100%; max-width: 320px; border-radius: 22px; padding: 25px 20px; text-align: center; animation: popUp 0.3s ease-out; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .confirm-btn-grp { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-yes { flex: 1; padding: 12px; background: var(--p-gradient); color: white; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        .btn-no { flex: 1; padding: 12px; background: #f1f5f9; color: var(--text-p); border: none; border-radius: 12px; font-weight: 800; cursor: pointer; }
+
+        /* নেভিগেশন স্টাইল */
+        .nav-bar-container { position: fixed; bottom: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .expanded-menu { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 12px; display: flex; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff; opacity: 0; transform: translateY(20px); pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .nav-bar { height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; white-space: nowrap; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: none; z-index: 4000; }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<!-- কাস্টম কনফার্মেশন মডাল -->
+<div id="custom-confirm-modal" class="confirm-modal-overlay">
+    <div class="confirm-modal-content">
+        <div style="font-size: 2.5rem; margin-bottom: 10px;">❓</div>
+        <h3 id="confirm-msg" style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 5px;">আপনি কি নিশ্চিত?</h3>
+        <p id="confirm-sub-msg" style="font-size: 0.75rem; color: #64748b;"></p>
+        <div class="confirm-btn-grp">
+            <button class="btn-yes" onclick="executeConfirm()" id="lang-btn-yes">Yes, Confirm</button>
+            <button class="btn-no" onclick="closeConfirm()" id="lang-btn-no">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- হেডার -->
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame" onclick="location.href='profile.html'">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Member</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span id="lang-points">Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tab-container">
+        <div class="tab-btn active" onclick="switchTab('my-campaigns', this)" id="lang-tab-my-camp">My Campaigns</div>
+        <div class="tab-btn" onclick="switchTab('pending-proofs', this)" id="lang-tab-pending">Pending Proofs</div>
+    </div>
+
+    <!-- আমার ক্যাম্পেইন ভিউ -->
+    <div id="my-campaigns" class="view active">
+        <div class="elite-card" style="padding: 10px;" id="campaign-wrapper">
+            <div id="campaign-list">
+                <p style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 20px;">Loading campaigns...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- পেন্ডিং প্রুফ ভিউ -->
+    <div id="pending-proofs" class="view">
+        <select id="campaign-filter" class="filter-select" onchange="renderPendingProofs()">
+            <option value="ALL">All Campaigns</option>
+        </select>
+
+        <div id="proof-list">
+            <p style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 20px;">No pending proofs found.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ফুটার (নেভিগেশন) -->
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="manage_tasks.html" class="nav-item active">
+            <i style="background: #fef2f2; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">⚙️</i>
+            <span style="font-size: 0.6rem;" id="lang-nav-manage">Manage</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;">Leaderboard</span>
+        </a>
+        <a href="complaint.html" class="nav-item">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span id="lang-nav-home">Missions</span></a>
+        <a href="order.html" class="nav-item"><i>🚀</i><span id="lang-nav-promote">Promote</span></a>
+        <a href="profile.html" class="nav-item"><i>👤</i><span id="lang-nav-profile">Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span>Menu</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+    
+    let currentUserId = null;
+    let myCampaignsData = {};
+    let allSubmissionsData = {};
+    let confirmActionCallback = null;
+
+    function showToast(msg) { 
+        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
+    }
+
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        icon.style.transform = container.classList.contains('open') ? 'rotate(45deg)' : 'rotate(0deg)';
+    }
+
+    function switchTab(viewId, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // কাস্টম কনফার্ম মডাল লজিক
+    function showConfirm(title, subMsg, callback) {
+        document.getElementById('confirm-msg').innerText = title;
+        document.getElementById('confirm-sub-msg').innerText = subMsg || "";
+        document.getElementById('custom-confirm-modal').style.display = 'flex';
+        confirmActionCallback = callback;
+    }
+
+    function closeConfirm() {
+        document.getElementById('custom-confirm-modal').style.display = 'none';
+        confirmActionCallback = null;
+    }
+
+    function executeConfirm() {
+        if(confirmActionCallback) confirmActionCallback();
+        closeConfirm();
+    }
+
+    // প্রুফ লিঙ্কগুলোকে ক্লিকেবল করার ফাংশন
+    function makeClickable(text) {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, function(url) {
+            return `<a href="${url}" target="_blank" style="color: #6366f1; text-decoration: underline;">${url}</a>`;
+        });
+    }
+
+    // ড্যাশবোর্ড আপডেট করা
+    function updateDashboard() {
+        renderCampaigns();
+        populateFilterDropdown();
+        renderPendingProofs();
+    }
+
+    // ১. ক্যাম্পেইন রেন্ডার করা
+    function renderCampaigns() {
+        const listDiv = document.getElementById('campaign-list');
+        const wrapper = document.getElementById('campaign-wrapper');
+        const isBn = localStorage.getItem('elite_lang') === 'bn';
+
+        if(Object.keys(myCampaignsData).length === 0) {
+            wrapper.style.background = 'transparent'; wrapper.style.border = 'none'; wrapper.style.boxShadow = 'none';
+            listDiv.innerHTML = `<p style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 20px;">${isBn ? 'আপনার কোন ক্যাম্পেইন নেই।' : 'You have no campaigns.'}</p>`;
+            return;
+        }
+
+        wrapper.style.background = 'white'; wrapper.style.border = '1px solid #e2e8f0'; wrapper.style.boxShadow = '0 8px 20px rgba(0,0,0,0.02)';
+        listDiv.innerHTML = '';
+        const sortedKeys = Object.keys(myCampaignsData).sort((a,b) => myCampaignsData[b].timestamp - myCampaignsData[a].timestamp);
+
+        sortedKeys.forEach(taskId => {
+            const t = myCampaignsData[taskId];
+            
+            // অ্যাপ্রুভ করা প্রুফগুলো কাউন্ট করা (প্রোগ্রেস বারের জন্য)
+            let approvedCount = 0;
+            const subsForTask = allSubmissionsData[taskId] || {};
+            Object.values(subsForTask).forEach(s => {
+                if(s.status === 'approved') approvedCount++;
+            });
+
+            const progressPercent = Math.min(100, (approvedCount / t.qty) * 100);
+            
+            listDiv.innerHTML += `
+                <div class="campaign-item">
+                    <div class="c-title">${t.title}</div>
+                    <button class="btn-delete" onclick="deleteCampaign('${taskId}', ${t.qty}, ${t.reward}, ${approvedCount})">🗑️ Delete</button>
+                    
+                    <div class="c-info" style="margin-bottom: 5px;">
+                        <span>Reward: ${t.reward} Pts</span>
+                        <span style="font-weight: 800; color: #6366f1;">${approvedCount} / ${t.qty} ${isBn ? 'সম্পন্ন' : 'Done'}</span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: ${progressPercent}%;"></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // ২. ফিল্টার ড্রপডাউন পপুলেট করা
+    function populateFilterDropdown() {
+        const select = document.getElementById('campaign-filter');
+        const currentVal = select.value;
+        const isBn = localStorage.getItem('elite_lang') === 'bn';
+        
+        select.innerHTML = `<option value="ALL">${isBn ? 'সব ক্যাম্পেইন' : 'All Campaigns'}</option>`;
+        
+        Object.keys(myCampaignsData).forEach(taskId => {
+            select.innerHTML += `<option value="${taskId}">${myCampaignsData[taskId].title}</option>`;
+        });
+        
+        if (myCampaignsData[currentVal]) select.value = currentVal;
+    }
+
+    // ৩. পেন্ডিং প্রুফ রেন্ডার করা (রিপোর্ট বাটন সহ)
+    function renderPendingProofs() {
+        const proofDiv = document.getElementById('proof-list');
+        const filterVal = document.getElementById('campaign-filter').value;
+        const isBn = localStorage.getItem('elite_lang') === 'bn';
+        proofDiv.innerHTML = '';
+        
+        let hasPending = false;
+
+        Object.keys(myCampaignsData).forEach(taskId => {
+            if (filterVal !== 'ALL' && filterVal !== taskId) return;
+
+            const task = myCampaignsData[taskId];
+            const subsForTask = allSubmissionsData[taskId] || {};
+
+            Object.keys(subsForTask).forEach(subId => {
+                const sub = subsForTask[subId];
+                if (sub.status === 'pending') {
+                    hasPending = true;
+                    // লিঙ্ক ক্লিকেবল করা
+                    const formattedProof = makeClickable(sub.proof);
+                    
+                    proofDiv.innerHTML += `
+                        <div class="proof-box" id="proof-${subId}">
+                            <div class="proof-header">
+                                <span style="font-size: 0.75rem; font-weight: 800; color: #6366f1;">${task.title}</span>
+                                <span style="font-size: 0.65rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 800;">${task.reward} Pts</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-bottom: 5px;">${isBn ? 'ব্যবহারকারীর প্রমাণ:' : 'User Proof:'}</div>
+                            <div class="proof-text">${formattedProof}</div>
+                            
+                            <div class="action-btns">
+                                <button class="btn-approve" onclick="reviewProof('${taskId}', '${subId}', '${sub.userId}', ${task.reward}, 'approved')">✅ Approve</button>
+                                <button class="btn-reject" onclick="reviewProof('${taskId}', '${subId}', '${sub.userId}', ${task.reward}, 'rejected')">❌ Reject</button>
+                                <button class="btn-report" onclick="reportProof('${taskId}', '${subId}', '${sub.userId}')">🚩 ${isBn ? 'ফেক রিপোর্ট করুন' : 'Report Fake'}</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        if(!hasPending) {
+            proofDiv.innerHTML = `<p style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 20px;">${isBn ? 'কোন পেন্ডিং প্রুফ পাওয়া যায়নি।' : 'No pending proofs found.'}</p>`;
+        }
+    }
+
+function deleteCampaign(taskId, qty, reward, approvedCount) {
+    const isBn = localStorage.getItem('elite_lang') === 'bn';
+    const title = isBn ? "ক্যাম্পেইন ডিলিট করবেন?" : "Delete Campaign?";
+    
+    const remainingQty = qty - approvedCount;
+    const refundPoints = remainingQty > 0 ? remainingQty * (reward + 1) : 0;
+    
+    const subMsg = refundPoints > 0 
+        ? (isBn ? `বাকি থাকা টার্গেটের জন্য ${refundPoints} পয়েন্ট ব্যালেন্সে রিফান্ড করা হবে।` : `You will be refunded ${refundPoints} points for the remaining target.`)
+        : (isBn ? `এই কাজটির টার্গেট পূরণ হয়ে গেছে।` : `This campaign is already fully completed.`);
+
+    showConfirm(title, subMsg, async () => {
+        try {
+            const token = await auth.currentUser.getIdToken();
+            const response = await fetch('https://taskbajar-backend.vercel.app/api/delete-campaign', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ taskId: taskId, refundPoints: refundPoints })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                showToast(isBn ? "ক্যাম্পেইন ডিলিট করা হয়েছে! 🗑️" : "Campaign Deleted! 🗑️");
+            } else {
+                showToast(data.error || "Failed to delete");
+            }
+        } catch (e) {
+            showToast("Network Error.");
+        }
+    });
+}
+
+function reviewProof(taskId, subId, workerId, rewardPoints, newStatus) {
+    const isBn = localStorage.getItem('elite_lang') === 'bn';
+    const title = newStatus === 'approved' 
+        ? (isBn ? "প্রুফটি এপ্রুভ করবেন?" : "Approve this proof?") 
+        : (isBn ? "প্রুফটি রিজেক্ট করবেন?" : "Reject this proof?");
+
+    showConfirm(title, "", async () => {
+        try {
+            const token = await auth.currentUser.getIdToken();
+            const response = await fetch('https://taskbajar-backend.vercel.app/api/review-proof', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskId: taskId,
+                    subId: subId,
+                    workerId: workerId,
+                    rewardPoints: rewardPoints,
+                    newStatus: newStatus
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                showToast(newStatus === 'approved' ? "Approved! ✅" : "Rejected! ❌");
+            } else {
+                showToast(data.error || "Server Error");
+            }
+        } catch (error) { 
+            showToast("Network Error."); 
+        }
+    });
+}
+
+
+    // ৬. ফেক প্রুফ রিপোর্ট লজিক
+    function reportProof(taskId, subId, workerId) {
+        const isBn = localStorage.getItem('elite_lang') === 'bn';
+        const title = isBn ? "ফেক প্রুফ রিপোর্ট করবেন?" : "Report fake proof?";
+        const subMsg = isBn ? "রিপোর্ট করলে অ্যাডমিন এটি রিভিউ করে ব্যবস্থা নেবেন।" : "Admin will review this report and take action.";
+
+        showConfirm(title, subMsg, async () => {
+            try {
+                // স্ট্যাটাস "reported" করা
+                await db.ref(`artifacts/${appId}/public/data/submissions/${taskId}/${subId}`).update({
+                    status: 'reported',
+                    reportedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                // ডাটাবেজে রিপোর্ট সংরক্ষণ করা
+                await db.ref(`artifacts/${appId}/public/data/reports/${Date.now()}`).set({
+                    taskId, subId, workerId, reporterId: currentUserId,
+                    reason: 'Fake Proof Submitted',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'pending'
+                });
+
+                // স্প্যামারকে নোটিফিকেশন পাঠানো
+                const notifTitle = isBn ? 'ওয়ার্নিং: প্রুফ রিপোর্ট করা হয়েছে 🚩' : 'Warning: Proof Reported 🚩';
+                const notifMsg = isBn ? 'আপনার জমা দেওয়া একটি প্রুফ ফেক হিসেবে রিপোর্ট করা হয়েছে। অ্যাডমিন এটি চেক করছেন।' : 'One of your proofs was reported as fake. Admin is reviewing it.';
+                
+                await db.ref(`artifacts/${appId}/users/${workerId}/notifications`).push({
+                    title: notifTitle, message: notifMsg, timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showToast(isBn ? "রিপোর্ট সফলভাবে জমা হয়েছে! 🚩" : "Report submitted successfully! 🚩");
+
+                // UI থেকে সরিয়ে দেওয়া
+                const proofEl = document.getElementById(`proof-${subId}`);
+                if (proofEl) proofEl.style.display = 'none';
+
+            } catch (error) {
+                showToast("Error submitting report.");
+            }
+        });
+    }
+
+    function setLang(lang) {
+        const isBn = lang === 'bn';
+        document.getElementById('h-btn-bn').classList.toggle('active', isBn);
+        document.getElementById('h-btn-en').classList.toggle('active', !isBn);
+        
+        document.getElementById('lang-points').innerText = isBn ? 'পয়েন্ট' : 'Points';
+        document.getElementById('lang-tab-my-camp').innerText = isBn ? 'আমার ক্যাম্পেইন' : 'My Campaigns';
+        document.getElementById('lang-tab-pending').innerText = isBn ? 'পেন্ডিং প্রুফ' : 'Pending Proofs';
+        
+        document.getElementById('lang-nav-manage').innerText = isBn ? 'ম্যানেজ' : 'Manage';
+        document.getElementById('lang-nav-home').innerText = isBn ? 'মিশন' : 'Missions';
+        document.getElementById('lang-nav-promote').innerText = isBn ? 'প্রমোট' : 'Promote';
+        document.getElementById('lang-nav-profile').innerText = isBn ? 'প্রোফাইল' : 'Profile';
+        
+        document.getElementById('lang-btn-yes').innerText = isBn ? 'হ্যাঁ, নিশ্চিত' : 'Yes, Confirm';
+        document.getElementById('lang-btn-no').innerText = isBn ? 'বাতিল' : 'Cancel';
+        
+        localStorage.setItem('elite_lang', lang);
+        if(currentUserId) updateDashboard(); 
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            
+            db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
+                const d = snap.val() || {};
+                document.getElementById('user-points').innerText = d.points || 0;
+                document.getElementById('user-display-name').innerText = d.name || "Member";
+
+                const topImg = document.getElementById('top-avatar');
+                if(d.avatar && d.avatar !== "" && d.avatar !== "null" && d.avatar !== "undefined") {
+                    topImg.src = d.avatar;
+                } else {
+                    topImg.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                }
+            });
+
+            // রিয়েল-টাইম ডাটা লিসেনার
+            db.ref(`artifacts/${appId}/public/data/microtasks`).orderByChild('creatorId').equalTo(user.uid).on('value', snap => {
+                myCampaignsData = snap.val() || {};
+                updateDashboard();
+            });
+
+            db.ref(`artifacts/${appId}/public/data/submissions`).on('value', snap => {
+                allSubmissionsData = snap.val() || {};
+                updateDashboard();
+            });
+
+        } else {
+            location.href = 'index.html';
+        }
+    });
+
+    // ল্যাঙ্গুয়েজ প্রেফারেন্স লোড করা
+    const savedLang = localStorage.getItem('elite_lang') || 'bn';
+    setLang(savedLang);
+</script>
+</body>
+</html>
+
+
