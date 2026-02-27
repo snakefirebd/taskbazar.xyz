@@ -35,7 +35,9 @@
             width: 36px; height: 36px; border-radius: 12px;
             background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
             backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+            transition: transform 0.3s ease;
         }
+        .avatar-frame:active { transform: scale(0.9); }
         .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
         .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
@@ -46,18 +48,64 @@
         .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
         .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
 
-        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; }
-        .section-h { font-size: 1rem; font-weight: 800; margin: 0 0 15px 5px; color: #1e293b; }
-        .elite-card { background: white; border-radius: 22px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
-        .input-group { margin-bottom: 14px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
-        .input-group input, .input-group select { width: 100%; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem; }
-        .btn-elite { width: 100%; padding: 14px; border: none; border-radius: 16px; background: var(--p-gradient); color: white; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: var(--p-glow); }
+        /* অ্যানিমেশন সমূহ */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .shake-animation { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
-        /* নতুন নেভিগেশন স্টাইল */
+        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; }
+        .section-h { font-size: 1rem; font-weight: 800; margin: 0 0 15px 5px; color: #1e293b; animation: fadeUp 0.5s ease forwards; }
+        
+        .elite-card { 
+            background: white; border-radius: 22px; padding: 20px; 
+            border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            animation: fadeUp 0.6s ease forwards; opacity: 0; animation-delay: 0.1s;
+        }
+        
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; transition: color 0.3s; }
+        .input-group input, .input-group select { 
+            width: 100%; padding: 12px 18px; background: #f8fafc; 
+            border: 2px solid transparent; border-radius: 15px; 
+            outline: none; transition: all 0.3s ease; font-size: 0.9rem; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-group input:focus, .input-group select:focus {
+            background: white; border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .input-group:focus-within label { color: #6366f1; }
+        
+        .btn-elite { 
+            width: 100%; padding: 14px; border: none; border-radius: 16px; 
+            background: var(--p-gradient); color: white; font-size: 0.9rem; 
+            font-weight: 700; cursor: pointer; box-shadow: var(--p-glow); 
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.2s ease; position: relative; z-index: 10;
+        }
+        .btn-elite:active { transform: scale(0.96); box-shadow: 0 0 10px rgba(99, 102, 241, 0.2); }
+        .btn-elite:disabled { opacity: 0.7; cursor: not-allowed; transform: scale(1); box-shadow: none; }
+
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: #fff; animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ন্যাভিগেশন স্টাইল */
         .nav-bar-container {
             position: fixed; bottom: 15px; left: 15px; right: 15px;
             z-index: 1000; display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none; /* অদৃশ্য কন্টেইনার যেন ক্লিক ব্লক না করে */
         }
         .expanded-menu {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -72,18 +120,22 @@
             height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
             border-radius: 20px; display: flex; align-items: center; justify-content: space-around;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff;
+            pointer-events: auto; /* আসল ন্যাভিগেশন বারে যেন ক্লিক করা যায় */
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-item:active { transform: scale(0.9); }
         .nav-item.active { color: #6366f1; }
         .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
         .nav-item span { font-size: 0.5rem; font-weight: 700; }
-
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: none; z-index: 3000; }
+        
+        .cost-box {
+            background:#f0fdf4; padding:15px; border-radius:15px; margin-bottom:15px; 
+            text-align:center; border: 1px dashed #10b981; transition: 0.3s;
+        }
+        .cost-box:hover { background: #dcfce7; transform: translateY(-2px); }
     </style>
 </head>
 <body>
-
-<div id="toast">Message</div>
 
 <div class="header">
     <div class="header-content">
@@ -131,8 +183,13 @@
             <input type="number" id="order-qty" placeholder="10" oninput="calculateCost()">
         </div>
         
-        <div style="background:#f0fdf4; padding:15px; border-radius:15px; margin-bottom:15px; text-align:center; border: 1px dashed #10b981;">
+        <div class="cost-box">
             <p style="font-size:0.75rem; font-weight:700; color:#166534;"><span id="lang-total-cost">মোট খরচ</span>: <b id="order-total" style="font-size: 1.1rem; color: #10b981;">0</b></p>
+        </div>
+        
+        <!-- মেসেজ শো করার ডিভ -->
+        <div id="inline-message" style="display:none; font-size: 0.8rem; font-weight: 800; text-align: center; margin-bottom: 15px; padding: 10px; border-radius: 12px; transition: 0.3s;">
+            Message
         </div>
         
         <button id="lang-btn-submit" class="btn-elite" onclick="placeOrder()">লঞ্চ ক্যাম্পেইন 🚀</button>
@@ -163,7 +220,6 @@
     </div>
 </div>
 
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
@@ -191,13 +247,11 @@
         icon.style.transform = container.classList.contains('open') ? 'rotate(45deg)' : 'rotate(0deg)';
     }
 
-    // স্ক্রিনের বাইরে ক্লিক করলে মেনু বন্ধ হবে
     document.addEventListener('click', (e) => {
         const container = document.getElementById('navContainer');
         if (!container.contains(e.target) && container.classList.contains('open')) toggleMenu();
     });
 
-    // বাকি ফাংশনগুলো (setLang, calculateCost, placeOrder, auth listener) আগের মতোই থাকবে...
     function setLang(lang) {
         const isBn = lang === 'bn';
         document.getElementById('h-btn-bn').classList.toggle('active', isBn);
@@ -209,47 +263,72 @@
         document.getElementById('lang-url').innerText = isBn ? 'সরাসরি লিঙ্ক (URL)' : 'Direct Link (URL)';
         document.getElementById('lang-qty').innerText = isBn ? 'টার্গেট পরিমাণ (নূন্যতম ১০)' : 'Target Quantity (Min 10)';
         document.getElementById('lang-total-cost').innerText = isBn ? 'মোট খরচ' : 'Total Cost';
-        document.getElementById('lang-btn-submit').innerText = isBn ? 'লঞ্চ ক্যাম্পেইন 🚀' : 'Launch Campaign 🚀';
+        document.getElementById('lang-btn-submit').innerHTML = isBn ? 'লঞ্চ ক্যাম্পেইন 🚀' : 'Launch Campaign 🚀';
+        
+        document.getElementById('inline-message').style.display = 'none';
     }
 
-    function showToast(msg) { 
-        const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; 
-        setTimeout(() => t.style.display = 'none', 3000); 
+    function showMessage(msg, isSuccess = false) {
+        const msgDiv = document.getElementById('inline-message');
+        msgDiv.innerText = msg;
+        msgDiv.style.display = 'block';
+        
+        if(isSuccess) {
+            msgDiv.style.color = '#166534';
+            msgDiv.style.background = '#dcfce7';
+            msgDiv.style.border = '1px solid #86efac';
+            msgDiv.classList.remove('shake-animation');
+        } else {
+            msgDiv.style.color = '#e11d48';
+            msgDiv.style.background = '#ffe4e6';
+            msgDiv.style.border = '1px solid #fda4af';
+            
+            msgDiv.classList.remove('shake-animation');
+            void msgDiv.offsetWidth; 
+            msgDiv.classList.add('shake-animation');
+        }
+
+        setTimeout(() => { msgDiv.style.display = 'none'; }, 4000);
     }
 
     function calculateCost() {
         const qty = parseInt(document.getElementById('order-qty').value) || 0;
         const total = qty * (taskRates[document.getElementById('order-type').value] || 0);
-        document.getElementById('order-total').innerText = total; 
+        
+        document.getElementById('order-total').innerText = total.toLocaleString(); 
         return total;
     }
 
 async function placeOrder() {
-    if (!currentUserId) return showToast("Please login first!");
+    const isBn = document.getElementById('h-btn-bn').classList.contains('active');
     
-    // একাধিক ক্লিক রোধ করতে বাটন ডিজেবল করা
-    const btn = document.getElementById('lang-btn-submit');
-    const originalText = btn.innerText;
-    btn.disabled = true;
-    btn.innerText = "Processing...";
+    document.getElementById('inline-message').style.display = 'none';
+
+    if (!currentUserId) return showMessage(isBn ? "প্রথমে লগইন করুন!" : "Please login first!", false);
 
     const title = document.getElementById('order-title').value.trim();
     const type = document.getElementById('order-type').value;
     const link = document.getElementById('order-link').value.trim();
     const qty = parseInt(document.getElementById('order-qty').value) || 0;
-    const totalCost = calculateCost();
+    
+    const totalCost = qty * (taskRates[type] || 0);
     const reward = Math.max(1, (taskRates[type] || 1) - 1);
 
-    if(!title || !link || qty < 10) {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        return showToast("সব তথ্য সঠিকভাবে দিন!");
+    if(!title || !link) {
+        return showMessage(isBn ? "ফর্মের সবগুলো তথ্য পূরণ করুন!" : "Please fill all fields!", false);
+    }
+    if(qty < 10) {
+        return showMessage(isBn ? "পরিমাণ কমপক্ষে ১০ হতে হবে!" : "Quantity must be at least 10!", false);
     }
     if(totalCost > userPoints) {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        return showToast("পর্যাপ্ত পয়েন্ট নেই!");
+        return showMessage(isBn ? "আপনার পর্যাপ্ত পয়েন্ট নেই!" : "Not enough points!", false);
     }
+    
+    const btn = document.getElementById('lang-btn-submit');
+    const originalText = isBn ? 'লঞ্চ ক্যাম্পেইন 🚀' : 'Launch Campaign 🚀';
+    
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> ${isBn ? 'প্রসেসিং...' : 'Processing...'}`;
 
     try {
         const token = await auth.currentUser.getIdToken();
@@ -272,23 +351,22 @@ async function placeOrder() {
         const data = await response.json();
 
         if (!response.ok) {
-            showToast(data.error || "Server Error!");
+            showMessage(data.error || "Server Error!", false);
         } else {
-            showToast("ক্যাম্পেইন সফল হয়েছে! ✅");
-            // ফর্ম ক্লিয়ার করা
+            showMessage(isBn ? "ক্যাম্পেইন সফল হয়েছে! ✅" : "Campaign successful! ✅", true);
+            
             document.getElementById('order-title').value = '';
             document.getElementById('order-link').value = '';
             document.getElementById('order-qty').value = '';
             document.getElementById('order-total').innerText = '0';
         }
     } catch (err) { 
-        showToast("Network Error!"); 
+        showMessage(isBn ? "ইন্টারনেট কানেকশন চেক করুন!" : "Network Error!", false); 
     } finally {
         btn.disabled = false;
-        btn.innerText = originalText;
+        btn.innerHTML = originalText;
     }
 }
-
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -296,7 +374,7 @@ async function placeOrder() {
             db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
                 const d = snap.val() || {};
                 userPoints = d.points || 0;
-                document.getElementById('user-points').innerText = userPoints;
+                document.getElementById('user-points').innerText = userPoints.toLocaleString();
                 document.getElementById('user-display-name').innerText = d.name || "Elite Member";
                 
                 const avatarImg = document.getElementById('top-avatar');
@@ -312,3 +390,5 @@ async function placeOrder() {
 </script>
 </body>
 </html>
+
+
