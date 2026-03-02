@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Special Offers - TaskBazar</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
+            --bg: #f8fafc;
+            --text-h: #0f172a;
+            --text-p: #64748b;
+            --danger: #f43f5e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; overflow-x: hidden; }
+
+        /* হেডার স্টাইল */
+        .header {
+            background: var(--p-gradient); color: white; padding: 12px 15px 25px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
+
+        .avatar-frame {
+            width: 36px; height: 36px; border-radius: 12px;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
+        .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
+        .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
+        .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+
+        .container { padding: 0 18px; max-width: 480px; margin: 20px auto 0; }
+        .section-h { font-size: 1.05rem; font-weight: 800; margin: 0 0 15px 5px; color: #1e293b; display: flex; align-items: center; gap: 8px;}
+        
+        /* মর্ডান এবং স্ট্যান্ডার্ড অফার কার্ড স্টাইল */
+        .offer-card { 
+            background: linear-gradient(145deg, #ffffff 0%, #fffbeb 100%);
+            border-radius: 18px; padding: 22px 18px; 
+            border: 1px solid rgba(245, 158, 11, 0.25); 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04), inset 0 2px 0 rgba(255,255,255,0.8);
+            position: relative; overflow: hidden; margin-bottom: 20px;
+            animation: slideUp 0.4s ease forwards; transition: all 0.4s ease;
+            text-align: center;
+        }
+        @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .offer-badge {
+            position: absolute; top: 12px; right: -28px; background: #f43f5e; color: white;
+            padding: 4px 30px; font-size: 0.65rem; font-weight: 800; transform: rotate(45deg);
+            box-shadow: 0 2px 8px rgba(244, 63, 94, 0.25); text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .offer-icon {
+            width: 55px; height: 55px; background: white; color: #f59e0b; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+            margin: 0 auto 12px; border: 1px solid #fde68a; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+        }
+
+        .offer-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        .offer-desc { 
+            font-size: 0.8rem; color: #059669; font-weight: 800; margin-bottom: 18px; 
+            background: rgba(16, 185, 129, 0.1); display: inline-block; 
+            padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); 
+        }
+
+        .input-group { margin-bottom: 18px; text-align: left; transition: all 0.3s ease; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: #475569; margin-bottom: 6px; margin-left: 4px; }
+        .input-group input { 
+            width: 100%; padding: 12px 15px; background: white; 
+            border: 1px solid #cbd5e1; border-radius: 12px; 
+            outline: none; transition: all 0.3s ease; font-size: 0.85rem; font-weight: 600;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-group input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
+        
+        .btn-offer { 
+            width: 100%; padding: 12px; border: none; border-radius: 12px; 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 0.9rem; 
+            font-weight: 800; cursor: pointer; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.25); 
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;
+        }
+        .btn-offer:active { transform: scale(0.97); box-shadow: 0 3px 8px rgba(245, 158, 11, 0.2); }
+        .btn-offer:disabled { background: #10b981; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); cursor: not-allowed; transform: scale(1); color: white; }
+
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: #fff; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ন্যাভিগেশন স্টাইল */
+        .nav-bar-container { position: fixed; bottom: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .expanded-menu { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 12px; display: flex; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff; opacity: 0; transform: translateY(20px); pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .nav-bar { height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; pointer-events: auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
+        .nav-item span { font-size: 0.5rem; font-weight: 700; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: none; z-index: 4000; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body>
+
+<div id="toast">Message</div>
+
+<div class="header">
+    <div class="header-content">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="avatar-frame" onclick="location.href='profile.html'">
+                <img id="top-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            <div>
+                <h2 id="user-display-name" style="font-size: 0.75rem; font-weight: 800;">Member</h2>
+                <span style="font-size: 0.45rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 6px;">PRO</span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="header-lang-switch">
+                <div id="h-btn-bn" class="h-lang-btn active" onclick="setLang('bn')">BN</div>
+                <div id="h-btn-en" class="h-lang-btn" onclick="setLang('en')">EN</div>
+            </div>
+            <div class="wallet-pill"><span data-i18n="points">Points</span><b id="user-points">0</b></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 class="section-h"><span style="font-size: 1.3rem;">🎁</span> <span data-i18n="pageTitle">স্পেশাল অফার</span></h3>
+    
+    <div class="offer-card" id="fb-offer-card">
+        <div class="offer-badge" data-i18n="freeBadge">100% Free</div>
+        <div class="offer-icon">👥</div>
+        <h2 class="offer-title" data-i18n="offerTitle">৫০০ ফেসবুক ফলোয়ার</h2>
+        
+        <p class="offer-desc" data-i18n="offerDesc">নতুন ইউজারদের জন্য একদম ফ্রি!</p>
+
+        <div id="offer-form">
+            <div class="input-group" id="link-input-area">
+                <label data-i18n="linkLabel">আপনার ফেসবুক লিংক দিন</label>
+                <input type="url" id="fb-profile-link" placeholder="https://facebook.com/..." autocomplete="off">
+            </div>
+            <button id="claim-btn" class="btn-offer" onclick="claimOffer()">
+                <span id="btn-text" data-i18n="claimBtn">ক্লেইম করুন 🚀</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ন্যাভিগেশন বার -->
+<div class="nav-bar-container" id="navContainer">
+    <div class="expanded-menu">
+        <a href="offers.html" class="nav-item active">
+            <i style="background: #fffbeb; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🎁</i>
+            <span style="font-size: 0.6rem;" data-i18n="navOffers">Offers</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <i style="background: #fdf2f8; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🏆</i>
+            <span style="font-size: 0.6rem;" data-i18n="navLeaderboard">Leaderboard</span>
+        </a>
+        <a href="complaint.html" class="nav-item">
+            <i style="background: #f1f5f9; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">🛠️</i>
+            <span style="font-size: 0.6rem;" data-i18n="navSupport">Support</span>
+        </a>
+    </div>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-item"><i>🏠</i><span data-i18n="navMissions">Missions</span></a>
+        <a href="order.html" class="nav-item"><i>🚀</i><span data-i18n="navPromote">Promote</span></a>
+        <a href="profile.html" class="nav-item"><i>👤</i><span data-i18n="navProfile">Profile</span></a>
+        <div class="nav-item" onclick="toggleMenu()">
+            <i id="menuIcon" style="transition: 0.3s; font-style: normal; font-size: 1.3rem;">+</i>
+            <span data-i18n="navMenu">Menu</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+        authDomain: "exchange-project-d4028.firebaseapp.com",
+        databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exchange-project-d4028",
+        storageBucket: "exchange-project-d4028.firebasestorage.app",
+        messagingSenderId: "313976742479",
+        appId: "1:313976742479:web:45951b360d875c4768c03a"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const appId = "exchange-project-d4028";
+    let currentUserId = null;
+    let currentLang = 'bn';
+
+    const translations = {
+        bn: {
+            points: "পয়েন্ট", pageTitle: "স্পেশাল অফার", freeBadge: "100% Free",
+            offerTitle: "৫০০ ফেসবুক ফলোয়ার", offerDesc: "নতুন ইউজারদের জন্য একদম ফ্রি!",
+            linkLabel: "আপনার ফেসবুক লিংক দিন", claimBtn: "ক্লেইম করুন 🚀", processingText: "প্রসেসিং...",
+            errorLogin: "প্রথমে লগইন করুন!", errorLink: "দয়া করে সঠিক ফেসবুক লিংক দিন!",
+            errorServer: "সমস্যা হয়েছে, আবার চেষ্টা করুন।", successToast: "আপনার টাস্কটি লাইভ হয়েছে। 🎉",
+            claimedText: "ক্লেইমড ✅",
+            navOffers: "অফার", navLeaderboard: "লিডারবোর্ড", navSupport: "সাপোর্ট",
+            navMissions: "মিশন", navPromote: "প্রমোট", navProfile: "প্রোফাইল", navMenu: "মেনু"
+        },
+        en: {
+            points: "Points", pageTitle: "Special Offers", freeBadge: "100% Free",
+            offerTitle: "500 Facebook Followers", offerDesc: "Completely free for new users!",
+            linkLabel: "Enter your Facebook link", claimBtn: "Claim Now 🚀", processingText: "Processing...",
+            errorLogin: "Please login first!", errorLink: "Please enter a valid link!",
+            errorServer: "Something went wrong, try again.", successToast: "Your task is live. 🎉",
+            claimedText: "Claimed ✅",
+            navOffers: "Offers", navLeaderboard: "Leaderboard", navSupport: "Support",
+            navMissions: "Missions", navPromote: "Promote", navProfile: "Profile", navMenu: "Menu"
+        }
+    };
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function toggleMenu() {
+        const container = document.getElementById('navContainer');
+        const icon = document.getElementById('menuIcon');
+        container.classList.toggle('open');
+        icon.style.transform = container.classList.contains('open') ? 'rotate(45deg)' : 'rotate(0deg)';
+    }
+
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('navContainer');
+        if (!container.contains(e.target) && container.classList.contains('open')) toggleMenu();
+    });
+
+    function applyTranslations() {
+        const t = translations[currentLang];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) el.innerHTML = t[key]; 
+        });
+        
+        const btn = document.getElementById('claim-btn');
+        if(btn && btn.disabled) {
+            btn.innerHTML = t.claimedText;
+        }
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.getElementById('h-btn-bn').classList.toggle('active', lang === 'bn');
+        document.getElementById('h-btn-en').classList.toggle('active', lang === 'en');
+        localStorage.setItem('elite_lang', lang);
+        applyTranslations();
+    }
+
+    async function claimOffer() {
+        const t = translations[currentLang];
+        if(!currentUserId) return showToast(t.errorLogin);
+        
+        const linkInput = document.getElementById('fb-profile-link').value.trim();
+        const btn = document.getElementById('claim-btn');
+
+        const isValidFbLink = linkInput.includes('facebook.com') && linkInput.length > 15;
+
+        if(!linkInput || !isValidFbLink) {
+            return showToast(t.errorLink);
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> <span style="margin-left:5px;">${t.processingText}</span>`;
+
+        try {
+            const taskId = "task_" + Date.now();
+            
+            await db.ref(`artifacts/${appId}/public/data/microtasks/${taskId}`).set({
+                title: "Facebook Follow (Special Offer)",
+                type: "Facebook Follow",
+                link: linkInput,
+                reward: 2, 
+                qty: 500,  
+                creatorId: currentUserId,
+                isSpecialOffer: true, 
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            await db.ref(`artifacts/${appId}/users/${currentUserId}/stats`).update({
+                claimedFreeFbFollowers: true
+            });
+
+            showToast(t.successToast);
+            updateUIClaimedState();
+
+        } catch (error) {
+            showToast(t.errorServer);
+            btn.disabled = false;
+            btn.innerHTML = `<span id="btn-text" data-i18n="claimBtn">${t.claimBtn}</span>`;
+        }
+    }
+
+    function updateUIClaimedState() {
+        const inputArea = document.getElementById('link-input-area');
+        if(inputArea) inputArea.style.display = 'none';
+
+        const btn = document.getElementById('claim-btn');
+        if(btn) {
+            btn.disabled = true;
+            btn.innerHTML = translations[currentLang].claimedText;
+            btn.style.background = '#10b981';
+            btn.style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.2)';
+        }
+
+        const card = document.getElementById('fb-offer-card');
+        card.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        card.style.background = 'linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%)';
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            
+            db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
+                const d = snap.val() || {};
+                document.getElementById('user-points').innerText = d.points || 0;
+                document.getElementById('user-display-name').innerText = d.name || "Member";
+                
+                const avatarImg = document.getElementById('top-avatar');
+                if(d.avatar && d.avatar !== "" && d.avatar !== "null") {
+                    avatarImg.src = d.avatar;
+                }
+
+                if(d.claimedFreeFbFollowers === true) {
+                    updateUIClaimedState();
+                }
+            });
+        } else {
+            location.href = 'index.html';
+        }
+    });
+
+    const savedLang = localStorage.getItem('elite_lang') || 'bn';
+    setLang(savedLang);
+</script>
+</body>
+</html>
+
+

@@ -116,7 +116,6 @@
 
 <div id="toast">Message</div>
 
-<!-- এডিট প্রোফাইল মডাল -->
 <div id="edit-modal" class="modal-overlay">
     <div class="modal-content">
         <h3 id="lang-edit-title" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 15px; color: #0f172a;">Edit Profile</h3>
@@ -133,20 +132,17 @@
     </div>
 </div>
 
-<!-- সম্পূর্ণ হিস্ট্রি মডাল -->
 <div id="history-modal" class="modal-overlay">
     <div class="modal-history-content">
         <h3 id="lang-full-history-title" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 15px; color: #0f172a;">Transaction History</h3>
         
         <div id="full-transaction-list" style="overflow-y: auto; flex: 1; padding-right: 5px; margin-bottom: 10px;">
-            <!-- সমস্ত হিস্ট্রি এখানে লোড হবে -->
-        </div>
+            </div>
 
         <button class="btn-cancel" onclick="closeHistoryModal()" id="lang-btn-history-close">Close History</button>
     </div>
 </div>
 
-<!-- হেডার -->
 <div class="header">
     <div class="header-content">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -185,7 +181,18 @@
         </div>
         
         <p id="user-email" style="font-size: 0.75rem; color: var(--text-p); font-weight: 600;">••••@gmail.com</p>
-        <p style="font-size: 0.65rem; color: #94a3b8; font-weight: 600; margin-top: 3px;"><span id="lang-join">Joined:</span> <span id="user-join-date">Loading...</span></p>
+        
+        <div id="email-verification-container" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px;">
+             <span id="verified-badge" style="display: none; background: #dcfce7; color: #166534; font-size: 0.6rem; padding: 2px 8px; border-radius: 10px; font-weight: 800; border: 1px solid #86efac;">
+                 Verified ✅
+             </span>
+
+             <button id="verify-btn" onclick="sendVerificationEmail()" style="display: none; background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; padding: 2px 10px; border-radius: 10px; font-size: 0.6rem; font-weight: 800; cursor: pointer; transition: 0.2s;">
+                 Verify Now ⚠️
+             </button>
+        </div>
+
+        <p style="font-size: 0.65rem; color: #94a3b8; font-weight: 600; margin-top: 8px;"><span id="lang-join">Joined:</span> <span id="user-join-date">Loading...</span></p>
         
         <div class="stat-grid">
             <div class="stat-box"><span id="lang-points-text">Total Points</span><b id="stat-points">0</b></div>
@@ -200,7 +207,6 @@
             <button class="btn-copy" onclick="copyReferral()" id="lang-btn-copy">Copy</button>
         </div>
 
-        <!-- হিস্ট্রি সেকশন (শুধুমাত্র লেটেস্ট দেখাবে) -->
         <div class="history-section">
             <h3 id="lang-history-title">Recent Transactions</h3>
             <div id="latest-transaction">
@@ -217,7 +223,6 @@
     </div>
 </div>
 
-<!-- ফুটার (নেভিগেশন বার) -->
 <div class="nav-bar-container" id="navContainer">
     <div class="expanded-menu">
         <a href="leaderboard.html" class="nav-item">
@@ -313,6 +318,21 @@
             closeEditModal();
         } catch (error) {
             showToast("আপডেট করতে সমস্যা হয়েছে।");
+        }
+    }
+
+    // ইমেইল ভেরিফিকেশন লজিক
+    function sendVerificationEmail() {
+        const user = auth.currentUser;
+        if(user) {
+            user.sendEmailVerification().then(() => {
+                showToast("Verification link sent! Check Email 📧");
+                // বাটন ডিজেবল করে দেয়া ভালো যাতে বারবার ক্লিক না করে
+                document.getElementById('verify-btn').disabled = true;
+                document.getElementById('verify-btn').innerText = "Sent!";
+            }).catch((error) => {
+                showToast("Error: " + error.message);
+            });
         }
     }
 
@@ -426,6 +446,18 @@
             currentUserId = user.uid;
             document.getElementById('user-email').innerText = user.email;
             
+            // ইমেইল ভেরিফিকেশন চেক
+            const verifyBadge = document.getElementById('verified-badge');
+            const verifyBtn = document.getElementById('verify-btn');
+            
+            if (user.emailVerified) {
+                verifyBadge.style.display = 'block';
+                verifyBtn.style.display = 'none';
+            } else {
+                verifyBadge.style.display = 'none';
+                verifyBtn.style.display = 'block';
+            }
+            
             db.ref(`artifacts/${appId}/users/${user.uid}/stats`).on('value', snap => {
                 const d = snap.val() || {};
                 
@@ -474,5 +506,3 @@
 </script>
 </body>
 </html>
-
-

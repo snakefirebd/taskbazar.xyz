@@ -94,6 +94,19 @@
             <div id="forgot-pass-box" style="text-align: center; margin-top: 15px;">
                 <span onclick="resetPassword()" style="font-size: 0.75rem; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s;">পাসওয়ার্ড ভুলে গেছেন?</span>
             </div>
+
+            <!-- Google Login Divider -->
+            <div style="display: flex; align-items: center; margin: 20px 0;">
+                <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+                <span style="padding: 0 10px; color: var(--text-p); font-size: 0.8rem; font-weight: 800;">অথবা</span>
+                <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            </div>
+
+            <!-- Google Login Button -->
+            <button onclick="googleSignIn()" style="width: 100%; padding: 12px; background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;">
+                <img src="https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png" style="width: 20px; height: 20px;" alt="Google">
+                Google দিয়ে কন্টিনিউ করুন
+            </button>
         </div>
         
         <div style="margin-top: 20px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
@@ -172,32 +185,63 @@
     }
 
     // রেফারেল কোড চেক করে বোনাস দেওয়া
-async function processReferral(referCode, newUserId, newUserName) {
-    if (!referCode) return;
-    
-    try {
-        const token = await auth.currentUser.getIdToken();
-        const response = await fetch('https://taskbajar-backend.vercel.app/api/referral', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                referCode: referCode,
-                newUserName: newUserName
-            })
-        });
+    async function processReferral(referCode, newUserId, newUserName) {
+        if (!referCode) return;
         
-        const data = await response.json();
-        if (data.success) {
-            console.log("Referral bonus processed successfully securely!");
+        try {
+            const token = await auth.currentUser.getIdToken();
+            const response = await fetch('https://taskbajar-backend.vercel.app/api/referral', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    referCode: referCode,
+                    newUserName: newUserName
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                console.log("Referral bonus processed successfully securely!");
+            }
+        } catch (error) {
+            console.error("Error processing referral: ", error);
         }
-    } catch (error) {
-        console.error("Error processing referral: ", error);
     }
-}
 
+    // Google Sign-In লজিক
+    async function googleSignIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            
+            // যদি এটি নতুন একাউন্ট হয়
+            if (result.additionalUserInfo.isNewUser) {
+                const rCode = document.getElementById('reg-refer').value.trim(); // সাইনআপ মুডে থাকলে রেফার কোড নিবে
+                
+                await db.ref(`artifacts/${appId}/users/${user.uid}/stats`).set({
+                    name: user.displayName || "Google User", 
+                    points: 50, // সাইন আপ বোনাস
+                    referralCode: user.uid.substring(0, 6).toUpperCase(), 
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    avatar: user.photoURL || "" // গুগল থেকে সরাসরি ছবি সেট
+                });
+
+                if (rCode) {
+                    await processReferral(rCode, user.uid, user.displayName || "Google User");
+                }
+                showToast("Google অ্যাকাউন্ট সফলভাবে খোলা হয়েছে! 🎉");
+            } else {
+                showToast("লগইন সফল হয়েছে! ✅");
+            }
+            // onAuthStateChanged বাকি কাজ সামলে নিবে
+        } catch (error) {
+            showToast("Google Login Error: " + error.message);
+        }
+    }
 
     async function handleAuthAction() {
         const e = document.getElementById('auth-email').value.trim();
@@ -261,6 +305,7 @@ async function processReferral(referCode, newUserId, newUserName) {
 
     auth.onAuthStateChanged(user => {
         if (user) {
+            // Google Login এ বেশিরভাগ সময় email অটো ভেরিফাইড থাকে
             if (user.emailVerified) {
                 window.location.href = 'index.html';
             } else {
@@ -272,5 +317,4 @@ async function processReferral(referCode, newUserId, newUserName) {
 </script>
 </body>
 </html>
-
 
