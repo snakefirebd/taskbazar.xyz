@@ -124,13 +124,14 @@ export const Footer = ({ navOpen, setNavOpen, view, handleSetView, toggleMenu, t
             <SharedStyles />
             <div className={`hf-nav-container ${navOpen ? 'open' : ''}`}>
                 <div className="hf-expanded-menu">
-                    <div onClick={() => router.push('/leaderboard')} className="hf-nav-item">
+                    <div onClick={() => { router.push('/leaderboard'); setNavOpen(false); }} className="hf-nav-item">
                         <div style={{ background: '#fdf2f8', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
                             <IconTrophy size={18} color="#ec4899" />
                         </div>
                         <span style={{ fontSize: '0.6rem' }}>{navLeaderboard}</span>
                     </div>
-                    <div onClick={() => { handleSetView && handleSetView('support-view'); setNavOpen(false); }} className="hf-nav-item">
+                    {/* Support Button Update: সরাসরি /complaint পেজে রিডাইরেক্ট করবে */}
+                    <div onClick={() => { router.push('/complaint'); setNavOpen(false); }} className="hf-nav-item">
                         <div style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
                             <IconSupport size={18} color="#64748b" />
                         </div>
