@@ -1,4 +1,4 @@
-// File Path: app/order/page.js "important message for gemini ai"
+// File Path: app/order/page.js
 
 "use client";
 
@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue } from 'firebase/database';
+
+// Import Header and Footer from headfoot.js
+import { Header, Footer } from '../../components/headfoot';
 
 // Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
 let firebaseConfig = {};
@@ -43,6 +46,9 @@ const translations = {
         navMissions: "Missions",
         navPromote: "Promote",
         navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu",
         loginFirst: "প্রথমে লগইন করুন!",
         fillAll: "ফর্মের সবগুলো তথ্য পূরণ করুন!",
         minQty: "পরিমাণ কমপক্ষে ১০ হতে হবে!",
@@ -63,6 +69,9 @@ const translations = {
         navMissions: "Missions",
         navPromote: "Promote",
         navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu",
         loginFirst: "Please login first!",
         fillAll: "Please fill all fields!",
         minQty: "Quantity must be at least 10!",
@@ -79,17 +88,19 @@ export default function OrderPage() {
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState({ points: 0, name: "Elite Member", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" });
     const [currentLang, setCurrentLang] = useState('bn');
+    
+    // UI States
     const [navOpen, setNavOpen] = useState(false);
+    const [view, setView] = useState('order-view'); // For footer active state (will default to Promote if matched in logic, here we just pass a string)
+    const [hasNewNotif, setHasNewNotif] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState({ text: "", isSuccess: false, visible: false, shakeKey: 0 });
 
     // Form States
     const [orderType, setOrderType] = useState("YouTube Subscribe");
     const [orderTitle, setOrderTitle] = useState("");
     const [orderLink, setOrderLink] = useState("");
     const [orderQty, setOrderQty] = useState("");
-
-    // UI States
-    const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState({ text: "", isSuccess: false, visible: false, shakeKey: 0 });
 
     const t = translations[currentLang];
 
@@ -121,11 +132,18 @@ export default function OrderPage() {
     // Calculate Total Cost
     const totalCost = (parseInt(orderQty) || 0) * (taskRates[orderType] || 0);
 
-    // Change Language
+    // Header & Footer Actions
     const changeLang = (lang) => {
         setCurrentLang(lang);
         localStorage.setItem('elite_lang', lang);
         setMessage({ ...message, visible: false }); // হাইড মেসেজ অন ল্যাং চেঞ্জ
+    };
+    
+    const toggleMenu = () => setNavOpen(!navOpen);
+    const handleSetView = (newView) => setView(newView);
+    const openNotifications = () => {
+        showMessage(currentLang === 'bn' ? "নোটিফিকেশন দেখতে হোম পেইজে যান।" : "Go to home page for notifications.", true);
+        setTimeout(() => { router.push('/'); }, 1000);
     };
 
     // Show Inline Message
@@ -215,31 +233,6 @@ export default function OrderPage() {
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
                 body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; overflow-x: hidden; }
 
-                /* Header Style */
-                .header {
-                    background: var(--p-gradient); color: white; padding: 12px 15px 25px;
-                    border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
-                    position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
-                }
-                .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
-
-                .avatar-frame {
-                    width: 36px; height: 36px; border-radius: 12px;
-                    background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
-                    backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
-                    transition: transform 0.3s ease;
-                }
-                .avatar-frame:active { transform: scale(0.9); }
-                .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-                .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
-                .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
-                .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
-                .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
-                .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
-                .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
-
                 /* Animations */
                 @keyframes fadeUp {
                     from { opacity: 0; transform: translateY(20px); }
@@ -292,33 +285,6 @@ export default function OrderPage() {
                     margin-right: 8px;
                 }
                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-                /* Navigation */
-                .nav-bar-container {
-                    position: fixed; bottom: 15px; left: 15px; right: 15px;
-                    z-index: 1000; display: flex; flex-direction: column; gap: 10px;
-                    pointer-events: none;
-                }
-                .expanded-menu {
-                    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-                    border-radius: 20px; padding: 12px; display: flex; gap: 15px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff;
-                    opacity: 0; transform: translateY(20px); pointer-events: none;
-                    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                }
-                .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
-                
-                .nav-bar {
-                    height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
-                    border-radius: 20px; display: flex; align-items: center; justify-content: space-around;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff;
-                    pointer-events: auto;
-                }
-                .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
-                .nav-item:active { transform: scale(0.9); }
-                .nav-item.active { color: #6366f1; }
-                .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
-                .nav-item span { font-size: 0.5rem; font-weight: 700; }
                 
                 .cost-box {
                     background:#f0fdf4; padding:15px; border-radius:15px; margin-bottom:15px; 
@@ -335,29 +301,17 @@ export default function OrderPage() {
                 .msg-error { color: #e11d48; background: #ffe4e6; border: 1px solid #fda4af; }
             `}</style>
 
-            <div className="header">
-                <div className="header-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="avatar-frame" onClick={() => router.push('/profile')}>
-                            <img src={userData.avatar} onError={(e) => {e.target.src="https://cdn-icons-png.flaticon.com/512/149/149071.png"}} alt="Avatar"/>
-                        </div>
-                        <div>
-                            <h2 style={{ fontSize: '0.75rem', fontWeight: 800 }}>{userData.name}</h2>
-                            <span style={{ fontSize: '0.45rem', fontWeight: 800, background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '6px' }}>PRO</span>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="header-lang-switch">
-                            <div className={`h-lang-btn ${currentLang === 'bn' ? 'active' : ''}`} onClick={() => changeLang('bn')}>BN</div>
-                            <div className={`h-lang-btn ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>EN</div>
-                        </div>
-                        <div className="wallet-pill">
-                            <span>{t.points}</span>
-                            <b>{userData.points.toLocaleString()}</b>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* --- IMPORTED HEADER --- */}
+            <Header 
+                user={user} 
+                userData={userData} 
+                hasNewNotif={hasNewNotif} 
+                openNotifications={openNotifications} 
+                currentLang={currentLang} 
+                changeLang={changeLang} 
+                t={t} 
+                router={router} 
+            />
 
             <div className="container">
                 <h3 className="section-h">{t.title}</h3>
@@ -422,30 +376,17 @@ export default function OrderPage() {
                 </div>
             </div>
 
-            {/* Navigation Bar */}
-            <div className={`nav-bar-container ${navOpen ? 'open' : ''}`}>
-                <div className="expanded-menu">
-                    <div onClick={() => router.push('/leaderboard')} className="nav-item">
-                        <i style={{ background: '#fdf2f8', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🏆</i>
-                        <span style={{ fontSize: '0.6rem' }}>Leaderboard</span>
-                    </div>
-
-                    <div onClick={() => router.push('/complaint')} className="nav-item">
-                        <i style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🛠️</i>
-                        <span style={{ fontSize: '0.6rem' }}>Support</span>
-                    </div>
-                </div>
-
-                <div className="nav-bar">
-                    <div className="nav-item" onClick={() => router.push('/')}><i>🏠</i><span>{t.navMissions}</span></div>
-                    <div className="nav-item active"><i>🚀</i><span>{t.navPromote}</span></div>
-                    <div className="nav-item" onClick={() => router.push('/profile')}><i>👤</i><span>{t.navProfile}</span></div>
-                    <div className="nav-item" onClick={() => setNavOpen(!navOpen)}>
-                        <i style={{ transition: '0.3s', fontStyle: 'normal', fontSize: '1.3rem', transform: navOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</i>
-                        <span>Menu</span>
-                    </div>
-                </div>
-            </div>
+            {/* --- IMPORTED FOOTER --- */}
+            <Footer 
+                navOpen={navOpen} 
+                setNavOpen={setNavOpen} 
+                view={view} 
+                handleSetView={handleSetView} 
+                toggleMenu={toggleMenu} 
+                t={t} 
+                router={router} 
+            />
         </>
     );
 }
+
