@@ -8,6 +8,9 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from 'firebase/database'; // Query ইম্পোর্ট করা হয়েছে
 
+// Import Header and Footer from headfoot.js
+import { Header, Footer } from '../../components/headfoot';
+
 // Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
 let firebaseConfig = {};
 try {
@@ -60,6 +63,7 @@ export default function LeaderboardPage() {
     const [userData, setUserData] = useState({ points: 0, name: "Member", avatar: defaultAvatar });
     const [currentLang, setCurrentLang] = useState('bn');
     const [navOpen, setNavOpen] = useState(false);
+    const [hasNewNotif, setHasNewNotif] = useState(false);
 
     // Leaderboard Data
     const [leaderboardData, setLeaderboardData] = useState([]);
@@ -132,9 +136,17 @@ export default function LeaderboardPage() {
         return () => unsubscribe();
     }, []);
 
+    // Header & Footer Actions
     const changeLang = (lang) => {
         setCurrentLang(lang);
         localStorage.setItem('elite_lang', lang);
+    };
+
+    const toggleMenu = () => setNavOpen(!navOpen);
+
+    const openNotifications = () => {
+        // Simple mock for notification action
+        console.log("Notifications clicked");
     };
 
     // Slicing top 3 and the rest
@@ -154,30 +166,7 @@ export default function LeaderboardPage() {
                 }
 
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent;}
-                body { background: var(--bg); color: var(--text-h); padding-bottom: 120px; line-height: 1.6; }
-
-                /* Header */
-                .header {
-                    background: var(--p-gradient); color: white; padding: 12px 15px 25px;
-                    border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
-                    position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
-                }
-                .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
-
-                .avatar-frame {
-                    width: 36px; height: 36px; border-radius: 12px;
-                    background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
-                    backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
-                }
-                .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-                .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
-                .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
-                .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
-                .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; flex-shrink: 0; }
-                .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
-                .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+                body { background: var(--bg); color: var(--text-h); padding-bottom: 90px; line-height: 1.6; }
 
                 /* Container & Podium */
                 .container { padding: 18px; max-width: 480px; margin: 0 auto; animation: fadeUp 0.5s ease forwards;}
@@ -211,42 +200,19 @@ export default function LeaderboardPage() {
                 .lb-avatar { width: 42px; height: 42px; border-radius: 14px; object-fit: cover; background: #f8fafc; border: 1px solid #e2e8f0; }
                 .lb-name { font-size: 0.85rem; font-weight: 800; color: #0f172a; }
                 .lb-pts { font-size: 0.85rem; font-weight: 800; color: #6366f1; background: #eef2ff; padding: 5px 12px; border-radius: 12px; border: 1px solid #e0e7ff; }
-
-                /* Nav Bar */
-                .nav-bar-container { position: fixed; bottom: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
-                .expanded-menu { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 12px; display: flex; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff; opacity: 0; transform: translateY(20px); pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-                .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
-                .nav-bar { height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; pointer-events: auto;}
-                .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
-                .nav-item.active { color: #6366f1; transform: translateY(-2px); }
-                .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
-                .nav-item span { font-size: 0.5rem; font-weight: 700; white-space: nowrap; }
             `}</style>
 
-            {/* Header */}
-            <div className="header">
-                <div className="header-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="avatar-frame" onClick={() => router.push('/profile')}>
-                            <img src={userData.avatar} onError={(e) => {e.target.src=defaultAvatar}} alt="Avatar"/>
-                        </div>
-                        <div>
-                            <h2 style={{ fontSize: '0.75rem', fontWeight: 800 }}>{userData.name.split(' ')[0]}</h2>
-                            <span style={{ fontSize: '0.45rem', fontWeight: 800, background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '6px' }}>PRO</span>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="header-lang-switch">
-                            <div className={`h-lang-btn ${currentLang === 'bn' ? 'active' : ''}`} onClick={() => changeLang('bn')}>BN</div>
-                            <div className={`h-lang-btn ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>EN</div>
-                        </div>
-                        <div className="wallet-pill">
-                            <span>{t.points}</span>
-                            <b>{userData.points.toLocaleString()}</b>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* --- IMPORTED HEADER --- */}
+            <Header 
+                user={user} 
+                userData={userData} 
+                hasNewNotif={hasNewNotif} 
+                openNotifications={openNotifications} 
+                currentLang={currentLang} 
+                changeLang={changeLang} 
+                t={t} 
+                router={router} 
+            />
 
             {/* Main Content */}
             <div className="container">
@@ -332,32 +298,24 @@ export default function LeaderboardPage() {
                 )}
             </div>
 
-            {/* Navigation Bar */}
-            <div className={`nav-bar-container ${navOpen ? 'open' : ''}`}>
-                <div className="expanded-menu">
-                    <div onClick={() => router.push('/leaderboard')} className="nav-item active">
-                        <i style={{ background: '#fdf2f8', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🏆</i>
-                        <span style={{ fontSize: '0.6rem' }}>{t.navLeaderboard}</span>
-                    </div>
+            {/* --- IMPORTED FOOTER --- */}
+            <Footer 
+                navOpen={navOpen} 
+                setNavOpen={setNavOpen} 
+                view={'leaderboard-view'} 
+                handleSetView={() => {}} 
+                toggleMenu={toggleMenu} 
+                t={t} 
+                router={router} 
+            />
 
-                    <div onClick={() => router.push('/complaint')} className="nav-item">
-                        <i style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🛠️</i>
-                        <span style={{ fontSize: '0.6rem' }}>{t.navSupport}</span>
-                    </div>
-                </div>
+            {/* Special Menu Style Fix for 'Leaderboard' */}
+            <style>{`
+                 /* Highlight leaderboard icon in expanded menu */
+                 .hf-expanded-menu .hf-nav-item:first-child .hf-nav-item-icon-box { background: #fdf2f8 !important; color: #ec4899 !important; }
+            `}</style>
 
-                <div className="nav-bar">
-                    <div className="nav-item" onClick={() => router.push('/')}><i>🏠</i><span>{t.navMissions}</span></div>
-                    <div className="nav-item" onClick={() => router.push('/order')}><i>🚀</i><span>{t.navPromote}</span></div>
-                    <div className="nav-item" onClick={() => router.push('/profile')}><i>👤</i><span>{t.navProfile}</span></div>
-                    <div className="nav-item" onClick={() => setNavOpen(!navOpen)}>
-                        <i style={{ transition: '0.3s', fontStyle: 'normal', fontSize: '1.3rem', transform: navOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</i>
-                        <span>{t.navMenu}</span>
-                    </div>
-                </div>
-            </div>
         </>
     );
 }
-
 
