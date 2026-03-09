@@ -75,28 +75,28 @@ export default function SpecialOffersPage() {
     const t = translations[currentLang];
 
     // ==========================================
-    // Monetag Ad Setup (আপনার লিংকগুলো এখানে দিন)
+    // Monetag Ad Setup
     // ==========================================
-    const MONETAG_DIRECT_LINK = "https://omg10.com/4/10701785"; // Monetag থেকে পাওয়া Direct Link এখানে দিন
-    
-    // Multitag বা Vignette স্ক্রিপ্টের URL (src)
+    const MONETAG_DIRECT_LINK = "https://omg10.com/4/10701785"; 
     const MONETAG_SCRIPT_URL = "https://quge5.com/88/tag.min.js"; 
     
     useEffect(() => {
         // Monetag Multitag / Vignette Script Inject করা হচ্ছে
-        if(MONETAG_SCRIPT_URL && !MONETAG_SCRIPT_URL.includes("your-monetag")) {
-            const script = document.createElement('script');
-            script.src = MONETAG_SCRIPT_URL;
-            script.async = true;
-            script.setAttribute('data-cfasync', 'false'); // Monetag এর জন্য প্রয়োজন হতে পারে
-            document.head.appendChild(script);
+        const script = document.createElement('script');
+        script.src = MONETAG_SCRIPT_URL;
+        script.async = true;
+        
+        // এখানে data-zone টি যুক্ত করা হয়েছে, যা আগে ছিল না
+        script.setAttribute('data-zone', '217755'); 
+        script.setAttribute('data-cfasync', 'false'); 
+        
+        document.head.appendChild(script);
 
-            return () => {
-                if (document.head.contains(script)) {
-                    document.head.removeChild(script);
-                }
-            };
-        }
+        return () => {
+            if (document.head.contains(script)) {
+                document.head.removeChild(script);
+            }
+        };
     }, []);
     // ==========================================
 
@@ -153,7 +153,7 @@ export default function SpecialOffersPage() {
         }
 
         // --- Monetag Direct Link Open (High CPM) ---
-        if (MONETAG_DIRECT_LINK && !MONETAG_DIRECT_LINK.includes("your-monetag")) {
+        if (MONETAG_DIRECT_LINK) {
             window.open(MONETAG_DIRECT_LINK, '_blank', 'noopener,noreferrer');
         }
 
@@ -284,7 +284,6 @@ export default function SpecialOffersPage() {
                                 />
                             </div>
                         )}
-                        {/* যখন ইউজার এই বাটনে ক্লিক করবে, তখন Firebase এ ডাটা সেভ হওয়ার পাশাপাশি Monetag Direct Link টি নতুন উইন্ডোতে ওপেন হবে */}
                         <button 
                             className={`btn-offer ${isClaimed ? 'claimed-btn' : ''}`} 
                             onClick={claimOffer}
