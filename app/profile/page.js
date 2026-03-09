@@ -1,4 +1,4 @@
-// File Path: app/profile/page.js "important message for gemini ai"
+// File Path: app/profile/page.js
 
 "use client";
 
@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, sendEmailVerification, signOut } from 'firebase/auth';
 import { getDatabase, ref, onValue, update, query, limitToLast } from 'firebase/database';
+
+// Import Header and Footer from headfoot.js
+import { Header, Footer } from '../../components/headfoot';
 
 // Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
 let firebaseConfig = {};
@@ -44,7 +47,10 @@ const translations = {
         noTransactions: "কোন লেনদেন পাওয়া যায়নি",
         navMissions: "Missions",
         navPromote: "Promote",
-        navProfile: "Profile"
+        navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu"
     },
     en: {
         points: "Points",
@@ -66,7 +72,10 @@ const translations = {
         noTransactions: "No transactions found",
         navMissions: "Missions",
         navPromote: "Promote",
-        navProfile: "Profile"
+        navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu"
     }
 };
 
@@ -89,6 +98,8 @@ export default function ProfilePage() {
     // UI States
     const [toast, setToast] = useState({ msg: "", visible: false });
     const [navOpen, setNavOpen] = useState(false);
+    const [view, setView] = useState('profile-view'); // For footer active state
+    const [hasNewNotif, setHasNewNotif] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isVerifySent, setIsVerifySent] = useState(false);
@@ -153,12 +164,13 @@ export default function ProfilePage() {
         setTimeout(() => setToast({ msg: "", visible: false }), 3000);
     };
 
+    // Header & Footer Handlers
     const changeLang = (lang) => {
         setCurrentLang(lang);
         localStorage.setItem('elite_lang', lang);
     };
-
-    // Notification Mock
+    const toggleMenu = () => setNavOpen(!navOpen);
+    const handleSetView = (newView) => setView(newView);
     const openNotifications = () => {
         showToast(currentLang === 'bn' ? "নোটিফিকেশন দেখতে হোম পেইজে যান।" : "Go to home page for notifications.");
         setTimeout(() => { router.push('/'); }, 1000);
@@ -250,34 +262,10 @@ export default function ProfilePage() {
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
                 body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 120px; overflow-x: hidden; }
 
-                .header {
-                    background: var(--p-gradient); color: white; padding: 12px 15px 25px;
-                    border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
-                    position: sticky; top: 0; z-index: 100; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
-                }
-                .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin: 0 auto; gap: 8px; }
-
-                .avatar-frame {
-                    width: 36px; height: 36px; border-radius: 12px;
-                    background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
-                    backdrop-filter: blur(10px); overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0; cursor: pointer;
-                }
-                
-                .avatar-frame img, .big-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-                .notif-btn { position: relative; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; }
-                
-                .header-lang-switch { display: flex; background: rgba(0,0,0,0.1); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
-                .h-lang-btn { padding: 4px 8px; font-size: 0.55rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.6); }
-                .h-lang-btn.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
-                .wallet-pill { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding: 5px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.25); text-align: right; }
-                .wallet-pill span { font-size: 0.45rem; text-transform: uppercase; font-weight: 800; opacity: 0.8; display: block; line-height: 1; }
-                .wallet-pill b { display: block; font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
-
                 .container { padding: 0 18px; max-width: 480px; margin: -15px auto 0; position: relative; z-index: 5; }
                 .profile-card { background: white; border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
                 .big-avatar { width: 90px; height: 90px; border-radius: 30px; margin: 0 auto 15px; border: 3px solid white; box-shadow: 0 8px 20px rgba(99,102,241,0.2); overflow: hidden; background: #f1f5f9; position: relative; }
+                .big-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
                 
                 .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #6366f1; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; border: 2px solid white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
@@ -317,15 +305,6 @@ export default function ProfilePage() {
 
                 #full-transaction-list::-webkit-scrollbar { width: 5px; }
                 #full-transaction-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-                .nav-bar-container { position: fixed; bottom: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
-                .expanded-menu { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 12px; display: flex; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #fff; opacity: 0; transform: translateY(20px); pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-                .nav-bar-container.open .expanded-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
-                .nav-bar { height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #fff; pointer-events: auto;}
-                .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; cursor: pointer; text-decoration: none; transition: 0.3s; }
-                .nav-item.active { color: #6366f1; transform: translateY(-2px); }
-                .nav-item i { font-size: 1.2rem; margin-bottom: 1px; font-style: normal; }
-                .nav-item span { font-size: 0.5rem; font-weight: 700; white-space: nowrap; }
 
                 #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; z-index: 3000; transition: opacity 0.3s ease;}
             `}</style>
@@ -388,33 +367,17 @@ export default function ProfilePage() {
                 </div>
             )}
 
-            {/* Header */}
-            <div className="header">
-                <div className="header-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="avatar-frame">
-                            <img src={userData.avatar} onError={(e) => {e.target.src=defaultAvatar}} alt="Avatar"/>
-                        </div>
-                        <div>
-                            <h2 style={{ fontSize: '0.75rem', fontWeight: 800 }}>{userData.name.split(' ')[0]}</h2>
-                            <span style={{ fontSize: '0.45rem', fontWeight: 800, background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '6px' }}>PRO</span>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="notif-btn" onClick={openNotifications}>
-                            🔔
-                        </div>
-                        <div className="header-lang-switch">
-                            <div className={`h-lang-btn ${currentLang === 'bn' ? 'active' : ''}`} onClick={() => changeLang('bn')}>BN</div>
-                            <div className={`h-lang-btn ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>EN</div>
-                        </div>
-                        <div className="wallet-pill">
-                            <span>{t.points}</span>
-                            <b>{userData.points.toLocaleString()}</b>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* --- IMPORTED HEADER --- */}
+            <Header 
+                user={user} 
+                userData={userData} 
+                hasNewNotif={hasNewNotif} 
+                openNotifications={openNotifications} 
+                currentLang={currentLang} 
+                changeLang={changeLang} 
+                t={t} 
+                router={router} 
+            />
 
             {/* Main Content */}
             <div className="container">
@@ -502,29 +465,17 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Navigation Bar */}
-            <div className={`nav-bar-container ${navOpen ? 'open' : ''}`}>
-                <div className="expanded-menu">
-                    <div onClick={() => router.push('/leaderboard')} className="nav-item">
-                        <i style={{ background: '#fdf2f8', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🏆</i>
-                        <span style={{ fontSize: '0.6rem' }}>Leaderboard</span>
-                    </div>
-                    <div onClick={() => router.push('/complaint')} className="nav-item">
-                        <i style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>🛠️</i>
-                        <span style={{ fontSize: '0.6rem' }}>Support</span>
-                    </div>
-                </div>
-
-                <div className="nav-bar">
-                    <div className="nav-item" onClick={() => router.push('/')}><i>🏠</i><span>{t.navMissions}</span></div>
-                    <div className="nav-item" onClick={() => router.push('/order')}><i>🚀</i><span>{t.navPromote}</span></div>
-                    <div className="nav-item active"><i>👤</i><span>{t.navProfile}</span></div>
-                    <div className="nav-item" onClick={() => setNavOpen(!navOpen)}>
-                        <i style={{ transition: '0.3s', fontStyle: 'normal', fontSize: '1.3rem', transform: navOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</i>
-                        <span>Menu</span>
-                    </div>
-                </div>
-            </div>
+            {/* --- IMPORTED FOOTER --- */}
+            <Footer 
+                navOpen={navOpen} 
+                setNavOpen={setNavOpen} 
+                view={view} 
+                handleSetView={handleSetView} 
+                toggleMenu={toggleMenu} 
+                t={t} 
+                router={router} 
+            />
         </>
     );
 }
+
