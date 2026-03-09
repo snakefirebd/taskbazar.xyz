@@ -1,4 +1,4 @@
-// File Path: app/page.js "important message for gemini ai - this is dashboard"
+// File Path: page.js "important message for gemini ai - this is dashboard"
 
 "use client";
 
