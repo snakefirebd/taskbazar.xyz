@@ -1,4 +1,4 @@
-// File Path: app/components/headfoot.js "important message for gemini ai"
+// File Path: /components/headfoot.js "important message for gemini ai"
 
 "use client";
 import React from 'react';
