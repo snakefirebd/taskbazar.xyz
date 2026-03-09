@@ -1,4 +1,4 @@
-// File Path: app/trustscore/page.js "important message for gemini ai"
+// File Path: app/trustscore/page.js
 
 "use client";
 
@@ -8,7 +8,10 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, query, orderByChild, limitToLast } from 'firebase/database';
 
-// Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
+// Import Header and Footer from headfoot.js
+import { Header, Footer } from '../../components/headfoot';
+
+// Firebase Config
 let firebaseConfig = {};
 try {
     firebaseConfig = JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG || '{}');
@@ -19,8 +22,8 @@ try {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getDatabase(app); // Realtime Database ব্যবহার করা হচ্ছে
-const appId = firebaseConfig.projectId; // JSON থেকে projectId নেওয়া হলো
+const db = getDatabase(app); 
+const appId = firebaseConfig.projectId; 
 
 const zones = [
     { id: "green", max: 100, min: 81, name: "সবুজ জোন", status: "সেরা ইউজার", 
@@ -43,7 +46,7 @@ const zones = [
 export default function TrustScorePage() {
     const router = useRouter();
 
-    // States
+    // Core States
     const [user, setUser] = useState(null);
     const [targetScore, setTargetScore] = useState(null);
     const [animatedScore, setAnimatedScore] = useState(0);
@@ -51,13 +54,48 @@ export default function TrustScorePage() {
     const [history, setHistory] = useState([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-    // Fetch User Data from Firebase
+    // Header & Footer States
+    const [userData, setUserData] = useState({ name: 'ইউজার', avatar: '', points: 0 });
+    const [hasNewNotif, setHasNewNotif] = useState(false);
+    const [currentLang, setCurrentLang] = useState('bn');
+    const [navOpen, setNavOpen] = useState(false);
+    const [view, setView] = useState('list-view');
+
+    // Header & Footer Actions
+    const changeLang = (lang) => setCurrentLang(lang);
+    const openNotifications = () => console.log("Open Notifications");
+    const handleSetView = (newView) => setView(newView);
+    const toggleMenu = () => setNavOpen(!navOpen);
+
+    // Translations for Header/Footer
+    const t = {
+        points: currentLang === 'bn' ? 'পয়েন্ট' : 'Points',
+        navMissions: currentLang === 'bn' ? 'মিশন' : 'Missions',
+        navPromote: currentLang === 'bn' ? 'প্রমোট' : 'Promote',
+        navProfile: currentLang === 'bn' ? 'প্রোফাইল' : 'Profile'
+    };
+
+    // Fetch Data from Firebase
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser && appId) { // appId নিশ্চিত করে নেওয়া হচ্ছে
+            if (currentUser && appId) { 
                 setUser(currentUser);
 
-                // Fetch Score
+                // Fetch User Profile (for Header)
+                const profileRef = ref(db, `artifacts/${appId}/users/${currentUser.uid}/profile`);
+                onValue(profileRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        setUserData({
+                            name: snapshot.val().name || currentUser.displayName || 'ইউজার',
+                            avatar: snapshot.val().avatar || currentUser.photoURL || '',
+                            points: snapshot.val().points || 0
+                        });
+                    } else {
+                        setUserData({ name: currentUser.displayName || 'ইউজার', avatar: currentUser.photoURL || '', points: 0 });
+                    }
+                });
+
+                // Fetch Trust Score
                 const scoreRef = ref(db, `artifacts/${appId}/users/${currentUser.uid}/stats/trustScore`);
                 onValue(scoreRef, (snapshot) => {
                     let score = snapshot.val();
@@ -94,6 +132,7 @@ export default function TrustScorePage() {
 
             } else {
                 // Guest/Demo Mode
+                setUserData({ name: 'গেস্ট ইউজার', avatar: '', points: 150 });
                 let localScore = localStorage.getItem('guest_trust_score') || 100;
                 setTargetScore(parseInt(localScore));
 
@@ -133,18 +172,13 @@ export default function TrustScorePage() {
         return () => clearInterval(interval);
     }, [targetScore]);
 
-    // Current Zone Details
+    // Calculations
     const currentZone = zones.find(z => animatedScore >= z.min && animatedScore <= z.max) || zones[0];
-
-    // SVG Circle Calculations
     const circumference = 502.65;
     const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
-
-    // Next Level Message Logic
     const nextZone = animatedScore < 81 ? zones.slice().reverse().find(z => z.min > animatedScore) : null;
     const pointsNeeded = nextZone ? nextZone.min - animatedScore : 0;
 
-    // Level Progress Calculations
     const getLevelWidth = () => {
         if (userLevel >= 3) return '100%';
         if (userLevel === 2) return '50%';
@@ -177,7 +211,7 @@ export default function TrustScorePage() {
                 
                 body { 
                     margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
-                    background: #f4f7fc; color: #0f172a; padding-bottom: 60px; min-height: 100vh;
+                    background: #f4f7fc; color: #0f172a; padding-bottom: 90px; min-height: 100vh;
                     -webkit-font-smoothing: antialiased;
                 }
                 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -185,7 +219,6 @@ export default function TrustScorePage() {
                 /* Animations */
                 @keyframes slideUpFade { 0% { transform: translateY(40px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
                 @keyframes pulseActive { 0% { box-shadow: 0 0 0 0 var(--pulse-color); } 70% { box-shadow: 0 0 20px 10px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
-                @keyframes floating { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
                 @keyframes pulseWarning { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
                 /* Zone Cards */
@@ -238,26 +271,32 @@ export default function TrustScorePage() {
                 .h-score.down { background: #fff1f2; color: #e11d48; }
             `}</style>
 
-            {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', color: 'white', padding: '25px 20px 85px 20px', textAlign: 'center', borderBottomLeftRadius: '45px', borderBottomRightRadius: '45px', position: 'relative', overflow: 'hidden', boxShadow: '0 15px 40px rgba(59, 130, 246, 0.35)' }}>
-                <div style={{ position: 'absolute', top: '-40px', left: '-30px', width: '160px', height: '160px', background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%)', borderRadius: '50%', backdropFilter: 'blur(5px)', animation: 'floating 6s ease-in-out infinite' }}></div>
-                <div style={{ position: 'absolute', bottom: '-20px', right: '-40px', width: '140px', height: '140px', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
+            {/* --- IMPORTED HEADER --- */}
+            <Header 
+                user={user} 
+                userData={userData} 
+                hasNewNotif={hasNewNotif} 
+                openNotifications={openNotifications} 
+                currentLang={currentLang} 
+                changeLang={changeLang} 
+                t={t} 
+                router={router} 
+            />
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '450px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-                    <button onClick={() => router.back()} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '12px 18px', borderRadius: '16px', fontWeight: 800, fontSize: '13px', cursor: 'pointer', transition: '0.3s', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+            <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px' }}>
+
+                {/* Page Title & Back Button */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '25px', marginTop: '10px' }}>
+                    <button onClick={() => router.back()} style={{ background: 'white', color: '#334155', border: '1px solid #e2e8f0', padding: '10px 16px', borderRadius: '14px', fontWeight: 800, fontSize: '13px', cursor: 'pointer', transition: '0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
                         ❮ ব্যাক
                     </button>
-                    <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, letterSpacing: '0.5px', textShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>ট্রাস্ট প্রোফাইল</h2>
-                    <div style={{ width: '75px' }}></div>
+                    <h2 style={{ margin: '0 0 0 15px', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>ট্রাস্ট প্রোফাইল</h2>
                 </div>
-            </div>
-
-            <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 20px' }}>
 
                 {/* Main Dashboard Card */}
                 <div style={{ 
                     background: '#ffffff', borderRadius: '35px', padding: '30px 20px 40px 20px', textAlign: 'center', 
-                    boxShadow: `0 30px 60px -15px ${currentZone.color}40`, marginTop: '-70px', position: 'relative', 
+                    boxShadow: `0 30px 60px -15px ${currentZone.color}40`, position: 'relative', 
                     zIndex: 10, border: `2px solid ${currentZone.color}30`, transition: 'all 0.5s ease' 
                 }}>
 
@@ -436,6 +475,18 @@ export default function TrustScorePage() {
                     })}
                 </div>
             </div>
+
+            {/* --- IMPORTED FOOTER --- */}
+            <Footer 
+                navOpen={navOpen} 
+                setNavOpen={setNavOpen} 
+                view={view} 
+                handleSetView={handleSetView} 
+                toggleMenu={toggleMenu} 
+                t={t} 
+                router={router} 
+            />
         </>
     );
 }
+
