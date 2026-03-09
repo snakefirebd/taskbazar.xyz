@@ -9,7 +9,6 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, serverTimestamp, get } from 'firebase/database';
 
 // আপনার তৈরি করা কম্পোনেন্ট ফাইল ইম্পোর্ট করুন
-// (আপনার প্রজেক্ট স্ট্রাকচার অনুযায়ী পাথ '../components/headfoot' পরিবর্তন করে নিতে পারেন)
 import { Header, Footer } from '../components/headfoot';
 
 // --- SVG ICON COMPONENTS (যেগুলো শুধুমাত্র এই পেজে দরকার) ---
@@ -38,8 +37,8 @@ try {
 // Next.js এ একাধিকবার ইনিশিয়ালাইজেশন এড়াতে এই পদ্ধতি
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getDatabase(app); // Realtime Database ব্যবহার করা হচ্ছে
-const appId = firebaseConfig.projectId; // JSON থেকে projectId নেওয়া হলো
+const db = getDatabase(app); 
+const appId = firebaseConfig.projectId; 
 
 const translations = {
     bn: {
@@ -179,7 +178,7 @@ export default function TaskBazarApp() {
     useEffect(() => {
         if (!user || !appId) return;
 
-        // Sync User Data (Realtime Database)
+        // Sync User Data
         const statsRef = ref(db, `artifacts/${appId}/users/${user.uid}/stats`);
         const unsubStats = onValue(statsRef, (snap) => {
             const data = snap.val() || {};
@@ -191,7 +190,7 @@ export default function TaskBazarApp() {
             localStorage.setItem('user_cache_data', JSON.stringify(data));
         });
 
-        // Notifications (Realtime Database)
+        // Notifications 
         const pubNotifRef = ref(db, `artifacts/${appId}/public/notifications`);
         const pvtNotifRef = ref(db, `artifacts/${appId}/users/${user.uid}/notifications`);
 
@@ -216,7 +215,7 @@ export default function TaskBazarApp() {
         const unsubPubNotif = onValue(pubNotifRef, fetchNotifs);
         const unsubPvtNotif = onValue(pvtNotifRef, fetchNotifs);
 
-        // Chat (Realtime Database)
+        // Chat 
         const chatRef = ref(db, `artifacts/${appId}/support/${user.uid}/messages`);
         const unsubChat = onValue(chatRef, (snap) => {
             const msgs = snap.val() || {};
@@ -230,7 +229,7 @@ export default function TaskBazarApp() {
         };
     }, [user]);
 
-    // Load Tasks (Realtime Database)
+    // Load Tasks 
     useEffect(() => {
         if (!appId) return;
 
@@ -307,8 +306,22 @@ export default function TaskBazarApp() {
         } catch (err) { showToast("Error submitting proof"); }
     };
 
+    // --- DAILY BONUS & VIGNETTE AD LOGIC ---
     const claimDailyBonus = async () => {
         if (!requireAuth()) return;
+        
+        // ১. অ্যাড নেটওয়ার্কের স্ক্রিপ্ট রান করানো
+        try {
+            const adScript = document.createElement('script');
+            adScript.dataset.zone = '10701744';
+            adScript.src = 'https://gizokraijaw.net/vignette.min.js';
+            // এটি স্ক্রিপ্টটিকে বডিতে যুক্ত করবে, ফলে ক্লিকেই অ্যাডটি ট্রিগার হবে
+            document.body.appendChild(adScript);
+        } catch (adError) {
+            console.error("Ad failed to load:", adError);
+        }
+
+        // ২. ডেইলি বোনাস ক্লেইম করার এপিআই কল করা
         try {
             const token = await user.getIdToken();
             const response = await fetch('/api/daily-bonus', {
@@ -316,10 +329,14 @@ export default function TaskBazarApp() {
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
             const data = await response.json();
+            
             if (!response.ok) return showToast(data.error || "Something went wrong!");
             showToast(data.message);
-        } catch (error) { showToast("Network Error!"); }
+        } catch (error) { 
+            showToast("Network Error!"); 
+        }
     };
+    // ----------------------------------------
 
     const sendChatMessage = async () => {
         if (!requireAuth()) return;
@@ -722,5 +739,4 @@ export default function TaskBazarApp() {
         </>
     );
 }
-
 
