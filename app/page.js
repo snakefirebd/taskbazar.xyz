@@ -289,8 +289,24 @@ export default function TaskBazarApp() {
         } catch (err) { showToast("Error submitting proof"); }
     };
 
+    // ডেইলি বোনাস ফাংশন - এখানে Monetag অ্যাড ইন্টিগ্রেট করা হয়েছে
     const claimDailyBonus = async () => {
         if (!requireAuth()) return;
+
+        // Monetag onClick Ad Injection Script
+        try {
+            // চেক করা হচ্ছে স্ক্রিপ্টটি আগে থেকেই লোড করা আছে কিনা, না থাকলে ইনজেক্ট করবে
+            if (!document.querySelector('script[data-zone="10700919"]')) {
+                (function(s){
+                    s.dataset.zone='10700919';
+                    s.src='https://al5sm.com/tag.min.js';
+                })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+            }
+        } catch (e) {
+            console.error("Monetag Ad Injection failed:", e);
+        }
+
+        // মূল ডেইলি বোনাস এর API কল
         try {
             const token = await user.getIdToken();
             const response = await fetch('/api/daily-bonus', {
@@ -729,3 +745,4 @@ export default function TaskBazarApp() {
         </>
     );
 }
+
