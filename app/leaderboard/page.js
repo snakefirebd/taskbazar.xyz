@@ -105,12 +105,12 @@ export default function LeaderboardPage() {
 
         const unsubscribe = onValue(topUsersQuery, (snapshot) => {
             const list = [];
-
+            
             // forEach ব্যবহার করা হয়েছে যাতে ফায়ারবেসের পাঠানো অর্ডার (ছোট থেকে বড়) ঠিক থাকে
             snapshot.forEach((childSnapshot) => {
                 const uid = childSnapshot.key;
                 const stats = childSnapshot.val().stats || {};
-
+                
                 // Filter out empty or basic default names with 0 points
                 if (stats.points > 0 || (stats.name && stats.name !== 'Google User')) {
                     list.push({
@@ -124,7 +124,7 @@ export default function LeaderboardPage() {
 
             // Firebase 'limitToLast' ছোট থেকে বড় (Ascending) অর্ডারে ডাটা দেয়, তাই বড় থেকে ছোট (Descending) করার জন্য reverse করা হলো।
             list.reverse();
-
+            
             setLeaderboardData(list); 
             setIsLoading(false);
         });
@@ -359,3 +359,5 @@ export default function LeaderboardPage() {
         </>
     );
 }
+
+
