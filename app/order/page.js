@@ -164,7 +164,7 @@ export default function OrderPage() {
 
         try {
             const token = await user.getIdToken();
-            const response = await fetch('https://taskbajar-backend.vercel.app/api/create-campaign', {
+            const response = await fetch('/api/create-campaign', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
