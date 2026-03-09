@@ -31,6 +31,9 @@ import {
     serverTimestamp 
 } from 'firebase/database';
 
+// Import Header and Footer from headfoot.js
+import { Header, Footer } from '../../components/headfoot';
+
 // Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
 let firebaseConfig = {};
 try {
@@ -45,8 +48,36 @@ const auth = getAuth(app);
 const db = getDatabase(app); // Realtime Database ব্যবহার করা হচ্ছে
 const appId = firebaseConfig.projectId; // JSON থেকে projectId নেওয়া হলো
 
+const translations = {
+    bn: {
+        points: "পয়েন্ট",
+        navMissions: "Missions",
+        navPromote: "Promote",
+        navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu"
+    },
+    en: {
+        points: "Points",
+        navMissions: "Missions",
+        navPromote: "Promote",
+        navProfile: "Profile",
+        navLeaderboard: "Leaderboard",
+        navSupport: "Support",
+        navMenu: "Menu"
+    }
+};
+
 export default function LoginPage() {
     const router = useRouter();
+
+    // Global & Header/Footer States
+    const [user, setUser] = useState(null);
+    const [userData, setUserData] = useState({ points: 0, name: "Guest", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" });
+    const [currentLang, setCurrentLang] = useState('bn');
+    const [navOpen, setNavOpen] = useState(false);
+    const [hasNewNotif, setHasNewNotif] = useState(false);
 
     // UI States
     const [view, setView] = useState('auth-view'); // 'auth-view' or 'verify-view'
@@ -60,20 +91,40 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const t = translations[currentLang];
+
     // Auth Listener
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                if (user.emailVerified) {
+        const savedLang = localStorage.getItem('elite_lang') || 'bn';
+        setCurrentLang(savedLang);
+
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+                if (currentUser.emailVerified) {
                     router.push('/'); // হোমপেজে রিডাইরেক্ট
                 } else {
                     setView('verify-view'); // ভেরিফিকেশন পেজ দেখাবে
                 }
+            } else {
+                setUser(null);
             }
         });
 
         return () => unsubscribe();
     }, [router]);
+
+    // Header & Footer Actions
+    const changeLang = (lang) => {
+        setCurrentLang(lang);
+        localStorage.setItem('elite_lang', lang);
+    };
+
+    const toggleMenu = () => setNavOpen(!navOpen);
+    
+    const openNotifications = () => {
+        showToast(currentLang === 'bn' ? "লগইন করার পর নোটিফিকেশন দেখতে পাবেন।" : "Login to view notifications.");
+    };
 
     // Toast Helper
     const showToast = (msg) => {
@@ -93,13 +144,13 @@ export default function LoginPage() {
 
     // Password Reset
     const resetPassword = async () => {
-        if (!email.trim()) return showToast("প্রথমে ইমেইল বক্সে আপনার ইমেইলটি লিখুন!");
+        if (!email.trim()) return showToast(currentLang === 'bn' ? "প্রথমে ইমেইল বক্সে আপনার ইমেইলটি লিখুন!" : "Enter your email first!");
         try {
             await sendPasswordResetEmail(auth, email.trim());
-            showToast("পাসওয়ার্ড রিসেট লিংক পাঠানো হয়েছে! 📧");
+            showToast(currentLang === 'bn' ? "পাসওয়ার্ড রিসেট লিংক পাঠানো হয়েছে! 📧" : "Password reset link sent! 📧");
         } catch (err) {
             let msg = err.message;
-            if (err.code === 'auth/user-not-found') msg = "এই ইমেইলে কোন অ্যাকাউন্ট নেই!";
+            if (err.code === 'auth/user-not-found') msg = currentLang === 'bn' ? "এই ইমেইলে কোন অ্যাকাউন্ট নেই!" : "No account found with this email!";
             showToast(msg);
         }
     };
@@ -143,7 +194,7 @@ export default function LoginPage() {
 
                 console.log("Referral processed directly in Realtime Database!");
             } else {
-                showToast("ভুল রেফার কোড ব্যবহার করা হয়েছে!");
+                showToast(currentLang === 'bn' ? "ভুল রেফার কোড ব্যবহার করা হয়েছে!" : "Invalid referral code!");
             }
         } catch (error) {
             console.error("Referral Error:", error);
@@ -175,9 +226,9 @@ export default function LoginPage() {
                 if (rCode) {
                     await processReferral(rCode, user.uid, user.displayName || "Google User");
                 }
-                showToast("Google অ্যাকাউন্ট সফলভাবে খোলা হয়েছে! 🎉");
+                showToast(currentLang === 'bn' ? "Google অ্যাকাউন্ট সফলভাবে খোলা হয়েছে! 🎉" : "Google Account created successfully! 🎉");
             } else {
-                showToast("লগইন সফল হয়েছে! ✅");
+                showToast(currentLang === 'bn' ? "লগইন সফল হয়েছে! ✅" : "Login successful! ✅");
             }
         } catch (error) {
             showToast("Google Login Error: " + error.message);
@@ -189,7 +240,7 @@ export default function LoginPage() {
         const e = email.trim();
         const p = password.trim();
 
-        if (!e || p.length < 6) return showToast("সঠিক ইমেইল এবং কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড প্রয়োজন!");
+        if (!e || p.length < 6) return showToast(currentLang === 'bn' ? "সঠিক ইমেইল এবং কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড প্রয়োজন!" : "Valid email and at least 6 characters password required!");
 
         setIsLoading(true);
 
@@ -200,7 +251,7 @@ export default function LoginPage() {
 
                 if (!n) {
                     setIsLoading(false);
-                    return showToast("আপনার নাম লেখা বাধ্যতামূলক!");
+                    return showToast(currentLang === 'bn' ? "আপনার নাম লেখা বাধ্যতামূলক!" : "Name is required!");
                 }
 
                 const res = await createUserWithEmailAndPassword(auth, e, p);
@@ -222,7 +273,7 @@ export default function LoginPage() {
                 }
 
                 await sendEmailVerification(res.user);
-                showToast("ভেরিফিকেশন ইমেইল পাঠানো হয়েছে!");
+                showToast(currentLang === 'bn' ? "ভেরিফিকেশন ইমেইল পাঠানো হয়েছে!" : "Verification email sent!");
 
                 setView('verify-view');
             } else { 
@@ -232,9 +283,9 @@ export default function LoginPage() {
             }
         } catch (err) { 
             let errorMsg = err.message;
-            if(err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') errorMsg = "পাসওয়ার্ড বা ইমেইল ভুল হয়েছে!";
-            if(err.code === 'auth/user-not-found') errorMsg = "এই ইমেইলে কোন অ্যাকাউন্ট নেই!";
-            if(err.code === 'auth/email-already-in-use') errorMsg = "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!";
+            if(err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') errorMsg = currentLang === 'bn' ? "পাসওয়ার্ড বা ইমেইল ভুল হয়েছে!" : "Invalid email or password!";
+            if(err.code === 'auth/user-not-found') errorMsg = currentLang === 'bn' ? "এই ইমেইলে কোন অ্যাকাউন্ট নেই!" : "No account found with this email!";
+            if(err.code === 'auth/email-already-in-use') errorMsg = currentLang === 'bn' ? "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!" : "Email already in use!";
             showToast(errorMsg); 
         } finally {
             setIsLoading(false);
@@ -249,7 +300,7 @@ export default function LoginPage() {
             if (user.emailVerified) { 
                 router.push('/'); 
             } else { 
-                showToast("প্রথমে আপনার ইমেইল ভেরিফাই করুন!"); 
+                showToast(currentLang === 'bn' ? "প্রথমে আপনার ইমেইল ভেরিফাই করুন!" : "Please verify your email first!"); 
             }
         }
     };
@@ -260,7 +311,7 @@ export default function LoginPage() {
         if (user) {
             try { 
                 await sendEmailVerification(user); 
-                showToast("ভেরিফিকেশন লিঙ্ক আবার পাঠানো হয়েছে!"); 
+                showToast(currentLang === 'bn' ? "ভেরিফিকেশন লিঙ্ক আবার পাঠানো হয়েছে!" : "Verification link sent again!"); 
             } catch (err) { 
                 showToast(err.message); 
             }
@@ -290,7 +341,16 @@ export default function LoginPage() {
                 }
 
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-                body { background: var(--bg); color: var(--text-h); line-height: 1.6; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+                
+                /* Removed flex properties from body to allow header/footer to flow naturally */
+                body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 90px; }
+
+                /* Page Container ensures the login box is vertically centered taking remaining space */
+                .page-container {
+                    width: 100%; min-height: calc(100vh - 180px);
+                    display: flex; flex-direction: column; align-items: center; justify-content: center;
+                    padding: 20px;
+                }
 
                 .elite-card {
                     background: var(--glass); backdrop-filter: blur(20px); border-radius: 22px; padding: 25px;
@@ -323,16 +383,26 @@ export default function LoginPage() {
                 #toast {
                     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
                     background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px;
-                    font-size: 0.8rem; font-weight: 600; z-index: 3000;
+                    font-size: 0.8rem; font-weight: 600; z-index: 4000;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                     transition: opacity 0.3s ease;
                 }
-                
-                .page-container { width: 100%; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
             `}</style>
 
             {/* Toast Notification */}
             {toast.visible && <div id="toast">{toast.msg}</div>}
+
+            {/* --- IMPORTED HEADER --- */}
+            <Header 
+                user={user} 
+                userData={userData} 
+                hasNewNotif={hasNewNotif} 
+                openNotifications={openNotifications} 
+                currentLang={currentLang} 
+                changeLang={changeLang} 
+                t={t} 
+                router={router} 
+            />
 
             <div className="page-container">
                 {/* Authentication View */}
@@ -348,52 +418,56 @@ export default function LoginPage() {
                                 {isSignupMode && (
                                     <>
                                         <div className="input-group">
-                                            <label>সম্পূর্ণ নাম</label>
-                                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="আপনার নাম লিখুন" />
+                                            <label>{currentLang === 'bn' ? 'সম্পূর্ণ নাম' : 'Full Name'}</label>
+                                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={currentLang === 'bn' ? "আপনার নাম লিখুন" : "Enter your name"} />
                                         </div>
                                         <div className="input-group">
-                                            <label>রেফার কোড (ঐচ্ছিক)</label>
-                                            <input type="text" value={referCode} onChange={(e) => setReferCode(e.target.value)} placeholder="কোড থাকলে দিন" />
+                                            <label>{currentLang === 'bn' ? 'রেফার কোড (ঐচ্ছিক)' : 'Referral Code (Optional)'}</label>
+                                            <input type="text" value={referCode} onChange={(e) => setReferCode(e.target.value)} placeholder={currentLang === 'bn' ? "কোড থাকলে দিন" : "Enter code if any"} />
                                         </div>
                                     </>
                                 )}
                                 <div className="input-group">
-                                    <label>ইমেইল অ্যাড্রেস</label>
+                                    <label>{currentLang === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}</label>
                                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" />
                                 </div>
                                 <div className="input-group">
-                                    <label>গোপন পাসওয়ার্ড</label>
+                                    <label>{currentLang === 'bn' ? 'গোপন পাসওয়ার্ড' : 'Secret Password'}</label>
                                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
                                 </div>
 
                                 <button className="btn-elite" onClick={handleAuthAction} disabled={isLoading}>
-                                    {isLoading ? "Please wait..." : (isSignupMode ? "Create Account" : "Login")}
+                                    {isLoading ? (currentLang === 'bn' ? "অপেক্ষা করুন..." : "Please wait...") : (isSignupMode ? (currentLang === 'bn' ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account") : (currentLang === 'bn' ? "লগইন করুন" : "Login"))}
                                 </button>
 
                                 {!isSignupMode && (
                                     <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                                        <span onClick={resetPassword} style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, cursor: 'pointer', transition: '0.3s' }}>পাসওয়ার্ড ভুলে গেছেন?</span>
+                                        <span onClick={resetPassword} style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, cursor: 'pointer', transition: '0.3s' }}>
+                                            {currentLang === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
+                                        </span>
                                     </div>
                                 )}
 
                                 <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
                                     <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
-                                    <span style={{ padding: '0 10px', color: 'var(--text-p)', fontSize: '0.8rem', fontWeight: 800 }}>অথবা</span>
+                                    <span style={{ padding: '0 10px', color: 'var(--text-p)', fontSize: '0.8rem', fontWeight: 800 }}>
+                                        {currentLang === 'bn' ? 'অথবা' : 'OR'}
+                                    </span>
                                     <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
                                 </div>
 
                                 <button onClick={handleGoogleSignIn} style={{ width: '100%', padding: '12px', background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '16px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', transition: '0.3s', fontSize: '0.9rem' }}>
                                     <img src="https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png" style={{ width: '20px', height: '20px' }} alt="Google" />
-                                    Google দিয়ে কন্টিনিউ করুন
+                                    {currentLang === 'bn' ? 'Google দিয়ে কন্টিনিউ করুন' : 'Continue with Google'}
                                 </button>
                             </div>
 
                             <div style={{ marginTop: '20px', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-p)', fontWeight: 600 }}>
                                     {isSignupMode ? (
-                                        <>Already a member? <span onClick={() => toggleAuthMode(false)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Login Now</span></>
+                                        <>{currentLang === 'bn' ? 'আগেই অ্যাকাউন্ট আছে?' : 'Already a member?'} <span onClick={() => toggleAuthMode(false)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>{currentLang === 'bn' ? 'লগইন করুন' : 'Login Now'}</span></>
                                     ) : (
-                                        <>New to the community? <span onClick={() => toggleAuthMode(true)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Register Now</span></>
+                                        <>{currentLang === 'bn' ? 'নতুন ইউজার?' : 'New to the community?'} <span onClick={() => toggleAuthMode(true)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>{currentLang === 'bn' ? 'রেজিস্টার করুন' : 'Register Now'}</span></>
                                     )}
                                 </p>
                             </div>
@@ -405,14 +479,28 @@ export default function LoginPage() {
                 {view === 'verify-view' && (
                     <div className="elite-card" style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📧</div>
-                        <h2 style={{ fontWeight: 800, marginBottom: '10px' }}>ইমেইল ভেরিফাই করুন</h2>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-p)', marginBottom: '25px' }}>আমরা আপনার ইমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠিয়েছি। অনুগ্রহ করে আপনার ইনবক্স চেক করুন।</p>
+                        <h2 style={{ fontWeight: 800, marginBottom: '10px' }}>{currentLang === 'bn' ? 'ইমেইল ভেরিফাই করুন' : 'Verify Email'}</h2>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-p)', marginBottom: '25px' }}>
+                            {currentLang === 'bn' ? 'আমরা আপনার ইমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠিয়েছি। অনুগ্রহ করে আপনার ইনবক্স চেক করুন।' : 'We have sent a verification link to your email. Please check your inbox.'}
+                        </p>
                         <button className="btn-elite" onClick={reloadUser}>Check Status</button>
-                        <button className="btn-elite btn-ghost" onClick={resendVerification}>রিসেন্ড লিঙ্ক</button>
+                        <button className="btn-elite btn-ghost" onClick={resendVerification}>{currentLang === 'bn' ? 'রিসেন্ড লিঙ্ক' : 'Resend Link'}</button>
                         <button className="btn-elite btn-ghost" onClick={handleLogout} style={{ color: 'var(--danger)' }}>Logout</button>
                     </div>
                 )}
             </div>
+
+            {/* --- IMPORTED FOOTER --- */}
+            <Footer 
+                navOpen={navOpen} 
+                setNavOpen={setNavOpen} 
+                view={'auth-view'} 
+                handleSetView={() => {}} 
+                toggleMenu={toggleMenu} 
+                t={t} 
+                router={router} 
+            />
         </>
     );
 }
+
