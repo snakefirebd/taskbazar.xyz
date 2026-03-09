@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation'; // <-- useRouter ইম্পোর্ট করা হলো
+import { useRouter } from 'next/navigation';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, serverTimestamp, get } from 'firebase/database';
@@ -289,24 +289,19 @@ export default function TaskBazarApp() {
         } catch (err) { showToast("Error submitting proof"); }
     };
 
-    // ডেইলি বোনাস ফাংশন - এখানে Monetag অ্যাড ইন্টিগ্রেট করা হয়েছে
     const claimDailyBonus = async () => {
         if (!requireAuth()) return;
 
-        // Monetag onClick Ad Injection Script
-        try {
-            // চেক করা হচ্ছে স্ক্রিপ্টটি আগে থেকেই লোড করা আছে কিনা, না থাকলে ইনজেক্ট করবে
-            if (!document.querySelector('script[data-zone="10700919"]')) {
-                (function(s){
-                    s.dataset.zone='10700919';
-                    s.src='https://al5sm.com/tag.min.js';
-                })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-            }
-        } catch (e) {
-            console.error("Monetag Ad Injection failed:", e);
+        // প্রথমবার ক্লিকের জন্য রিডাইরেক্ট লজিক (Session Storage ব্যবহার করে)
+        if (!sessionStorage.getItem('has_visited_ad_link')) {
+            sessionStorage.setItem('has_visited_ad_link', 'true');
+            // নতুন ট্যাবে লিংক ওপেন হবে
+            window.open('https://omg10.com/4/7743603', '_blank');
+            showToast("অনুগ্রহ করে স্পন্সর পেজটি ভিজিট করার পর আবার ক্লিক করে বোনাস নিন!");
+            return; // প্রথমবার শুধু রিডাইরেক্ট হবে, এপিআই কল হবে না
         }
 
-        // মূল ডেইলি বোনাস এর API কল
+        // দ্বিতীয়বার ক্লিক করলে বোনাস এপিআই কল হবে
         try {
             const token = await user.getIdToken();
             const response = await fetch('/api/daily-bonus', {
