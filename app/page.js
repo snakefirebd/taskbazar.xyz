@@ -8,7 +8,11 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, serverTimestamp, get } from 'firebase/database';
 
-// --- SVG ICON COMPONENTS ---
+// আপনার তৈরি করা কম্পোনেন্ট ফাইল ইম্পোর্ট করুন
+// (আপনার প্রজেক্ট স্ট্রাকচার অনুযায়ী পাথ '../components/headfoot' পরিবর্তন করে নিতে পারেন)
+import { Header, Footer } from '../components/headfoot';
+
+// --- SVG ICON COMPONENTS (যেগুলো শুধুমাত্র এই পেজে দরকার) ---
 const SvgIcon = ({ children, size = 24, color = "currentColor", className = "", style = {} }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
         {children}
@@ -18,18 +22,10 @@ const SvgIcon = ({ children, size = 24, color = "currentColor", className = "", 
 const IconSpin = (props) => <SvgIcon {...props}><circle cx="12" cy="12" r="10"/><line x1="14.31" x2="20.05" y1="8" y2="17.94"/><line x1="9.69" x2="21.17" y1="8" y2="8"/><line x1="7.38" x2="12" y1="12" y2="20.66"/><line x1="9.69" x2="3.95" y1="16" y2="6.06"/><line x1="14.31" x2="2.83" y1="16" y2="16"/><line x1="16.62" x2="12" y1="12" y2="3.34"/></SvgIcon>;
 const IconGift = (props) => <SvgIcon {...props}><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" x2="12" y1="22" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></SvgIcon>;
 const IconOffer = (props) => <SvgIcon {...props}><path d="m3.85 8.62 1.4 1.41a1 1 0 0 1 0 1.41l-1.4 1.41a1 1 0 0 0 0 1.41l1.4 1.41a1 1 0 0 1 0 1.41l-1.4 1.41a1 1 0 0 0 .71 1.71h1.98a1 1 0 0 1 .71.29l1.41 1.4a1 1 0 0 0 1.41 0l1.41-1.4a1 1 0 0 1 .71-.29h1.98a1 1 0 0 0 .71-1.71l-1.4-1.41a1 1 0 0 1 0-1.41l1.4-1.41a1 1 0 0 0 0-1.41l-1.4-1.41a1 1 0 0 1 0-1.41l1.4-1.41a1 1 0 0 0-.71-1.71h-1.98a1 1 0 0 1-.71-.29l-1.41-1.4a1 1 0 0 0-1.41 0l-1.41 1.4a1 1 0 0 1-.71.29H4.56a1 1 0 0 0-.71 1.71Z"/><path d="m9 15 6-6"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="15" r="1"/></SvgIcon>;
-const IconTrophy = (props) => <SvgIcon {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></SvgIcon>;
-const IconSupport = (props) => <SvgIcon {...props}><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><path d="M19 22v-3"/></SvgIcon>;
-const IconHome = (props) => <SvgIcon {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></SvgIcon>;
-const IconRocket = (props) => <SvgIcon {...props}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></SvgIcon>;
-const IconUser = (props) => <SvgIcon {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></SvgIcon>;
-const IconBell = (props) => <SvgIcon {...props}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></SvgIcon>;
 const IconLock = (props) => <SvgIcon {...props}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></SvgIcon>;
 const IconArrowRight = (props) => <SvgIcon {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></SvgIcon>;
-const IconMenu = (props) => <SvgIcon {...props}><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></SvgIcon>;
 const IconHandWave = (props) => <SvgIcon {...props}><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/><path d="m8 11-4-4"/></SvgIcon>;
 // --- END SVG ICON COMPONENTS ---
-
 
 // Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
 let firebaseConfig = {};
@@ -439,6 +435,7 @@ export default function TaskBazarApp() {
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
                 body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 90px; overflow-x: hidden; }
 
+                /* CSS স্টাইলগুলো এখানে রেখে দেওয়া হলো, যাতে Header ও Footer ঠিকমতো ডিজাইন পায় */
                 .header {
                     background: var(--p-gradient); color: white; padding: 12px 15px 25px;
                     border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
@@ -562,41 +559,17 @@ export default function TaskBazarApp() {
 
             {/* Main App Container */}
             <div>
-                {/* Header */}
-                <div className="header">
-                    <div className="header-content">
-                        {user ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div className="avatar-frame" onClick={() => router.push('/profile')}>
-                                    <img src={userData.avatar} onError={(e) => {e.target.src="https://cdn-icons-png.flaticon.com/512/149/149071.png"}} alt="Avatar"/>
-                                </div>
-                                <div>
-                                    <h2 style={{ fontSize: '0.75rem', fontWeight: 800 }}>{userData.name}</h2>
-                                    <span style={{ fontSize: '0.45rem', fontWeight: 800, background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '6px' }}>PRO</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <button onClick={() => router.push('/login')} style={{ background: 'white', color: '#6366f1', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: '0.3s' }}>Login</button>
-                            </div>
-                        )}
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div className="notif-btn" onClick={openNotifications}>
-                                <IconBell size={20} />
-                                {hasNewNotif && <div className="notif-badge"></div>}
-                            </div>
-                            <div className="header-lang-switch">
-                                <div className={`h-lang-btn ${currentLang === 'bn' ? 'active' : ''}`} onClick={() => changeLang('bn')}>BN</div>
-                                <div className={`h-lang-btn ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>EN</div>
-                            </div>
-                            <div className="wallet-pill">
-                                <span>{t.points}</span>
-                                <b>{userData.points}</b>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Extracted Header Component */}
+                <Header 
+                    user={user} 
+                    userData={userData} 
+                    hasNewNotif={hasNewNotif} 
+                    openNotifications={openNotifications} 
+                    currentLang={currentLang} 
+                    changeLang={changeLang} 
+                    t={t} 
+                    router={router} 
+                />
 
                 {/* Content Container */}
                 <div className="container">
@@ -734,46 +707,16 @@ export default function TaskBazarApp() {
 
                 </div>
 
-                {/* Footer NavBar */}
-                <div className={`nav-bar-container ${navOpen ? 'open' : ''}`}>
-                    <div className="expanded-menu">
-                        <div onClick={() => router.push('/leaderboard')} className="nav-item">
-                            <div style={{ background: '#fdf2f8', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                                <IconTrophy size={18} color="#ec4899" />
-                            </div>
-                            <span style={{ fontSize: '0.6rem' }}>Leaderboard</span>
-                        </div>
-                        <div onClick={() => { handleSetView('support-view'); setNavOpen(false); }} className="nav-item">
-                            <div style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                                <IconSupport size={18} color="#64748b" />
-                            </div>
-                            <span style={{ fontSize: '0.6rem' }}>Support</span>
-                        </div>
-                    </div>
-
-                    <div className="nav-bar">
-                        <div className={`nav-item ${view === 'list-view' ? 'active' : ''}`} onClick={() => handleSetView('list-view')}>
-                            <i><IconHome size={22} /></i>
-                            <span>{t.navMissions}</span>
-                        </div>
-                        <div className="nav-item" onClick={() => router.push('/order')}>
-                            <i><IconRocket size={22} /></i>
-                            <span>{t.navPromote}</span>
-                        </div>
-                        <div className="nav-item" onClick={() => router.push('/profile')}>
-                            <i><IconUser size={22} /></i>
-                            <span>{t.navProfile}</span>
-                        </div>
-                        <div className="nav-item" onClick={toggleMenu}>
-                            <i>
-                                <div style={{ transition: '0.3s', transform: navOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-                                    <IconMenu size={22} />
-                                </div>
-                            </i>
-                            <span>Menu</span>
-                        </div>
-                    </div>
-                </div>
+                {/* Extracted Footer Component */}
+                <Footer 
+                    navOpen={navOpen} 
+                    setNavOpen={setNavOpen} 
+                    view={view} 
+                    handleSetView={handleSetView} 
+                    toggleMenu={toggleMenu} 
+                    t={t} 
+                    router={router} 
+                />
 
             </div>
         </>
