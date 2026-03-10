@@ -1,4 +1,4 @@
-// File Path: app/login/page.js "important message for gemini ai"
+// File Path: app/login/page.js
 
 "use client";
 
@@ -9,7 +9,6 @@ import {
     getAuth, 
     onAuthStateChanged, 
     signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
     sendPasswordResetEmail, 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -21,20 +20,13 @@ import {
     getDatabase, 
     ref, 
     set, 
-    push, 
-    get, 
-    query, 
-    orderByChild, 
-    equalTo, 
-    limitToFirst, 
-    runTransaction, 
     serverTimestamp 
 } from 'firebase/database';
 
 // Import Header and Footer from headfoot.js
 import { Header, Footer } from '../../components/headfoot';
 
-// Firebase Config Environment Variable থেকে একটিমাত্র JSON string হিসেবে লোড করা হচ্ছে
+// Firebase Config
 let firebaseConfig = {};
 try {
     firebaseConfig = JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG || '{}');
@@ -42,11 +34,10 @@ try {
     console.error("Firebase config parse error:", error);
 }
 
-// Next.js এ একাধিকবার ইনিশিয়ালাইজেশন এড়াতে এই পদ্ধতি
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getDatabase(app); // Realtime Database ব্যবহার করা হচ্ছে
-const appId = firebaseConfig.projectId; // JSON থেকে projectId নেওয়া হলো
+const db = getDatabase(app); 
+const appId = firebaseConfig.projectId; 
 
 const translations = {
     bn: {
@@ -72,7 +63,7 @@ const translations = {
 export default function LoginPage() {
     const router = useRouter();
 
-    // Global & Header/Footer States
+    // Global States
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState({ points: 0, name: "Guest", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" });
     const [currentLang, setCurrentLang] = useState('bn');
@@ -80,20 +71,16 @@ export default function LoginPage() {
     const [hasNewNotif, setHasNewNotif] = useState(false);
 
     // UI States
-    const [view, setView] = useState('auth-view'); // 'auth-view' or 'verify-view'
-    const [isSignupMode, setIsSignupMode] = useState(false);
+    const [view, setView] = useState('auth-view'); 
     const [toast, setToast] = useState({ msg: "", visible: false });
     const [isLoading, setIsLoading] = useState(false);
 
     // Form States
-    const [name, setName] = useState("");
-    const [referCode, setReferCode] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const t = translations[currentLang];
 
-    // Auth Listener
     useEffect(() => {
         const savedLang = localStorage.getItem('elite_lang') || 'bn';
         setCurrentLang(savedLang);
@@ -102,9 +89,9 @@ export default function LoginPage() {
             if (currentUser) {
                 setUser(currentUser);
                 if (currentUser.emailVerified) {
-                    router.push('/'); // হোমপেজে রিডাইরেক্ট
+                    router.push('/'); 
                 } else {
-                    setView('verify-view'); // ভেরিফিকেশন পেজ দেখাবে
+                    setView('verify-view'); 
                 }
             } else {
                 setUser(null);
@@ -114,7 +101,6 @@ export default function LoginPage() {
         return () => unsubscribe();
     }, [router]);
 
-    // Header & Footer Actions
     const changeLang = (lang) => {
         setCurrentLang(lang);
         localStorage.setItem('elite_lang', lang);
@@ -126,23 +112,11 @@ export default function LoginPage() {
         showToast(currentLang === 'bn' ? "লগইন করার পর নোটিফিকেশন দেখতে পাবেন।" : "Login to view notifications.");
     };
 
-    // Toast Helper
     const showToast = (msg) => {
         setToast({ msg, visible: true });
         setTimeout(() => setToast({ msg: "", visible: false }), 3000);
     };
 
-    // Toggle Login/Signup
-    const toggleAuthMode = (mode) => {
-        setIsSignupMode(mode);
-        // ক্লিয়ার ফিল্ডস (ঐচ্ছিক)
-        if(!mode) {
-            setName("");
-            setReferCode("");
-        }
-    };
-
-    // Password Reset
     const resetPassword = async () => {
         if (!email.trim()) return showToast(currentLang === 'bn' ? "প্রথমে ইমেইল বক্সে আপনার ইমেইলটি লিখুন!" : "Enter your email first!");
         try {
@@ -155,53 +129,6 @@ export default function LoginPage() {
         }
     };
 
-    // --- সরাসরি ফায়ারবেস রিয়েলটাইম ডাটাবেজের মাধ্যমে রেফারেল প্রসেস ---
-    const processReferral = async (referCodeInput, newUserId, newUserName) => {
-        if (!referCodeInput || !appId) return;
-
-        try {
-            // ১. রেফার কোড দিয়ে আসল ইউজারকে খুঁজে বের করা
-            const usersRef = ref(db, `artifacts/${appId}/users`);
-            const referQuery = query(usersRef, orderByChild('stats/referralCode'), equalTo(referCodeInput), limitToFirst(1));
-            const snapshot = await get(referQuery);
-            const referrerDataMap = snapshot.val();
-
-            if (referrerDataMap) {
-                const referrerUid = Object.keys(referrerDataMap)[0];
-
-                // নিজের কোড নিজে ব্যবহার করলে বাতিল
-                if (referrerUid === newUserId) {
-                    console.log("Self referral detected, skipping.");
-                    return;
-                }
-
-                // ২. রেফারকারীর লিস্টে নতুন ইউজারের নাম যুক্ত করা
-                const newReferralRef = push(ref(db, `artifacts/${appId}/users/${referrerUid}/referrals`));
-                await set(newReferralRef, {
-                    userId: newUserId,
-                    userName: newUserName,
-                    timestamp: serverTimestamp()
-                });
-
-                // ৩. রেফারকারীর totalReferrals সংখ্যা ১ বাড়ানো (Transaction ব্যবহার করে)
-                const referrerStatsRef = ref(db, `artifacts/${appId}/users/${referrerUid}/stats/totalReferrals`);
-                await runTransaction(referrerStatsRef, (currentCount) => {
-                    return (currentCount || 0) + 1;
-                });
-
-                // ৪. নতুন ইউজারকে মার্ক করা যে সে কার রেফারে এসেছে
-                await set(ref(db, `artifacts/${appId}/users/${newUserId}/stats/referredBy`), referrerUid);
-
-                console.log("Referral processed directly in Realtime Database!");
-            } else {
-                showToast(currentLang === 'bn' ? "ভুল রেফার কোড ব্যবহার করা হয়েছে!" : "Invalid referral code!");
-            }
-        } catch (error) {
-            console.error("Referral Error:", error);
-        }
-    };
-
-    // Google Sign-In
     const handleGoogleSignIn = async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -209,11 +136,7 @@ export default function LoginPage() {
             const user = result.user;
             const additionalInfo = getAdditionalUserInfo(result);
 
-            // যদি নতুন ইউজার হয় তবে সরাসরি ডাটাবেজে তথ্য সেভ করা হবে
             if (additionalInfo?.isNewUser && appId) {
-                const rCode = referCode.trim();
-
-                // ডাটাবেজ তৈরি
                 await set(ref(db, `artifacts/${appId}/users/${user.uid}/stats`), {
                     name: user.displayName || "Google User", 
                     points: 0, 
@@ -222,10 +145,6 @@ export default function LoginPage() {
                     createdAt: serverTimestamp(),
                     avatar: user.photoURL || "" 
                 });
-
-                if (rCode) {
-                    await processReferral(rCode, user.uid, user.displayName || "Google User");
-                }
                 showToast(currentLang === 'bn' ? "Google অ্যাকাউন্ট সফলভাবে খোলা হয়েছে! 🎉" : "Google Account created successfully! 🎉");
             } else {
                 showToast(currentLang === 'bn' ? "লগইন সফল হয়েছে! ✅" : "Login successful! ✅");
@@ -235,64 +154,25 @@ export default function LoginPage() {
         }
     };
 
-    // Email & Password Auth Action
-    const handleAuthAction = async () => {
+    const handleLogin = async () => {
         const e = email.trim();
         const p = password.trim();
 
         if (!e || p.length < 6) return showToast(currentLang === 'bn' ? "সঠিক ইমেইল এবং কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড প্রয়োজন!" : "Valid email and at least 6 characters password required!");
 
         setIsLoading(true);
-
         try {
-            if (isSignupMode) {
-                const n = name.trim();
-                const rCode = referCode.trim();
-
-                if (!n) {
-                    setIsLoading(false);
-                    return showToast(currentLang === 'bn' ? "আপনার নাম লেখা বাধ্যতামূলক!" : "Name is required!");
-                }
-
-                const res = await createUserWithEmailAndPassword(auth, e, p);
-
-                // ফ্রন্টএন্ড থেকে সরাসরি ডাটাবেজে প্রোফাইল তৈরি করা
-                if (appId) {
-                    await set(ref(db, `artifacts/${appId}/users/${res.user.uid}/stats`), {
-                        name: n, 
-                        points: 0,
-                        referralCode: res.user.uid.substring(0, 6).toUpperCase(), 
-                        totalReferrals: 0,
-                        createdAt: serverTimestamp()
-                    });
-
-                    // রেফারেল প্রসেস করা
-                    if (rCode) {
-                        await processReferral(rCode, res.user.uid, n);
-                    }
-                }
-
-                await sendEmailVerification(res.user);
-                showToast(currentLang === 'bn' ? "ভেরিফিকেশন ইমেইল পাঠানো হয়েছে!" : "Verification email sent!");
-
-                setView('verify-view');
-            } else { 
-                // লগইন মোড
-                await signInWithEmailAndPassword(auth, e, p);
-                // On success, the onAuthStateChanged listener will redirect
-            }
+            await signInWithEmailAndPassword(auth, e, p);
         } catch (err) { 
             let errorMsg = err.message;
             if(err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') errorMsg = currentLang === 'bn' ? "পাসওয়ার্ড বা ইমেইল ভুল হয়েছে!" : "Invalid email or password!";
             if(err.code === 'auth/user-not-found') errorMsg = currentLang === 'bn' ? "এই ইমেইলে কোন অ্যাকাউন্ট নেই!" : "No account found with this email!";
-            if(err.code === 'auth/email-already-in-use') errorMsg = currentLang === 'bn' ? "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!" : "Email already in use!";
             showToast(errorMsg); 
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Check Verification Status
     const reloadUser = async () => {
         const user = auth.currentUser;
         if (user) {
@@ -305,7 +185,6 @@ export default function LoginPage() {
         }
     };
 
-    // Resend Verification Email
     const resendVerification = async () => {
         const user = auth.currentUser;
         if (user) {
@@ -318,7 +197,6 @@ export default function LoginPage() {
         }
     };
 
-    // Logout
     const handleLogout = async () => {
         await signOut(auth);
         window.location.reload();
@@ -328,7 +206,6 @@ export default function LoginPage() {
         <>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-                
                 :root {
                     --p-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
                     --p-glow: 0 0 20px rgba(99, 102, 241, 0.4);
@@ -339,60 +216,24 @@ export default function LoginPage() {
                     --accent: #10b981;
                     --danger: #f43f5e;
                 }
-
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-                
-                /* Removed flex properties from body to allow header/footer to flow naturally */
                 body { background: var(--bg); color: var(--text-h); line-height: 1.6; padding-bottom: 90px; }
-
-                /* Page Container ensures the login box is vertically centered taking remaining space */
-                .page-container {
-                    width: 100%; min-height: calc(100vh - 180px);
-                    display: flex; flex-direction: column; align-items: center; justify-content: center;
-                    padding: 20px;
-                }
-
-                .elite-card {
-                    background: var(--glass); backdrop-filter: blur(20px); border-radius: 22px; padding: 25px;
-                    width: 100%; max-width: 400px; border: 1px solid rgba(255,255,255,0.7);
-                    box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-                    animation: fadeIn 0.5s ease-out;
-                    margin: 0 auto;
-                }
-
+                .page-container { width: 100%; min-height: calc(100vh - 180px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+                .elite-card { background: var(--glass); backdrop-filter: blur(20px); border-radius: 22px; padding: 25px; width: 100%; max-width: 400px; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 8px 30px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease-out; margin: 0 auto; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-                .btn-elite {
-                    width: 100%; padding: 14px; border: none; border-radius: 16px;
-                    background: var(--p-gradient); color: white; font-size: 0.95rem; font-weight: 700;
-                    cursor: pointer; transition: 0.3s; box-shadow: var(--p-glow);
-                    margin-top: 10px;
-                }
+                .btn-elite { width: 100%; padding: 14px; border: none; border-radius: 16px; background: var(--p-gradient); color: white; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: var(--p-glow); margin-top: 10px; }
                 .btn-elite:active { transform: scale(0.97); }
                 .btn-elite:disabled { opacity: 0.7; cursor: not-allowed; }
                 .btn-ghost { background: #f1f5f9; color: var(--text-p); box-shadow: none; margin-top: 15px; }
-
                 .input-group { margin-bottom: 14px; text-align: left; }
                 .input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-p); margin-bottom: 5px; margin-left: 5px; }
-                .input-group input {
-                    width: 100%; padding: 14px 18px; background: #fff; border: 1.5px solid #e2e8f0;
-                    border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem;
-                }
+                .input-group input { width: 100%; padding: 14px 18px; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 15px; outline: none; transition: 0.3s; font-size: 0.9rem; }
                 .input-group input:focus { border-color: #6366f1; }
-
-                #toast {
-                    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                    background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px;
-                    font-size: 0.8rem; font-weight: 600; z-index: 4000;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    transition: opacity 0.3s ease;
-                }
+                #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; z-index: 4000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: opacity 0.3s ease; }
             `}</style>
 
-            {/* Toast Notification */}
             {toast.visible && <div id="toast">{toast.msg}</div>}
 
-            {/* --- IMPORTED HEADER --- */}
             <Header 
                 user={user} 
                 userData={userData} 
@@ -405,28 +246,15 @@ export default function LoginPage() {
             />
 
             <div className="page-container">
-                {/* Authentication View */}
                 {view === 'auth-view' && (
                     <div style={{ width: '100%' }}>
                         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, background: 'var(--p-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TaskBazar</h1>
-                            <p style={{ color: 'var(--text-p)', fontWeight: 600, fontSize: '0.9rem' }}>The Premium Micro-Task Platform</p>
+                            <p style={{ color: 'var(--text-p)', fontWeight: 600, fontSize: '0.9rem' }}>{currentLang === 'bn' ? 'লগইন করুন' : 'Login to your account'}</p>
                         </div>
 
                         <div className="elite-card">
                             <div>
-                                {isSignupMode && (
-                                    <>
-                                        <div className="input-group">
-                                            <label>{currentLang === 'bn' ? 'সম্পূর্ণ নাম' : 'Full Name'}</label>
-                                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={currentLang === 'bn' ? "আপনার নাম লিখুন" : "Enter your name"} />
-                                        </div>
-                                        <div className="input-group">
-                                            <label>{currentLang === 'bn' ? 'রেফার কোড (ঐচ্ছিক)' : 'Referral Code (Optional)'}</label>
-                                            <input type="text" value={referCode} onChange={(e) => setReferCode(e.target.value)} placeholder={currentLang === 'bn' ? "কোড থাকলে দিন" : "Enter code if any"} />
-                                        </div>
-                                    </>
-                                )}
                                 <div className="input-group">
                                     <label>{currentLang === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}</label>
                                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" />
@@ -436,17 +264,15 @@ export default function LoginPage() {
                                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
                                 </div>
 
-                                <button className="btn-elite" onClick={handleAuthAction} disabled={isLoading}>
-                                    {isLoading ? (currentLang === 'bn' ? "অপেক্ষা করুন..." : "Please wait...") : (isSignupMode ? (currentLang === 'bn' ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account") : (currentLang === 'bn' ? "লগইন করুন" : "Login"))}
+                                <button className="btn-elite" onClick={handleLogin} disabled={isLoading}>
+                                    {isLoading ? (currentLang === 'bn' ? "অপেক্ষা করুন..." : "Please wait...") : (currentLang === 'bn' ? "লগইন করুন" : "Login")}
                                 </button>
 
-                                {!isSignupMode && (
-                                    <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                                        <span onClick={resetPassword} style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, cursor: 'pointer', transition: '0.3s' }}>
-                                            {currentLang === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
-                                        </span>
-                                    </div>
-                                )}
+                                <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                                    <span onClick={resetPassword} style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, cursor: 'pointer', transition: '0.3s' }}>
+                                        {currentLang === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
+                                    </span>
+                                </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
                                     <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
@@ -464,18 +290,13 @@ export default function LoginPage() {
 
                             <div style={{ marginTop: '20px', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-p)', fontWeight: 600 }}>
-                                    {isSignupMode ? (
-                                        <>{currentLang === 'bn' ? 'আগেই অ্যাকাউন্ট আছে?' : 'Already a member?'} <span onClick={() => toggleAuthMode(false)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>{currentLang === 'bn' ? 'লগইন করুন' : 'Login Now'}</span></>
-                                    ) : (
-                                        <>{currentLang === 'bn' ? 'নতুন ইউজার?' : 'New to the community?'} <span onClick={() => toggleAuthMode(true)} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>{currentLang === 'bn' ? 'রেজিস্টার করুন' : 'Register Now'}</span></>
-                                    )}
+                                    {currentLang === 'bn' ? 'নতুন ইউজার?' : 'New to the community?'} <span onClick={() => router.push('/register')} style={{ color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>{currentLang === 'bn' ? 'রেজিস্টার করুন' : 'Register Now'}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Verification View */}
                 {view === 'verify-view' && (
                     <div className="elite-card" style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📧</div>
@@ -490,7 +311,6 @@ export default function LoginPage() {
                 )}
             </div>
 
-            {/* --- IMPORTED FOOTER --- */}
             <Footer 
                 navOpen={navOpen} 
                 setNavOpen={setNavOpen} 
