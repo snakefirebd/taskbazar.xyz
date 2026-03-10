@@ -31,6 +31,7 @@ const translations = {
         points: "পয়েন্ট",
         pageTitle: "রেফার ও আয় 🎁",
         pageDesc: "আপনার বন্ধুদের ইনভাইট করুন এবং প্রতি সফল রেফারে আকর্ষণীয় পয়েন্ট জিতে নিন!",
+        rewardText: "আপনি পাবেন ১০০ পয়েন্ট, আপনার বন্ধু পাবে ৫০ পয়েন্ট!",
         yourCodeText: "আপনার রেফারেল কোড",
         yourLinkText: "আপনার রেফারেল লিংক",
         copyBtn: "কোড কপি করুন",
@@ -55,6 +56,7 @@ const translations = {
         points: "Points",
         pageTitle: "Refer & Earn 🎁",
         pageDesc: "Invite your friends and earn exciting points for every successful referral!",
+        rewardText: "You get 100 points, your friend gets 50 points!",
         yourCodeText: "Your Referral Code",
         yourLinkText: "Your Referral Link",
         copyBtn: "Copy Code",
@@ -247,6 +249,20 @@ export default function ReferralPage() {
                 .banner-title { font-size: 1.2rem; font-weight: 800; color: #4c1d95; margin-bottom: 8px; }
                 .banner-desc { font-size: 0.8rem; color: #64748b; font-weight: 600; line-height: 1.5; padding: 0 10px; }
 
+                /* Reward Box */
+                .reward-pill {
+                    background: #fef3c7;
+                    color: #d97706;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    display: inline-block;
+                    margin-top: 15px;
+                    border: 1px dashed #f59e0b;
+                    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.1);
+                }
+
                 /* Code & Link Card */
                 .code-card {
                     background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px;
@@ -327,6 +343,11 @@ export default function ReferralPage() {
                     <div className="banner-icon">🤝</div>
                     <h2 className="banner-title">{t.pageTitle}</h2>
                     <p className="banner-desc">{t.pageDesc}</p>
+                    
+                    {/* NEW: Reward Text Box */}
+                    <div className="reward-pill">
+                        ✨ {t.rewardText}
+                    </div>
                 </div>
 
                 {/* Code & Link Display Section */}
@@ -418,4 +439,5 @@ export default function ReferralPage() {
         </>
     );
 }
+
 
