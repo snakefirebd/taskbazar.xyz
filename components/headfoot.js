@@ -18,6 +18,7 @@ const IconRocket = (props) => <SvgIcon {...props}><path d="M4.5 16.5c-1.5 1.26-2
 const IconUser = (props) => <SvgIcon {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></SvgIcon>;
 const IconBell = (props) => <SvgIcon {...props}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></SvgIcon>;
 const IconMenu = (props) => <SvgIcon {...props}><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></SvgIcon>;
+const IconGift = (props) => <SvgIcon {...props}><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" x2="12" y1="22" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></SvgIcon>;
 
 // --- SHARED STYLES ---
 const SharedStyles = () => (
@@ -117,6 +118,7 @@ export const Footer = ({ navOpen, setNavOpen, view, handleSetView, toggleMenu, t
     const navProfile = t?.navProfile || "Profile";
     const navLeaderboard = t?.navLeaderboard || "Leaderboard";
     const navSupport = t?.navSupport || "Support";
+    const navReferral = t?.navReferral || "Referral"; // Referral text fallback
     const navMenu = t?.navMenu || "Menu";
 
     return (
@@ -130,7 +132,15 @@ export const Footer = ({ navOpen, setNavOpen, view, handleSetView, toggleMenu, t
                         </div>
                         <span style={{ fontSize: '0.6rem' }}>{navLeaderboard}</span>
                     </div>
-                    {/* Support Button Update: সরাসরি /complaint পেজে রিডাইরেক্ট করবে */}
+
+                    {/* New Referral Button */}
+                    <div onClick={() => { router.push('/referral'); setNavOpen(false); }} className="hf-nav-item">
+                        <div style={{ background: '#fffbeb', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                            <IconGift size={18} color="#f59e0b" />
+                        </div>
+                        <span style={{ fontSize: '0.6rem' }}>{navReferral}</span>
+                    </div>
+
                     <div onClick={() => { router.push('/complaint'); setNavOpen(false); }} className="hf-nav-item">
                         <div style={{ background: '#f1f5f9', width: '35px', height: '35px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
                             <IconSupport size={18} color="#64748b" />
