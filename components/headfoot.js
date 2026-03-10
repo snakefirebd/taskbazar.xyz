@@ -68,6 +68,16 @@ const SharedStyles = () => (
     `}</style>
 );
 
+// --- NUMBER FORMATTER FUNCTION ---
+// 10000 কে 10K এবং 1500 কে 1.5K তে রূপান্তর করবে
+const formatCompactNumber = (number) => {
+    if (!number) return "0";
+    return Intl.NumberFormat('en-US', {
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(number);
+};
+
 // --- HEADER COMPONENT ---
 export const Header = ({ user, userData, hasNewNotif, openNotifications, currentLang, changeLang, t, router }) => {
     // Fallback labels if translation is missing
@@ -108,7 +118,8 @@ export const Header = ({ user, userData, hasNewNotif, openNotifications, current
                         </div>
                         <div className="hf-wallet-pill">
                             <span>{pointsLabel}</span>
-                            <b>{userPoints.toLocaleString()}</b>
+                            {/* এখানে formatCompactNumber ব্যবহার করে পয়েন্টকে রাউন্ড/শর্ট করা হয়েছে */}
+                            <b>{formatCompactNumber(userPoints)}</b>
                         </div>
                     </div>
                 </div>
@@ -202,5 +213,4 @@ export const Footer = ({ navOpen, setNavOpen, view, handleSetView, toggleMenu, t
         </>
     );
 };
-
 
