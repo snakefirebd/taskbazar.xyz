@@ -32,13 +32,16 @@ const translations = {
         pageTitle: "রেফার ও আয় 🎁",
         pageDesc: "আপনার বন্ধুদের ইনভাইট করুন এবং প্রতি সফল রেফারে আকর্ষণীয় পয়েন্ট জিতে নিন!",
         yourCodeText: "আপনার রেফারেল কোড",
-        copyBtn: "কপি করুন",
-        shareBtn: "শেয়ার করুন",
+        yourLinkText: "আপনার রেফারেল লিংক",
+        copyBtn: "কোড কপি করুন",
+        copyLinkBtn: "লিংক কপি করুন",
+        shareBtn: "লিংক শেয়ার করুন",
         totalReferrals: "মোট রেফার",
         friendsJoined: "বন্ধুরা জয়েন করেছে",
         historyTitle: "যাদের রেফার করেছেন",
         noHistory: "আপনি এখনো কাউকে রেফার করেননি। বন্ধুদের ইনভাইট করা শুরু করুন! 🚀",
         copiedToast: "রেফার কোড কপি করা হয়েছে! 📋",
+        copiedLinkToast: "রেফার লিংক কপি করা হয়েছে! 🔗",
         shareNotSupported: "আপনার ব্রাউজার শেয়ার সাপোর্ট করে না।",
         joinedAt: "জয়েন:",
         navMissions: "Missions",
@@ -53,13 +56,16 @@ const translations = {
         pageTitle: "Refer & Earn 🎁",
         pageDesc: "Invite your friends and earn exciting points for every successful referral!",
         yourCodeText: "Your Referral Code",
-        copyBtn: "Copy",
-        shareBtn: "Share",
+        yourLinkText: "Your Referral Link",
+        copyBtn: "Copy Code",
+        copyLinkBtn: "Copy Link",
+        shareBtn: "Share Link",
         totalReferrals: "Total Referrals",
         friendsJoined: "Friends Joined",
         historyTitle: "Referred Friends",
         noHistory: "You haven't referred anyone yet. Start inviting friends! 🚀",
         copiedToast: "Referral code copied! 📋",
+        copiedLinkToast: "Referral link copied! 🔗",
         shareNotSupported: "Your browser doesn't support sharing.",
         joinedAt: "Joined:",
         navMissions: "Missions",
@@ -76,6 +82,7 @@ export default function ReferralPage() {
 
     // User & Global States
     const [user, setUser] = useState(null);
+    const [origin, setOrigin] = useState('');
     const [userData, setUserData] = useState({ 
         points: 0, 
         name: "Member", 
@@ -97,6 +104,7 @@ export default function ReferralPage() {
 
     // Initialize & Fetch Auth Data
     useEffect(() => {
+        setOrigin(window.location.origin);
         const savedLang = localStorage.getItem('elite_lang') || 'bn';
         setCurrentLang(savedLang);
 
@@ -142,6 +150,9 @@ export default function ReferralPage() {
         return () => unsubscribe();
     }, [router]);
 
+    // Referral Link Generation
+    const referralLink = userData.referralCode !== "------" ? `${origin}/register?ref=${userData.referralCode}` : "Generating link...";
+
     // UI Actions
     const showToast = (msg) => {
         setToast({ msg, visible: true });
@@ -162,19 +173,19 @@ export default function ReferralPage() {
     };
 
     // Action Handlers
-    const handleCopy = () => {
-        if (userData.referralCode && userData.referralCode !== "------") {
-            navigator.clipboard.writeText(userData.referralCode).then(() => {
-                showToast(t.copiedToast);
+    const handleCopy = (textToCopy, type) => {
+        if (textToCopy && textToCopy !== "------" && textToCopy !== "Generating link...") {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast(type === 'link' ? t.copiedLinkToast : t.copiedToast);
             }).catch(() => {
                 // Fallback for older browsers
                 const textArea = document.createElement("textarea");
-                textArea.value = userData.referralCode;
+                textArea.value = textToCopy;
                 document.body.appendChild(textArea);
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    showToast(t.copiedToast);
+                    showToast(type === 'link' ? t.copiedLinkToast : t.copiedToast);
                 } catch (err) {
                     console.error('Fallback: Oops, unable to copy', err);
                 }
@@ -185,15 +196,15 @@ export default function ReferralPage() {
 
     const handleShare = async () => {
         const shareText = currentLang === 'bn' 
-            ? `টাস্ক বাজার-এ জয়েন করুন এবং আয় করুন! আমার রেফার কোড ব্যবহার করুন: ${userData.referralCode}` 
-            : `Join TaskBazar and start earning! Use my referral code: ${userData.referralCode}`;
+            ? `টাস্ক বাজার-এ জয়েন করুন এবং আয় করুন! আমার রেফার লিংকটি ব্যবহার করুন: \n${referralLink}` 
+            : `Join TaskBazar and start earning! Use my referral link: \n${referralLink}`;
             
         if (navigator.share) {
             try {
                 await navigator.share({
                     title: 'TaskBazar Referral',
                     text: shareText,
-                    url: window.location.origin + '/login',
+                    url: referralLink,
                 });
             } catch (error) {
                 console.log('Error sharing:', error);
@@ -236,24 +247,35 @@ export default function ReferralPage() {
                 .banner-title { font-size: 1.2rem; font-weight: 800; color: #4c1d95; margin-bottom: 8px; }
                 .banner-desc { font-size: 0.8rem; color: #64748b; font-weight: 600; line-height: 1.5; padding: 0 10px; }
 
-                /* Code Card */
+                /* Code & Link Card */
                 .code-card {
                     background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px;
                     border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(0,0,0,0.02);
                     text-align: center; animation: slideUp 0.4s ease-out; animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards;
                 }
                 .code-label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+                
                 .code-box {
                     background: #f8fafc; border: 2px dashed #cbd5e1; padding: 15px; border-radius: 16px;
                     font-size: 1.8rem; font-weight: 800; color: #6366f1; letter-spacing: 4px; margin-bottom: 15px;
                 }
+                
+                .link-box {
+                    background: #f8fafc; border: 2px dashed #cbd5e1; padding: 12px 15px; border-radius: 16px;
+                    font-size: 0.85rem; font-weight: 600; color: #6366f1; margin-bottom: 15px;
+                    word-break: break-all;
+                }
+
+                .divider { height: 1px; background: #e2e8f0; margin: 20px 0; width: 100%; }
+
                 .action-buttons { display: flex; gap: 10px; }
                 .btn-action {
                     flex: 1; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.85rem; border: none; cursor: pointer; transition: 0.2s;
                     display: flex; align-items: center; justify-content: center; gap: 6px;
                 }
-                .btn-copy { background: var(--p-gradient); color: white; box-shadow: var(--p-glow); }
-                .btn-share { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+                .btn-copy { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+                .btn-copy-main { background: var(--p-gradient); color: white; box-shadow: var(--p-glow); }
+                .btn-share { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
                 .btn-action:active { transform: scale(0.96); }
 
                 /* Stats */
@@ -307,15 +329,29 @@ export default function ReferralPage() {
                     <p className="banner-desc">{t.pageDesc}</p>
                 </div>
 
-                {/* Code Display Section */}
+                {/* Code & Link Display Section */}
                 <div className="code-card">
+                    {/* Referral Code */}
                     <div className="code-label">{t.yourCodeText}</div>
                     <div className="code-box">
                         {userData.referralCode}
                     </div>
                     <div className="action-buttons">
-                        <button className="btn-action btn-copy" onClick={handleCopy}>
+                        <button className="btn-action btn-copy" onClick={() => handleCopy(userData.referralCode, 'code')} style={{width: '100%', flex: 'unset'}}>
                             📋 {t.copyBtn}
+                        </button>
+                    </div>
+
+                    <div className="divider"></div>
+
+                    {/* Referral Link */}
+                    <div className="code-label">{t.yourLinkText}</div>
+                    <div className="link-box">
+                        {referralLink}
+                    </div>
+                    <div className="action-buttons">
+                        <button className="btn-action btn-copy-main" onClick={() => handleCopy(referralLink, 'link')}>
+                            🔗 {t.copyLinkBtn}
                         </button>
                         <button className="btn-action btn-share" onClick={handleShare}>
                             🚀 {t.shareBtn}
@@ -379,10 +415,6 @@ export default function ReferralPage() {
                 router={router} 
             />
 
-            {/* Special Menu Style Fix for matching current active view */}
-            <style>{`
-                 /* Highlight custom view icons if needed */
-            `}</style>
         </>
     );
 }
