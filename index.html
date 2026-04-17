@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - সেরা আর্নিং প্ল্যাটফর্ম</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+            --border-soft: rgba(26,179,148,0.10);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ══════════════════════════
+           PRELOADER
+        ══════════════════════════ */
+        #new-preloader {
+            position: fixed; top:0; left:0;
+            width:100%; height:100%;
+            background: linear-gradient(160deg, #052c24, #0a3d30, #052c24);
+            display:flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            z-index:99999;
+            transition: opacity .5s, visibility .5s;
+        }
+        #new-preloader.hide { opacity:0; visibility:hidden; }
+
+        .loader-ring {
+            width:64px; height:64px;
+            border-radius:50%;
+            background: conic-gradient(#1ab394, transparent);
+            animation: spin 1s linear infinite;
+            display:flex; align-items:center; justify-content:center;
+            position: relative;
+        }
+        .loader-ring::before {
+            content:'';
+            position:absolute; inset:4px;
+            background: #052c24;
+            border-radius:50%;
+        }
+        .loader-ring-inner {
+            width:44px; height:44px;
+            background: rgba(26,179,148,.12);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            position:relative; z-index:1;
+        }
+        .loader-logo {
+            position:absolute;
+            font-size:22px;
+            animation: logoBob .9s ease-in-out infinite alternate;
+        }
+        @keyframes logoBob { from{transform:scale(.9)} to{transform:scale(1.1)} }
+        
+        .loader-text {
+            color:#fff; margin-top:20px;
+            font-weight:900; letter-spacing:3px;
+            font-size:18px;
+            animation: fadeText 1.2s ease-in-out infinite alternate;
+        }
+        .loader-sub {
+            color: rgba(26,179,148,.7);
+            font-size:11px; font-weight:700;
+            letter-spacing:.12em; margin-top:6px;
+        }
+        @keyframes fadeText { from{opacity:.5} to{opacity:1} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* ══════════════════════════
+           HEADER & SIDEBAR
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .status-badge {
+            display: flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+        }
+        .active-pulse { animation: p-green 1.5s infinite; background: #e8f5e9; color: #2e7d32; }
+        
+        @keyframes p-green { 0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); } }
+
+        #sidebar {
+            position: fixed; top: 0; left: 0; width: 280px; height: 100vh;
+            background: white; z-index: 9999;
+            transform: translateX(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+        }
+
+        .profile-box { padding: 20px 15px; background: #fafafa; border-bottom: 1px solid #f1f1f1; }
+        .sidebar-link {
+            display: flex; align-items: center; padding: 12px 15px; color: #444; font-size: 14px; font-weight: 600;
+            text-decoration: none; margin: 5px 12px; border-radius: 12px; transition: 0.2s;
+        }
+        .sidebar-link i { width: 30px; font-size: 16px; color: var(--primary-green); }
+        .sidebar-link:hover, .sidebar-link.active { background: #f0fdf4; color: var(--primary-green); }
+
+        /* ══════════════════════════
+           MAIN CONTENT STYLES
+        ══════════════════════════ */
+        .container-box {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px 15px;
+        }
+
+        /* Slider */
+        .slider-container {
+            width:100%; border-radius:18px; overflow:hidden;
+            aspect-ratio:21/9; position:relative;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+            border: 2px solid #fff;
+            margin-bottom:18px;
+            animation: fadeSlide .5s ease both;
+        }
+        @keyframes fadeSlide { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .slider { display:flex; width:300%; height:100%; animation:slideAnimation 12s infinite; }
+        .slider img { width:33.33%; height:100%; object-fit:cover; }
+        @keyframes slideAnimation {
+            0%,25%  { transform:translateX(0%); }
+            33%,58% { transform:translateX(-33.33%); }
+            66%,92% { transform:translateX(-66.66%); }
+            100%    { transform:translateX(0%); }
+        }
+
+        /* Nav Grid */
+        .nav-grid {
+            display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;
+        }
+        .nav-item {
+            background:#fff; border-radius:16px; padding:13px 4px 10px;
+            text-align:center; text-decoration:none;
+            box-shadow: var(--card-shadow); border: 1.5px solid rgba(0,0,0,0.04);
+            display:flex; flex-direction:column; align-items:center; gap:7px;
+            transition: transform .22s, box-shadow .22s;
+            animation: popCard .4s cubic-bezier(.175,.885,.32,1.275) both;
+            position:relative; overflow:hidden;
+        }
+        .nav-item::after {
+            content:''; position:absolute; inset:0; border-radius:16px;
+            background: radial-gradient(circle at 65% 15%, rgba(255,255,255,.55), transparent 65%);
+            pointer-events:none;
+        }
+        .nav-item:nth-child(1){animation-delay:.05s}
+        .nav-item:nth-child(2){animation-delay:.10s}
+        .nav-item:nth-child(3){animation-delay:.15s}
+        .nav-item:nth-child(4){animation-delay:.20s}
+        @keyframes popCard { from{opacity:0;transform:scale(.8) translateY(14px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        .nav-item:active { transform:scale(0.91) translateY(2px); box-shadow:0 2px 8px rgba(26,179,148,.15); }
+        .nav-item .icon-box {
+            width:42px; height:42px; border-radius:13px;
+            display:flex; align-items:center; justify-content:center; font-size:19px;
+            transition: transform .22s; box-shadow: 0 3px 10px rgba(0,0,0,0.09);
+        }
+        .nav-item:active .icon-box { transform:scale(1.2) rotate(-7deg); }
+        .nav-item span { font-size:11px; font-weight:800; color:#3d5a55; }
+        
+        .bg-jobs { background:linear-gradient(145deg,#E3F2FD,#90CAF9); color:#1565C0; }
+        .bg-refer { background:linear-gradient(145deg,#FFF3E0,#FFCC80); color:#E65100; }
+        .bg-wallet { background:linear-gradient(145deg,#F3E5F5,#CE93D8); color:#6A1B9A; }
+        .bg-withdraw { background:linear-gradient(145deg,#E8F5E9,#A5D6A7); color:#1B5E20; }
+
+        /* Referral Card */
+        .share-card {
+            background:#fff; border-radius:18px; padding:16px; margin-bottom:18px;
+            box-shadow: var(--card-shadow); border:1.5px solid rgba(26,179,148,0.08);
+            animation: fadeUp .5s .25s both;
+        }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .refer-desc-box {
+            background: linear-gradient(135deg, #f0fdf4, #e6faf5);
+            padding:12px 14px; border-radius:12px; margin-bottom:12px;
+            border-left:4px solid var(--primary-green); position:relative; overflow:hidden;
+        }
+        .refer-desc-box::before { content:'🎁'; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:26px; opacity:.18; }
+        .refer-desc-box h4 { margin:0 0 4px; font-size:14px; color:var(--deep-green); font-weight:800; }
+        .refer-desc-box p { margin:0; font-size:12px; color:#4a7a6e; line-height:1.55; font-weight:600; }
+        
+        .copy-box {
+            background:#f8fafa; border-radius:11px; display:flex; align-items:center;
+            border:1.5px dashed rgba(26,179,148,.35); padding:4px; margin:10px 0;
+        }
+        .copy-box input {
+            flex:1; border:none; background:transparent; padding:8px 10px; font-size:12px;
+            outline:none; font-weight:600; color:#2d6558; width: 100%;
+        }
+        .btn-copy {
+            background: linear-gradient(135deg,#1ab394,#0d9e82); color:#fff; border:none;
+            padding:8px 16px; border-radius:9px; font-size:12px; font-weight:800; cursor:pointer;
+            box-shadow:0 3px 10px rgba(26,179,148,.3); transition:transform .18s;
+        }
+        .btn-copy:active { transform:scale(.93); }
+
+        .social-share-row { display:flex; gap:14px; justify-content:center; margin-top:12px; }
+        .social-share-row a {
+            width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+            font-size:20px; transition:transform .2s; box-shadow:0 3px 10px rgba(0,0,0,.07);
+        }
+        .social-share-row a:active { transform:scale(.88); }
+        .s-wa { background:#f0fff8; color:#25D366 !important; }
+        .s-fb { background:#f0f5ff; color:#1877F2 !important; }
+        .s-tg { background:#f0f8ff; color:#0088cc !important; }
+
+        /* Notice Board */
+        .notice-board-large {
+            background: linear-gradient(140deg, #1e2f2c, #2c3e50); border-radius:18px; padding:16px 18px;
+            margin-bottom:18px; border-bottom:4px solid var(--primary-green);
+            border-left:3px solid rgba(26,179,148,.3); min-height:85px;
+            box-shadow:0 8px 28px rgba(26,179,148,.12); position:relative; overflow:hidden;
+            animation: fadeUp .5s .3s both;
+        }
+        .notice-board-large::before {
+            content:''; position:absolute; top:-30px; right:-30px; width:100px; height:100px;
+            background:rgba(26,179,148,.07); border-radius:50%; pointer-events:none;
+        }
+        .notice-header {
+            color:var(--primary-green); font-size:13px; font-weight:800; margin-bottom:8px;
+            display:flex; align-items:center; gap:6px; letter-spacing:.05em; text-transform:uppercase;
+        }
+        .notice-dot {
+            width:8px; height:8px; border-radius:50%; background:var(--primary-green);
+            animation:blink .9s infinite; flex-shrink:0;
+        }
+        @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.25;transform:scale(.6)} }
+        #typing-text { color:#d4ece7; font-size:13px; line-height:1.65; font-weight:500; }
+        .cursor {
+            display:inline-block; width:2px; height:13px; background:var(--primary-green);
+            margin-left:3px; vertical-align:middle; animation:blink .8s infinite;
+        }
+
+        /* Live Payment */
+        .live-card {
+            background:#fff; border-radius:18px; overflow:hidden; box-shadow:var(--card-shadow);
+            border:1.5px solid rgba(26,179,148,0.07); margin-bottom:18px; animation: fadeUp .5s .35s both;
+        }
+        .live-header {
+            padding:12px 16px; background: linear-gradient(90deg, #f8fffe, #f0fdf9);
+            border-bottom:1.5px solid #edf8f5; display:flex; align-items:center;
+            font-weight:800; font-size:14px; color:#1a3a32;
+        }
+        .dot {
+            width:8px; height:8px; border-radius:50%; margin-right:7px; background:#e74c3c;
+            animation:dotPulse 1.4s infinite; flex-shrink:0;
+        }
+        @keyframes dotPulse {
+            0%{transform:scale(1);box-shadow:0 0 0 0 rgba(231,76,60,.4)}
+            70%{transform:scale(1.1);box-shadow:0 0 0 5px rgba(231,76,60,0)}
+            100%{transform:scale(1)}
+        }
+        .tx-list { height:160px; overflow-y:auto; }
+        .tx-list::-webkit-scrollbar { width:3px; }
+        .tx-list::-webkit-scrollbar-thumb { background:rgba(26,179,148,.3); border-radius:4px; }
+        .tx-item {
+            display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #f5faf8; transition:background .15s;
+        }
+        .tx-item:hover { background:#fafffe; }
+        .tx-avatar {
+            width:36px; height:36px; border-radius:10px; background:linear-gradient(145deg,#d1fae5,#6ee7b7);
+            display:flex; align-items:center; justify-content:center; color:#065f46; font-size:16px;
+            margin-right:12px; flex-shrink:0;
+        }
+        .tx-details b { font-size:13px; color:#2d3748; display:block; font-weight:800; }
+        .tx-details small { font-size:11px; color:#94a3b8; font-weight:600; }
+        .tx-amount { margin-left:auto; text-align:right; }
+        .tx-amount strong { color:#16a34a; font-size:15px; display:block; font-weight:800; }
+        .tx-amount small { font-size:10px; color:#86efac; font-weight:700; }
+
+        /* Telegram Grid */
+        .tg-big-grid {
+            display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; animation: fadeUp .5s .4s both;
+        }
+        .btn-tg-big {
+            background:#fff; border-radius:18px; padding:18px 10px 14px; text-align:center;
+            text-decoration:none; box-shadow:var(--card-shadow); border:1.5px solid rgba(0,136,204,.10);
+            display:flex; flex-direction:column; align-items:center; gap:10px;
+            transition:transform .22s, box-shadow .22s; position:relative; overflow:hidden;
+        }
+        .btn-tg-big::before {
+            content:''; position:absolute; top:-50%; left:-60%; width:50%; height:200%;
+            background:rgba(0,136,204,.07); transform:skewX(-20deg); animation:shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0%{left:-60%} 100%{left:130%} }
+        .btn-tg-big:active { transform:scale(.93); }
+        .btn-tg-big i {
+            font-size:32px; color:#0088cc; filter:drop-shadow(0 4px 10px rgba(0,136,204,.25));
+            animation:tgBob 2.6s ease-in-out infinite;
+        }
+        @keyframes tgBob { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-5px) scale(1.05)} }
+        .btn-tg-big span {
+            font-size:11px; font-weight:800; color:#fff; background:linear-gradient(135deg,#0088cc,#006aaa);
+            padding:6px 14px; border-radius:50px; text-transform:uppercase;
+            box-shadow:0 3px 10px rgba(0,136,204,.28); width:85%; letter-spacing:.03em;
+        }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 70px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+        }
+        .center-nav:active { transform: scale(0.9); }
+
+        /* Popup Box */
+        .popup-card {
+            background: white; border-radius: 25px; width: 90%; max-width: 350px;
+            overflow: hidden; border-bottom: 5px solid #0088cc;
+        }
+        .popup-btn {
+            background: #0088cc; color: white; padding: 12px; border-radius: 15px;
+            font-weight: 800; width: 100%; display: block; margin-top: 15px;
+            text-align: center; box-shadow: 0 4px 10px rgba(0, 136, 204, 0.2);
+        }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- PRELOADER -->
+    <div id="new-preloader">
+        <div class="loader-content text-center">
+            <div class="loader-ring mx-auto">
+                <div class="loader-ring-inner"></div>
+            </div>
+            <div class="loader-text">TaskBazar</div>
+            <div class="loader-sub">লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <div onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center cursor-pointer">
+            <i class="fas fa-bars-staggered text-xl text-gray-500"></i>
+        </div>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">TaskBazar</span>
+        <div class="status-badge active-pulse">
+            <i class="fas fa-circle-check"></i> সক্রিয়
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="profile-box">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-green-600 border border-gray-100">
+                    <i class="fas fa-user-astronaut text-2xl"></i>
+                </div>
+                <button onclick="toggleSidebar()" class="h-8 w-8 rounded-full bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-500 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <h4 class="font-bold text-gray-800 text-sm truncate uppercase" id="sidebarEmail">লোড হচ্ছে...</h4>
+            <span class="text-[10px] text-green-600 font-bold uppercase tracking-widest">প্রিমিয়াম মেম্বার</span>
+            
+            <div class="mt-4 p-3 bg-white border border-dashed border-gray-200 rounded-xl flex justify-between items-center">
+                <div>
+                    <span class="text-[9px] text-gray-400 block uppercase font-bold">রেফার কোড</span>
+                    <strong class="text-sm text-gray-800" id="sidebarRefID">------</strong>
+                </div>
+                <i class="fas fa-copy text-green-500 cursor-pointer text-lg p-1" onclick="copySidebarCode()"></i>
+            </div>
+        </div>
+
+        <div class="py-4">
+            <a href="#" class="sidebar-link active"><i class="fas fa-house-chimney-window"></i> হোম</a>
+            <a href="#" class="sidebar-link"><i class="fas fa-wallet"></i> আমার ওয়ালেট</a>
+            <a href="#" class="sidebar-link"><i class="fas fa-rocket"></i> প্রতিদিনের কাজ</a>
+            <a href="#" class="
