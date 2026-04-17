@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - প্রতিদিনের কাজ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+            --border-soft: rgba(26,179,148,0.10);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ══════════════════════════
+           PRELOADER (হুবহু আগের মত)
+        ══════════════════════════ */
+        #new-preloader {
+            position: fixed; top:0; left:0;
+            width:100%; height:100%;
+            background: linear-gradient(160deg, #052c24, #0a3d30, #052c24);
+            display:flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            z-index:99999;
+            transition: opacity .5s, visibility .5s;
+        }
+        #new-preloader.hide { opacity:0; visibility:hidden; }
+
+        .loader-ring {
+            width:64px; height:64px;
+            border-radius:50%;
+            background: conic-gradient(#1ab394, transparent);
+            animation: spin 1s linear infinite;
+            display:flex; align-items:center; justify-content:center;
+            position: relative;
+        }
+        .loader-ring::before {
+            content:'';
+            position:absolute; inset:4px;
+            background: #052c24;
+            border-radius:50%;
+        }
+        .loader-ring-inner {
+            width:44px; height:44px;
+            background: rgba(26,179,148,.12);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            position:relative; z-index:1;
+        }
+        .loader-logo {
+            position:absolute;
+            font-size:22px;
+            animation: logoBob .9s ease-in-out infinite alternate;
+        }
+        @keyframes logoBob { from{transform:scale(.9)} to{transform:scale(1.1)} }
+        
+        .loader-text {
+            color:#fff; margin-top:20px;
+            font-weight:900; letter-spacing:3px;
+            font-size:18px;
+            animation: fadeText 1.2s ease-in-out infinite alternate;
+        }
+        .loader-sub {
+            color: rgba(26,179,148,.7);
+            font-size:11px; font-weight:700;
+            letter-spacing:.12em; margin-top:6px;
+        }
+        @keyframes fadeText { from{opacity:.5} to{opacity:1} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* ══════════════════════════
+           HEADER & SIDEBAR
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #eee;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        .status-badge {
+            display: flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+        }
+        .active-pulse { animation: p-green 1.5s infinite; background: #e8f5e9; color: #2e7d32; }
+        
+        @keyframes p-green { 0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); } }
+
+        /* ══════════════════════════
+           MAIN CONTENT - TASK PAGE
+        ══════════════════════════ */
+        .container-box {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px 15px;
+        }
+
+        /* Task Banner */
+        .page-banner {
+            background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
+            border-radius: 18px; padding: 20px 15px; color: white; margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(26,179,148,0.25);
+            display: flex; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+        .page-banner::after {
+            content: '\f0ae'; font-family: 'FontAwesome'; position: absolute;
+            right: -10px; bottom: -20px; font-size: 100px; opacity: 0.1; transform: rotate(-15deg);
+        }
+        .banner-text h2 { margin: 0; font-size: 18px; font-weight: 800; }
+        .banner-text p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.9; font-weight: 600; }
+        .banner-stats { text-align: right; }
+        .banner-stats h3 { margin: 0; font-size: 22px; font-weight: 800; }
+        .banner-stats span { font-size: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+        /* Filter Chips */
+        .filter-container {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 5px;
+            animation: fadeUp .5s .1s ease both;
+        }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-chip {
+            background: #fff; border: 1.5px solid rgba(0,0,0,0.05); padding: 8px 16px;
+            border-radius: 50px; font-size: 12px; font-weight: 700; color: #555;
+            white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: 0.3s;
+        }
+        .filter-chip.active {
+            background: var(--primary-green); color: #fff; border-color: var(--primary-green);
+            box-shadow: 0 4px 12px rgba(26,179,148,0.3);
+        }
+
+        /* Task Cards */
+        .task-list {
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .task-card {
+            background: #fff; border-radius: 18px; padding: 15px;
+            box-shadow: var(--card-shadow); border: 1.5px solid rgba(26,179,148,0.08);
+            display: flex; align-items: center; gap: 14px;
+            animation: fadeUp .5s both; position: relative; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task-card:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        .task-card:nth-child(1) { animation-delay: 0.15s; }
+        .task-card:nth-child(2) { animation-delay: 0.20s; }
+        .task-card:nth-child(3) { animation-delay: 0.25s; }
+        .task-card:nth-child(4) { animation-delay: 0.30s; }
+        .task-card:nth-child(5) { animation-delay: 0.35s; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        .task-icon {
+            width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);
+        }
+        .task-icon.fb { background: linear-gradient(135deg, #e8f4fd, #d1e9fa); color: #1877F2; border: 1px solid #bde0f8; }
+        .task-icon.yt { background: linear-gradient(135deg, #fde8e8, #fad1d1); color: #FF0000; border: 1px solid #f8bdcb; }
+        .task-icon.web { background: linear-gradient(135deg, #e8fdf4, #ccfbf1); color: #0d9488; border: 1px solid #99f6e4; }
+        .task-icon.app { background: linear-gradient(135deg, #f4e8fd, #e9d5fa); color: #9C27B0; border: 1px solid #d8b4fe; }
+
+        .task-details { flex-grow: 1; }
+        .task-title { font-size: 13px; font-weight: 800; color: #2d3748; line-height: 1.4; margin-bottom: 4px; }
+        .task-reward { 
+            display: inline-block; font-size: 11px; font-weight: 800; color: #1ab394; 
+            background: #e8fdf4; padding: 2px 8px; border-radius: 6px;
+        }
+        
+        .btn-task {
+            background: linear-gradient(135deg, #1ab394, #0d9e82); color: #fff;
+            padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800;
+            box-shadow: 0 4px 12px rgba(26,179,148,.3); transition: transform .2s;
+            text-decoration: none; flex-shrink: 0; text-align: center; border: none; cursor: pointer;
+        }
+        .btn-task:active { transform: scale(.93); }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 70px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+        }
+        .center-nav:active { transform: scale(0.9); }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- PRELOADER -->
+    <div id="new-preloader">
+        <div class="loader-content text-center">
+            <div class="loader-ring mx-auto">
+                <div class="loader-ring-inner"></div>
+            </div>
+            <div class="loader-text">TaskBazar</div>
+            <div class="loader-sub">টাস্ক লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">টাস্কসমূহ</span>
+        <div class="status-badge active-pulse">
+            <i class="fas fa-briefcase"></i> ৫টি কাজ
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container-box">
+        
+        <!-- Page Banner -->
+        <div class="page-banner">
+            <div class="banner-text">
+                <h2>আজকের কাজ</h2>
+                <p>সবগুলো কাজ শেষ করে বোনাস নিন!</p>
+            </div>
+            <div class="banner-stats">
+                <h3>৳১৫.০০</h3>
+                <span>মোট আয় হবে</span>
+            </div>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="filter-container">
+            <div class="filter-chip active">সব কাজ</div>
+            <div class="filter-chip"><i class="fab fa-facebook text-blue-500 mr-1"></i> ফেসবুক</div>
+            <div class="filter-chip"><i class="fab fa-youtube text-red-500 mr-1"></i> ইউটিউব</div>
+            <div class="filter-chip"><i class="fas fa-globe text-teal-500 mr-1"></i> ওয়েবসাইট</div>
+            <div class="filter-chip"><i class="fab fa-google-play text-purple-500 mr-1"></i> অ্যাপ</div>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list">
+            
+            <!-- Facebook Task -->
+            <div class="task-card">
+                <div class="task-icon fb">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </div>
+                <div class="task-details">
+                    <div class="task-title">অফিসিয়াল ফেসবুক পেজে লাইক ও ফলো দিন</div>
+                    <div class="task-reward">আয়: ৳২.০০</div>
+                </div>
+                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
+            </div>
+
+            <!-- YouTube Task -->
+            <div class="task-card">
+                <div class="task-icon yt">
+                    <i class="fa-brands fa-youtube"></i>
+                </div>
+                <div class="task-details">
+                    <div class="task-title">ইউটিউব ভিডিও দেখুন, লাইক ও সাবস্ক্রাইব করুন</div>
+                    <div class="task-reward">আয়: ৳৩.৫০</div>
+                </div>
+                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
+            </div>
+
+            <!-- Website Visit Task -->
+            <div class="task-card">
+                <div class="task-icon web">
+                    <i class="fa-solid fa-globe"></i>
+                </div>
+                <div class="task-details">
+                    <div class="task-title">ওয়েবসাইটে ভিজিট করে ২ মিনিট অপেক্ষা করুন</div>
+                    <div class="task-reward">আয়: ৳১.৫০</div>
+                </div>
+                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
+            </div>
+
+            <!-- App Download Task -->
+            <div class="task-card">
+                <div class="task-icon app">
+                    <i class="fa-brands fa-google-play"></i>
+                </div>
+                <div class="task-details">
+                    <div class="task-title">প্লে-স্টোর থেকে অ্যাপটি ডাউনলোড করে ৫ স্টার রেটিং দিন</div>
+                    <div class="task-reward">আয়: ৳৫.০০</div>
+                </div>
+                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
+            </div>
+
+            <!-- Facebook Comment Task -->
+            <div class="task-card">
+                <div class="task-icon fb">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+                <div class="task-details">
+                    <div class="task-title">ফেসবুক পোস্টে সুন্দর একটি কমেন্ট ও শেয়ার করুন</div>
+                    <div class="task-reward">আয়: ৳৩.০০</div>
+                </div>
+                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
+            </div>
+
+        </div>
+        
+        <!-- Bottom spacing for footer -->
+        <div style="height: 20px;"></div>
+
+    </main>
+
+    <!-- BOTTOM FOOTER -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="#" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="#" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="#" class="footer-link active"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="#" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts (সবসময় Realtime Database এর নিয়ম অনুযায়ী) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        // Check Login State and Hide Preloader
+        onAuthStateChanged(auth, (user) => {
+            // ডামি পেইজ হলেও আমরা ফায়ারবেসের অথেন্টিকেশন চেক রাখলাম আসল ফিলের জন্য
+            setTimeout(() => {
+                const pl = document.getElementById('new-preloader');
+                pl.classList.add('hide');
+                setTimeout(() => pl.style.display = 'none', 500);
+            }, 800);
+        });
+    </script>
+
+    <!-- General Scripts -->
+    <script>
+        /* ── CLICK SOUND ── */
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        /* ── DUMMY TASK START FUNCTION ── */
+        function startTask(btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোডিং';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+            
+            // ৩ সেকেন্ড পর টাস্ক সাবমিটের একটি ডামি এলার্ট 
+            setTimeout(() => {
+                btn.innerHTML = 'সম্পন্ন <i class="fas fa-check-circle"></i>';
+                btn.style.background = 'linear-gradient(135deg, #e5e7eb, #d1d5db)';
+                btn.style.color = '#4b5563';
+                btn.style.boxShadow = 'none';
+                alert('কাজটি সফলভাবে সম্পন্ন হয়েছে! আপনার ওয়ালেটে ব্যালেন্স যোগ করা হচ্ছে।');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
