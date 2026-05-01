@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - লিডারবোর্ড</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 95px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ══════════════════════════
+           HEADER
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; border-radius: 12px; background: #f8fafa; color: #444; 
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            border: 1px solid #eee; transition: 0.2s;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        /* ══════════════════════════
+           MAIN CONTENT - LEADERBOARD
+        ══════════════════════════ */
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+
+        /* Top 3 Section */
+        .top-three {
+            display: flex; justify-content: center; align-items: flex-end; gap: 15px;
+            margin-top: 20px; margin-bottom: 30px; animation: fadeIn .8s ease;
+        }
+        
+        .winner-box { text-align: center; position: relative; }
+        .avatar-wrap {
+            position: relative; border-radius: 50%; padding: 3px; background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 8px;
+        }
+        .rank-icon {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            font-size: 24px; z-index: 2;
+        }
+        
+        .rank-2 .avatar-wrap { width: 75px; height: 75px; border: 3px solid var(--silver); }
+        .rank-1 .avatar-wrap { width: 95px; height: 95px; border: 4px solid var(--gold); transform: translateY(-15px); }
+        .rank-3 .avatar-wrap { width: 70px; height: 70px; border: 3px solid var(--bronze); }
+        
+        .winner-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .winner-name { font-size: 11px; font-weight: 800; color: #333; margin: 0; }
+        .winner-amt { font-size: 13px; font-weight: 800; color: var(--primary-green); margin-top: 2px; }
+
+        /* Leaderboard List */
+        .leader-list {
+            background: #fff; border-radius: 24px; padding: 10px 5px;
+            box-shadow: var(--card-shadow); animation: fadeUp .6s ease both;
+        }
+        .leader-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 15px; border-bottom: 1px solid #f8f8f8;
+        }
+        .leader-item:last-child { border-bottom: none; }
+        
+        .item-left { display: flex; align-items: center; gap: 12px; }
+        .rank-num { width: 25px; font-weight: 800; color: #94a3b8; font-size: 14px; }
+        .user-thumb { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid #eee; }
+        .user-details h4 { margin: 0; font-size: 13px; font-weight: 700; color: #1e293b; }
+        .user-details p { margin: 0; font-size: 10px; color: #64748b; font-weight: 600; }
+        
+        .item-right { text-align: right; }
+        .item-amt { font-size: 14px; font-weight: 800; color: #1e293b; }
+
+        /* My Rank (Fixed Bottom) */
+        .my-rank-fixed {
+            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 460px; background: var(--deep-green); color: #fff;
+            padding: 12px 20px; border-radius: 18px; display: flex; align-items: center;
+            justify-content: space-between; box-shadow: 0 8px 25px rgba(13, 109, 90, 0.3);
+            z-index: 100; animation: bounceInUp 1s;
+        }
+        .my-left { display: flex; align-items: center; gap: 12px; }
+        .my-rank-num { font-weight: 800; font-size: 12px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+        /* ══════════════════════════
+           FOOTER
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 75px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3);
+        }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- Preloader -->
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">লিডারবোর্ড</span>
+        <div style="width: 40px;"></div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container-box">
+        
+        <!-- Winners Podium (Top 3) -->
+        <div class="top-three">
+            <!-- Rank 2 -->
+            <div class="winner-box rank-2">
+                <i class="fas fa-medal rank-icon" style="color: var(--silver);"></i>
+                <div class="avatar-wrap">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User2" alt="2nd" class="winner-img">
+                </div>
+                <p class="winner-name">সোহেল রানা</p>
+                <p class="winner-amt">৳ ১২৫০.০০</p>
+            </div>
+            <!-- Rank 1 -->
+            <div class="winner-box rank-1">
+                <i class="fas fa-crown rank-icon" style="color: var(--gold);"></i>
+                <div class="avatar-wrap">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User1" alt="1st" class="winner-img">
+                </div>
+                <p class="winner-name">আরিফ আহমেদ</p>
+                <p class="winner-amt">৳ ১৮২০.০০</p>
+            </div>
+            <!-- Rank 3 -->
+            <div class="winner-box rank-3">
+                <i class="fas fa-medal rank-icon" style="color: var(--bronze);"></i>
+                <div class="avatar-wrap">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User3" alt="3rd" class="winner-img">
+                </div>
+                <p class="winner-name">মেহেদী হাসান</p>
+                <p class="winner-amt">৳ ৯৮০.০০</p>
+            </div>
+        </div>
+
+        <div class="section-title text-[12px] font-bold text-gray-400 mb-3 px-2 uppercase tracking-wider">সেরা আর্নারদের তালিকা</div>
+
+        <!-- Scrollable Leader List -->
+        <div class="leader-list">
+            
+            <div class="leader-item">
+                <div class="item-left">
+                    <span class="rank-num">#৪</span>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User4" class="user-thumb">
+                    <div class="user-details">
+                        <h4>কামরুল ইসলাম</h4>
+                        <p>মোট টাস্ক: ১২০টি</p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="item-amt">৳ ৮৫০.০০</div>
+                </div>
+            </div>
+
+            <div class="leader-item">
+                <div class="item-left">
+                    <span class="rank-num">#৫</span>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User5" class="user-thumb">
+                    <div class="user-details">
+                        <h4>তামিম ইকবাল</h4>
+                        <p>মোট টাস্ক: ১০০টি</p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="item-amt">৳ ৭২০.০০</div>
+                </div>
+            </div>
+
+            <div class="leader-item">
+                <div class="item-left">
+                    <span class="rank-num">#৬</span>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User6" class="user-thumb">
+                    <div class="user-details">
+                        <h4>রাকিব হাসান</h4>
+                        <p>মোট টাস্ক: ৮৫টি</p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="item-amt">৳ ৫৫০.০০</div>
+                </div>
+            </div>
+
+            <div class="leader-item">
+                <div class="item-left">
+                    <span class="rank-num">#৭</span>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=User7" class="user-thumb">
+                    <div class="user-details">
+                        <h4>সাব্বির রহমান</h4>
+                        <p>মোট টাস্ক: ৭০টি</p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="item-amt">৳ ৪১০.০০</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- My Rank Floating Bar -->
+        <div class="my-rank-fixed">
+            <div class="my-left">
+                <span class="my-rank-num">আমার র‍্যাঙ্ক: ১৫</span>
+                <span class="text-xs font-bold">আপনি (ব্যবহারকারী)</span>
+            </div>
+            <div class="font-black text-sm">৳ ৩৫০.০০</div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="wallet.html" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="profile.html" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { console.log("Leaderboard: User Logged In"); }
+        });
+    </script>
+
+    <script>
+        // Preloader
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const loader = document.getElementById('new-preloader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+    </script>
+</body>
+</html>

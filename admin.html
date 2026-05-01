@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - অ্যাডমিন কন্ট্রোল</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f8fafc;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            background: var(--bg-color);
+            margin: 0;
+            padding-top: 70px;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Header */
+        .admin-header {
+            background: #fff; border-bottom: 1px solid #e2e8f0;
+            position: fixed; top: 0; width: 100%; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 1000;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white; padding: 20px; border-radius: 16px;
+            box-shadow: var(--card-shadow); border: 1px solid #f1f5f9;
+        }
+
+        /* Table Area */
+        .data-table-container {
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: var(--card-shadow); margin-bottom: 30px;
+        }
+        .table-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 15px; border-bottom: 1px solid #f1f5f9; align-items: center;
+        }
+        .table-header { background: #f8fafc; font-weight: 800; font-size: 12px; color: #64748b; text-transform: uppercase; }
+
+        .btn-action {
+            padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700;
+            cursor: pointer; transition: 0.2s; border: none;
+        }
+        .btn-paid { background: #e8fdf4; color: #1ab394; }
+        .btn-paid:hover { background: var(--primary-green); color: white; }
+
+        .notice-input {
+            width: 100%; padding: 12px 15px; border: 1.5px solid #e2e8f0;
+            border-radius: 12px; outline: none; margin-bottom: 10px;
+        }
+        .btn-update {
+            background: var(--primary-green); color: white; padding: 12px 25px;
+            border-radius: 12px; font-weight: 800; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="new-preloader">
+        <div class="loader-content text-center">
+            <div class="spinner"></div>
+            <div class="text-white font-bold tracking-widest uppercase">Admin Access</div>
+        </div>
+    </div>
+
+    <header class="admin-header">
+        <div class="flex items-center gap-3">
+            <div class="bg-teal-100 text-teal-600 p-2 rounded-lg"><i class="fas fa-shield-halved"></i></div>
+            <h1 class="text-lg font-black text-slate-800">অ্যাডমিন প্যানেল</h1>
+        </div>
+        <button onclick="location.href='dashboard.html'" class="text-sm font-bold text-slate-500 hover:text-teal-600 transition">
+            <i class="fas fa-external-link-alt mr-1"></i> অ্যাপে যান
+        </button>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-5">
+        
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <div class="stat-card">
+                <p class="text-xs font-bold text-slate-400 uppercase">মোট ইউজার</p>
+                <h3 class="text-2xl font-black text-slate-800" id="totalUsers">০</h3>
+            </div>
+            <div class="stat-card">
+                <p class="text-xs font-bold text-slate-400 uppercase">পেন্ডিং উইথড্র</p>
+                <h3 class="text-2xl font-black text-orange-500" id="pendingWithdraws">০</h3>
+            </div>
+            <div class="stat-card col-span-2 md:col-span-1">
+                <p class="text-xs font-bold text-slate-400 uppercase">মোট পরিশোধিত</p>
+                <h3 class="text-2xl font-black text-teal-600" id="totalPaid">৳ ০.০০</h3>
+            </div>
+        </div>
+
+        <!-- Update App Notice -->
+        <div class="stat-card mb-8">
+            <h3 class="text-sm font-black text-slate-800 mb-4"><i class="fas fa-bullhorn mr-2 text-teal-500"></i> অ্যাপ নোটিশ আপডেট করুন</h3>
+            <textarea id="appNotice" class="notice-input" rows="2" placeholder="ড্যাশবোর্ডে যে লেখাটি স্ক্রল করবে তা এখানে লিখুন..."></textarea>
+            <button onclick="updateNotice()" class="btn-update">নোটিশ আপডেট করুন</button>
+        </div>
+
+        <!-- Withdrawal Requests -->
+        <h3 class="text-sm font-black text-slate-800 mb-4 px-1 uppercase tracking-wider">পেমেন্ট রিকোয়েস্টসমূহ</h3>
+        <div class="data-table-container">
+            <div class="table-row table-header">
+                <div>ইউজার / নাম্বার</div>
+                <div>মেথড</div>
+                <div>পরিমাণ</div>
+                <div>অ্যাকশন</div>
+            </div>
+            <div id="requestList">
+                <!-- Data will be loaded here -->
+                <div class="p-10 text-center text-slate-400 font-bold">
+                    <i class="fas fa-folder-open text-3xl mb-2"></i><br>
+                    কোনো রিকোয়েস্ট পাওয়া যায়নি
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const appId = "taskbazar-01";
+
+        // Admin Auth
+        signInAnonymously(auth);
+
+        // Fetch Stats and Data
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadStats();
+                loadRequests();
+                loadCurrentNotice();
+            }
+        });
+
+        // 1. Load Summary Stats
+        function loadStats() {
+            // Users Count
+            onValue(ref(db, `users`), (snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                document.getElementById('totalUsers').innerText = count;
+            });
+            
+            // Notice: Rule 2 - We will process data in memory to comply with no complex queries
+        }
+
+        // 2. Load Notice
+        function loadCurrentNotice() {
+            const noticeRef = ref(db, `artifacts/${appId}/public/data/settings/notice`);
+            onValue(noticeRef, (snapshot) => {
+                if(snapshot.exists()) document.getElementById('appNotice').value = snapshot.val();
+            });
+        }
+
+        // 3. Update Notice Function
+        window.updateNotice = async () => {
+            const newNotice = document.getElementById('appNotice').value;
+            try {
+                await set(ref(db, `artifacts/${appId}/public/data/settings/notice`), newNotice);
+                alert("নোটিশ সফলভাবে আপডেট হয়েছে!");
+            } catch(e) { alert("সমস্যা হয়েছে!"); }
+        };
+
+        // 4. Load Payment Requests
+        // Note: As per rule 1, reading from public/data/withdrawals
+        function loadRequests() {
+            const reqRef = ref(db, `artifacts/${appId}/public/data/withdrawals`);
+            onValue(reqRef, (snapshot) => {
+                const container = document.getElementById('requestList');
+                container.innerHTML = "";
+                
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">কোনো রিকোয়েস্ট নেই</div>';
+                    return;
+                }
+
+                let pendingCount = 0;
+                let paidTotal = 0;
+                const data = snapshot.val();
+
+                Object.keys(data).forEach(id => {
+                    const req = data[id];
+                    if(req.status === "Pending") pendingCount++;
+                    if(req.status === "Paid") paidTotal += parseFloat(req.amount);
+
+                    if(req.status === "Pending") {
+                        const row = document.createElement('div');
+                        row.className = "table-row";
+                        row.innerHTML = `
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-800 text-sm">${req.number}</span>
+                                <span class="text-[10px] text-slate-400 font-medium">${new Date(req.timestamp).toLocaleDateString()}</span>
+                            </div>
+                            <div class="text-xs font-bold text-slate-600">${req.method}</div>
+                            <div class="text-sm font-black text-teal-600">৳${req.amount}</div>
+                            <div>
+                                <button onclick="markAsPaid('${id}')" class="btn-action btn-paid">PAID</button>
+                            </div>
+                        `;
+                        container.appendChild(row);
+                    }
+                });
+
+                document.getElementById('pendingWithdraws').innerText = pendingCount;
+                document.getElementById('totalPaid').innerText = "৳ " + paidTotal.toFixed(2);
+                
+                if(container.innerHTML === "") {
+                    container.innerHTML = '<div class="p-10 text-center text-teal-600 font-bold"><i class="fas fa-check-circle text-2xl"></i><br>সব পেমেন্ট ক্লিয়ার!</div>';
+                }
+            });
+        }
+
+        // 5. Mark as Paid Function
+        window.markAsPaid = async (id) => {
+            if(!confirm("আপনি কি পেমেন্টটি সম্পন্ন করেছেন?")) return;
+            try {
+                await update(ref(db, `artifacts/${appId}/public/data/withdrawals/${id}`), {
+                    status: "Paid"
+                });
+                alert("পেমেন্ট সফলভাবে আপডেট করা হয়েছে!");
+            } catch(e) { alert("সমস্যা হয়েছে!"); }
+        };
+
+        // Preloader Hide
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('new-preloader').style.opacity = '0';
+                setTimeout(() => document.getElementById('new-preloader').style.display = 'none', 500);
+            }, 800);
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - রেফার ও আয়</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ══════════════════════════
+           HEADER
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #eee;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        /* ══════════════════════════
+           MAIN CONTENT - REFER
+        ══════════════════════════ */
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+
+        /* Refer Banner */
+        .refer-banner {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 20px; padding: 30px 20px; color: white; margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+            text-align: center; position: relative; overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+        .refer-banner::after {
+            content: '\f06b'; font-family: 'FontAwesome'; position: absolute;
+            right: -10px; bottom: -20px; font-size: 110px; opacity: 0.1; transform: rotate(-15deg);
+        }
+        .refer-banner h2 { font-size: 22px; font-weight: 800; margin: 0 0 5px 0; }
+        .refer-banner p { font-size: 13px; font-weight: 600; opacity: 0.9; margin: 0; }
+
+        /* Referral Code Box */
+        .code-box {
+            background: #fff; border-radius: 16px; padding: 20px; text-align: center;
+            box-shadow: var(--card-shadow); border: 2px dashed #e2e8f0; margin-bottom: 20px;
+            animation: fadeUp .5s .1s ease both;
+        }
+        .code-box h4 { font-size: 13px; color: #64748b; font-weight: 700; margin: 0 0 10px 0; text-transform: uppercase; }
+        .code-display {
+            font-size: 24px; font-weight: 800; color: var(--deep-green); letter-spacing: 2px;
+            background: #f1f5f9; padding: 10px; border-radius: 12px; display: inline-block; width: 100%; margin-bottom: 15px;
+        }
+        .copy-btn {
+            background: var(--primary-green); color: white; width: 100%; padding: 12px;
+            border-radius: 12px; font-size: 14px; font-weight: 800; border: none; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(26,179,148,0.3); transition: 0.2s;
+        }
+        .copy-btn:active { transform: scale(0.96); }
+
+        /* Share Buttons Grid */
+        .section-title { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 12px; animation: fadeUp .5s .2s ease both; }
+        
+        .share-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px;
+            animation: fadeUp .5s .2s ease both;
+        }
+        .share-btn {
+            background: #fff; padding: 12px 5px; border-radius: 14px; text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1.5px solid rgba(0,0,0,0.04);
+            text-decoration: none; color: #444; transition: 0.2s; display: block; cursor: pointer;
+        }
+        .share-btn:active { transform: scale(0.92); }
+        .share-btn i { font-size: 24px; margin-bottom: 5px; display: block; }
+        .share-btn span { font-size: 10px; font-weight: 700; }
+        
+        /* Colors for Share Icons */
+        .s-wa i { color: #25D366; }
+        .s-msg i { color: #00B2FF; }
+        .s-tg i { color: #0088cc; }
+        .s-fb i { color: #1877F2; }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;
+            animation: fadeUp .5s .3s ease both;
+        }
+        .stat-card {
+            background: #fff; padding: 15px; border-radius: 16px;
+            box-shadow: var(--card-shadow); border: 1.5px solid rgba(0,0,0,0.03);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .stat-icon {
+            width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white;
+        }
+        .bg-users { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .bg-money { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-info span { font-size: 11px; font-weight: 700; color: #64748b; display: block; }
+        .stat-info h3 { font-size: 16px; font-weight: 800; color: #1e293b; margin: 0; }
+
+        /* How it works */
+        .steps-box { background: #fff; border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); animation: fadeUp .5s .4s ease both; }
+        .step-item { display: flex; gap: 12px; margin-bottom: 15px; position: relative; }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-num { width: 28px; height: 28px; background: #e0f2fe; color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; z-index: 2; }
+        .step-item:not(:last-child)::after { content: ''; position: absolute; left: 13.5px; top: 28px; bottom: -15px; width: 2px; background: #e2e8f0; z-index: 1; }
+        .step-text h4 { margin: 0 0 3px 0; font-size: 13px; font-weight: 800; color: #333; }
+        .step-text p { margin: 0; font-size: 11px; font-weight: 600; color: #777; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 8px; padding: 12px 16px; position: fixed;
+            z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 13px; font-weight: 600;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2); transition: visibility 0.5s, bottom 0.5s, opacity 0.5s; opacity: 0;
+        }
+        #toast.show { visibility: visible; bottom: 90px; opacity: 1; }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 70px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+        }
+        .center-nav:active { transform: scale(0.9); }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- Deep Preloader -->
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">রেফার ও আয়</span>
+        <div style="width: 40px;"></div> <!-- Placeholder -->
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container-box">
+        
+        <!-- Banner -->
+        <div class="refer-banner">
+            <h2>রেফার করুন, আয় করুন</h2>
+            <p>প্রতিটি সফল রেফারে পেয়ে যান ৫ টাকা বোনাস!</p>
+        </div>
+
+        <!-- Referral Code Box -->
+        <div class="code-box">
+            <h4>আপনার রেফারেল কোড</h4>
+            <div class="code-display" id="referCode">TASK12345</div>
+            <button class="copy-btn" onclick="copyCode()"><i class="fas fa-copy mr-1"></i> কোড কপি করুন</button>
+        </div>
+
+        <!-- Quick Share Options -->
+        <h3 class="section-title">দ্রুত শেয়ার করুন</h3>
+        <div class="share-grid">
+            <div class="share-btn s-wa" onclick="shareTo('whatsapp')">
+                <i class="fab fa-whatsapp"></i><span>হোয়াটসঅ্যাপ</span>
+            </div>
+            <div class="share-btn s-msg" onclick="shareTo('messenger')">
+                <i class="fab fa-facebook-messenger"></i><span>মেসেঞ্জার</span>
+            </div>
+            <div class="share-btn s-tg" onclick="shareTo('telegram')">
+                <i class="fab fa-telegram-plane"></i><span>টেলিগ্রাম</span>
+            </div>
+            <div class="share-btn s-fb" onclick="shareTo('facebook')">
+                <i class="fab fa-facebook-f"></i><span>ফেসবুক</span>
+            </div>
+        </div>
+
+        <!-- Stats Container -->
+        <h3 class="section-title">আপনার পরিসংখ্যান</h3>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon bg-users"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <span>মোট রেফার</span>
+                    <h3>১২ জন</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-money"><i class="fas fa-sack-dollar"></i></div>
+                <div class="stat-info">
+                    <span>রেফার থেকে আয়</span>
+                    <h3>৳ ৬০.০০</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <h3 class="section-title">কীভাবে কাজ করে?</h3>
+        <div class="steps-box">
+            <div class="step-item">
+                <div class="step-num">১</div>
+                <div class="step-text">
+                    <h4>কোড শেয়ার করুন</h4>
+                    <p>আপনার বন্ধুদের সাথে রেফারেল কোড বা লিংকটি শেয়ার করুন।</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">২</div>
+                <div class="step-text">
+                    <h4>একাউন্ট তৈরি</h4>
+                    <p>আপনার বন্ধু আপনার কোড ব্যবহার করে একাউন্ট তৈরি করবে।</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">৩</div>
+                <div class="step-text">
+                    <h4>বোনাস বুঝে নিন</h4>
+                    <p>একাউন্ট ভেরিফাই হওয়ার সাথে সাথেই ৫ টাকা পেয়ে যাবেন।</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="height: 30px;"></div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast"><i class="fas fa-check-circle mr-1"></i> কোড কপি করা হয়েছে!</div>
+
+    <!-- BOTTOM FOOTER -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="wallet.html" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="#" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts (Realtime Database only, as requested) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE", // (Dummy placeholder)
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                console.log("User Logged In (Refer Page)"); 
+                // ডাইনামিক ভাবে ইউজারের আইডি বা ইমেইলের অংশ দিয়ে রেফার কোড জেনারেট করা যেতে পারে
+                // const userCode = user.uid.substring(0, 6).toUpperCase();
+                // document.getElementById('referCode').textContent = userCode;
+            }
+        });
+    </script>
+
+    <!-- General Scripts -->
+    <script>
+        // 1. Preloader Logic
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('new-preloader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        // 2. Click Sound
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        // 3. Copy Function with Toast
+        function copyCode() {
+            const code = document.getElementById('referCode').innerText;
+            
+            // Text copying logic
+            const tempInput = document.createElement("input");
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            // Show toast
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // 4. Share Function
+        function shareTo(platform) {
+            const code = document.getElementById('referCode').innerText;
+            const text = `TaskBazar অ্যাপে জয়েন করে ঘরে বসেই আয় করুন! একাউন্ট খোলার সময় আমার রেফার কোডটি ব্যবহার করুন: ${code}`;
+            const encodedText = encodeURIComponent(text);
+            
+            let url = '';
+            
+            if (platform === 'whatsapp') {
+                url = `https://wa.me/?text=${encodedText}`;
+            } else if (platform === 'messenger') {
+                url = `fb-messenger://share/?link=${encodeURIComponent('https://yourwebsite.com')}&app_id=123456789`; // Replace with real URL
+                alert('মেসেঞ্জারে শেয়ার করা হচ্ছে...');
+            } else if (platform === 'telegram') {
+                url = `https://t.me/share/url?url=${encodeURIComponent('https://yourwebsite.com')}&text=${encodedText}`;
+            } else if (platform === 'facebook') {
+                url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://yourwebsite.com')}&quote=${encodedText}`;
+            }
+
+            if (url) {
+                // window.open(url, '_blank');
+                // Since this is a demo, just showing an alert if the URL logic works
+                if(platform !== 'messenger') alert(`আপনাকে ${platform} এ রিডাইরেক্ট করা হচ্ছে...`);
+            }
+        }
+    </script>
+</body>
+</html>

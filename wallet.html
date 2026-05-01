@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - আমার ওয়ালেট</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ══════════════════════════
+           HEADER & SIDEBAR
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #eee;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        .status-badge {
+            display: flex; align-items: center; gap: 5px; background: #e8f5e9; color: #2e7d32;
+            padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+        }
+
+        /* ══════════════════════════
+           MAIN CONTENT - WALLET
+        ══════════════════════════ */
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
+            border-radius: 20px; padding: 25px 20px; color: white; margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(26,179,148,0.3);
+            position: relative; overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+        .balance-card::after {
+            content: '\f555'; font-family: 'FontAwesome'; position: absolute;
+            right: -10px; bottom: -20px; font-size: 120px; opacity: 0.1; transform: rotate(-15deg);
+        }
+        .bal-label { font-size: 13px; font-weight: 600; opacity: 0.9; margin-bottom: 5px; display: block; }
+        .bal-amount { font-size: 36px; font-weight: 800; margin: 0 0 15px 0; letter-spacing: -1px; }
+        .bal-bottom { display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; }
+        .bal-stat { font-size: 11px; font-weight: 700; opacity: 0.95; }
+
+        /* Action Buttons Grid */
+        .action-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px;
+            animation: fadeUp .5s .1s ease both;
+        }
+        .action-btn {
+            background: #fff; padding: 15px; border-radius: 16px; text-align: center;
+            box-shadow: var(--card-shadow); border: 1.5px solid rgba(0,0,0,0.03);
+            text-decoration: none; color: #333; font-weight: 800; font-size: 13px;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; display: block;
+        }
+        .action-btn:active { transform: scale(0.95); }
+        .action-icon {
+            width: 45px; height: 45px; margin: 0 auto 10px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .bg-withdraw { background: #fee2e2; color: #ef4444; }
+        .bg-deposit { background: #e0e7ff; color: #4f46e5; }
+
+        /* Payment Methods */
+        .section-title { font-size: 16px; font-weight: 800; color: #2d3748; margin-bottom: 12px; animation: fadeUp .5s .2s ease both; }
+        
+        .payment-methods {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;
+            animation: fadeUp .5s .2s ease both;
+        }
+        .pay-card {
+            background: #fff; padding: 15px 10px; border-radius: 14px; text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1.5px solid rgba(0,0,0,0.05);
+            transition: 0.2s; cursor: pointer;
+        }
+        .pay-card:active { transform: scale(0.95); border-color: var(--primary-green); }
+        .pay-card img { width: 40px; height: 40px; object-fit: contain; margin: 0 auto 8px; }
+        .pay-card span { font-size: 11px; font-weight: 700; color: #555; }
+
+        /* Recent Transactions */
+        .trx-list {
+            background: #fff; border-radius: 18px; padding: 15px;
+            box-shadow: var(--card-shadow); animation: fadeUp .5s .3s ease both;
+        }
+        .trx-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid #f1f1f1;
+        }
+        .trx-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .trx-left { display: flex; align-items: center; gap: 12px; }
+        .trx-icon {
+            width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .icon-plus { background: #e8fdf4; color: #0d9488; }
+        .icon-minus { background: #fde8e8; color: #e11d48; }
+        .trx-title { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 2px; }
+        .trx-date { font-size: 10px; color: #888; font-weight: 600; }
+        .trx-amt { font-size: 14px; font-weight: 800; }
+        .text-green { color: #1ab394; }
+        .text-red { color: #e11d48; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 70px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+        }
+        .center-nav:active { transform: scale(0.9); }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- Deep Preloader -->
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">আমার ওয়ালেট</span>
+        <div class="status-badge" onclick="alert('হিস্ট্রি পেজ শীঘ্রই আসছে!')">
+            <i class="fas fa-history"></i> হিস্ট্রি
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container-box">
+        
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <span class="bal-label">মোট ব্যালেন্স</span>
+            <h2 class="bal-amount">৳ ৩৫০.০০</h2>
+            
+            <div class="bal-bottom">
+                <span class="bal-stat"><i class="fas fa-arrow-trend-up mr-1"></i> আজকের আয়: ৳ ৪৫.০০</span>
+                <span class="bal-stat"><i class="fas fa-coins mr-1"></i> পয়েন্ট: ২৫০</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-grid">
+            <div class="action-btn" onclick="withdrawAlert()">
+                <div class="action-icon bg-withdraw"><i class="fas fa-money-bill-transfer"></i></div>
+                টাকা তুলুন
+            </div>
+            <div class="action-btn" onclick="depositAlert()">
+                <div class="action-icon bg-deposit"><i class="fas fa-wallet"></i></div>
+                পয়েন্ট ভাঙ্গান
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <h3 class="section-title">পেমেন্ট মেথড</h3>
+        <div class="payment-methods">
+            <div class="pay-card" onclick="selectMethod('বিকাশ')">
+                <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" alt="bKash" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6002/6002167.png'">
+                <span>বিকাশ</span>
+            </div>
+            <div class="pay-card" onclick="selectMethod('নগদ')">
+                <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6002/6002167.png'">
+                <span>নগদ</span>
+            </div>
+            <div class="pay-card" onclick="selectMethod('রকেট')">
+                <!-- Using a generic bank icon for rocket as placeholder if logo fails -->
+                <i class="fas fa-building-columns text-3xl text-purple-600 mb-2 mt-1"></i><br>
+                <span>রকেট</span>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <h3 class="section-title">সাম্প্রতিক লেনদেন</h3>
+        <div class="trx-list">
+            
+            <div class="trx-item">
+                <div class="trx-left">
+                    <div class="trx-icon icon-plus"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="trx-title">টাস্ক সম্পন্ন (ইউটিউব)</div>
+                        <div class="trx-date">আজ, সকাল ১০:৩০</div>
+                    </div>
+                </div>
+                <div class="trx-amt text-green">+ ৳ ৩.৫০</div>
+            </div>
+
+            <div class="trx-item">
+                <div class="trx-left">
+                    <div class="trx-icon icon-plus"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="trx-title">টাস্ক সম্পন্ন (ফেসবুক)</div>
+                        <div class="trx-date">গতকাল, রাত ৮:১৫</div>
+                    </div>
+                </div>
+                <div class="trx-amt text-green">+ ৳ ২.০০</div>
+            </div>
+
+            <div class="trx-item">
+                <div class="trx-left">
+                    <div class="trx-icon icon-minus"><i class="fas fa-arrow-up"></i></div>
+                    <div>
+                        <div class="trx-title">বিকাশে উত্তোলন</div>
+                        <div class="trx-date">১২ অক্টোবর, বিকাল ৫:০০</div>
+                    </div>
+                </div>
+                <div class="trx-amt text-red">- ৳ ১০০.০০</div>
+            </div>
+
+        </div>
+        
+        <div style="height: 30px;"></div>
+
+    </main>
+
+    <!-- BOTTOM FOOTER -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="#" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="wallet.html" class="footer-link active"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="#" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts (Realtime Database) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); // শুধুমাত্র Realtime Database ব্যবহার করা হচ্ছে
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { console.log("User Logged In (Wallet)"); }
+        });
+    </script>
+
+    <!-- General Scripts -->
+    <script>
+        // Preloader Logic
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('new-preloader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        /* ── CLICK SOUND ── */
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        /* ── Action Functions ── */
+        function withdrawAlert() {
+            alert('আপনার ব্যালেন্স উত্তোলন করার জন্য পেমেন্ট মেথড সিলেক্ট করুন!');
+        }
+
+        function depositAlert() {
+            alert('আপনার ২৫০ পয়েন্ট রয়েছে। এটি টাকায় কনভার্ট করতে চান?');
+        }
+
+        function selectMethod(method) {
+            alert(`আপনি '${method}' পেমেন্ট মাধ্যমটি সিলেক্ট করেছেন। পরবর্তী ধাপে যান।`);
+        }
+    </script>
+</body>
+</html>

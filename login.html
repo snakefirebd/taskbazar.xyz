@@ -1,0 +1,452 @@
+```html
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <title>TaskBazar - সেরা আর্নিং প্ল্যাটফর্ম</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --soft-white: #ffffff;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- New Deep Preloader --- */
+        #new-preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-content { text-align: center; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .loader-text {
+            color: white;
+            font-size: 22px;
+            letter-spacing: 2px;
+            font-weight: 700;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* --- Topbar --- */
+        .custom-topbar {
+            background: #fff;
+            height: 70px;
+            display: grid;
+            grid-template-columns: 100px 1fr 100px;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 3px solid var(--primary-green);
+            box-sizing: border-box;
+        }
+
+        .topbar-logo {
+            font-size: clamp(20px, 5vw, 26px);
+            font-weight: 800;
+            color: var(--deep-green);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 10px;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .topbar-btn {
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: 0.3s;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .btn-login-top { background: var(--primary-green); color: #fff; }
+        .btn-reg-top { border: 2px solid var(--primary-green); color: var(--primary-green); }
+
+        /* --- Login Card Section --- */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 80px;
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            background: #fff;
+            width: 90%;
+            max-width: 380px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            border-top: 5px solid var(--primary-green);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card h4 {
+            margin-bottom: 30px;
+            font-weight: 700;
+            color: #333;
+            font-size: 22px;
+        }
+
+        .form-group { position: relative; margin-bottom: 20px; text-align: left;}
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-green);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            outline: none;
+            background: #fdfdfd;
+            transition: 0.3s;
+            box-sizing: border-box;
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+
+        .form-control:focus { border-color: var(--primary-green); background: #fff; }
+
+        .btn-submit {
+            background: linear-gradient(to right, var(--primary-green), var(--deep-green));
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(26, 179, 148, 0.3);
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 10000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+            transition: visibility 0.5s, bottom 0.5s, opacity 0.5s;
+            opacity: 0;
+        }
+        #toast.show {
+            visibility: visible;
+            bottom: 50px;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- Deep Preloader -->
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- Topbar -->
+    <div class="custom-topbar">
+        <a id="navLoginBtn" class="topbar-btn btn-login-top">লগইন</a>
+        <div class="topbar-logo">TaskBazar</div>
+        <a id="navRegBtn" class="topbar-btn btn-reg-top">রেজিস্টার</a>
+    </div>
+
+    <!-- Auth Container (Login / Register) -->
+    <div class="login-container" id="authArea">
+        <form class="login-card" id="authForm">
+            <h4 id="formTitle">একাউন্ট লগইন</h4>
+
+            <!-- Email Field -->
+            <div class="form-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input class="form-control" type="email" id="userEmail" placeholder="ইমেইল এড্রেস" required>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+                <i class="fa-solid fa-shield-halved"></i>
+                <input class="form-control" type="password" id="userPassword" placeholder="পাসওয়ার্ড" required>
+            </div>
+
+            <!-- Extra Options -->
+            <div class="d-flex justify-content-between align-items-center mb-4" id="loginOptions" style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px;">
+                <label style="cursor:pointer; color: #555;"><input type="checkbox"> মনে রাখুন</label>
+                <a href="#" style="color:var(--deep-green); text-decoration:none; font-weight:600;">ভুলে গেছেন?</a>
+            </div>
+
+            <button class="btn-submit" type="submit" id="submitBtn">লগইন করুন</button>
+            
+            <p style="margin-top: 20px; font-size: 14px; color: #666;" id="toggleText">
+                একাউন্ট নেই? <a href="#" id="toggleModeBtn" style="color: var(--primary-green); font-weight: bold; text-decoration: none;">রেজিস্টার করুন</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">বার্তা</div>
+
+    <!-- Confetti Script -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- UI & Animation Scripts -->
+    <script>
+        // 1. Preloader Timeout
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('new-preloader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        // 2. Click Sound
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+        document.addEventListener("click", playClick);
+
+        // 3. Confetti Effect
+        function triggerConfetti() {
+            const duration = 2 * 1000;
+            const animationEnd = Date.now() + duration;
+            const interval = setInterval(function() {
+                if (Date.now() > animationEnd) return clearInterval(interval);
+                confetti({
+                    startVelocity: 30, spread: 100, ticks: 60, zIndex: 1000,
+                    origin: { y: 0.6 },
+                    colors: ['#1ab394', '#ffffff', '#0d6d5a']
+                });
+            }, 250);
+        }
+
+        // Toast Function
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+    </script>
+
+    <!-- Firebase Logic (Realtime DB) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        // DOM Elements
+        const authForm = document.getElementById('authForm');
+        const userEmail = document.getElementById('userEmail');
+        const userPassword = document.getElementById('userPassword');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const toggleText = document.getElementById('toggleText');
+        const loginOptions = document.getElementById('loginOptions');
+        
+        const authArea = document.getElementById('authArea');
+        const navLoginBtn = document.getElementById('navLoginBtn');
+        const navRegBtn = document.getElementById('navRegBtn');
+
+        let isLoginMode = true; 
+        let isRedirecting = false; // রিডাইরেক্ট হওয়ার সময় চেক করার জন্য
+
+        // UI Toggle Function
+        function setMode(mode) {
+            isLoginMode = (mode === 'login');
+            if (isLoginMode) {
+                formTitle.textContent = "একাউন্ট লগইন";
+                submitBtn.textContent = "লগইন করুন";
+                loginOptions.style.display = "flex";
+                toggleText.innerHTML = 'একাউন্ট নেই? <a href="#" id="toggleModeBtn" style="color: var(--primary-green); font-weight: bold; text-decoration: none;">রেজিস্টার করুন</a>';
+            } else {
+                formTitle.textContent = "নতুন একাউন্ট খুলুন";
+                submitBtn.textContent = "রেজিস্টার করুন";
+                loginOptions.style.display = "none";
+                toggleText.innerHTML = 'আগে থেকে একাউন্ট আছে? <a href="#" id="toggleModeBtn" style="color: var(--primary-green); font-weight: bold; text-decoration: none;">লগইন করুন</a>';
+            }
+            
+            document.getElementById('toggleModeBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                setMode(isLoginMode ? 'register' : 'login');
+            });
+        }
+
+        // Initialize Modes
+        setMode('login');
+        navLoginBtn.addEventListener('click', () => setMode('login'));
+        navRegBtn.addEventListener('click', () => setMode('register'));
+
+        // Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user && !isRedirecting) {
+                // ইউজার আগে থেকেই লগইন করা থাকলে সরাসরি ড্যাশবোর্ডে যাবে
+                window.location.href = 'dashboard.html';
+            } else if (!user) {
+                // ইউজার লগআউট করা থাকলে ফর্ম দেখান
+                authArea.style.display = 'flex';
+                navLoginBtn.style.display = 'block';
+                navRegBtn.style.display = 'block';
+            }
+        });
+
+        // Form Submit Action
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = userEmail.value.trim();
+            const password = userPassword.value.trim();
+
+            if (!email || !password) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "অপেক্ষা করুন...";
+
+            try {
+                if (isLoginMode) {
+                    // লগইন
+                    await signInWithEmailAndPassword(auth, email, password);
+                    isRedirecting = true; // ফ্ল্যাগ ট্রু করা হলো যাতে AuthListener কনফ্লিক্ট না করে
+                    showToast("সফলভাবে লগইন হয়েছে!");
+                    triggerConfetti();
+                    
+                    // ১.৫ সেকেন্ড পর ড্যাশবোর্ডে পাঠিয়ে দেবে
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+
+                } else {
+                    // রেজিস্টার
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    // ইউজারের তথ্য Realtime Database এ সেভ হবে
+                    const userRef = ref(db, `users/${user.uid}/profile`);
+                    await set(userRef, {
+                        email: user.email,
+                        createdAt: serverTimestamp(),
+                        platform: "TaskBazar"
+                    });
+                    
+                    isRedirecting = true;
+                    showToast("সফলভাবে একাউন্ট তৈরি হয়েছে!");
+                    triggerConfetti();
+                    
+                    // ১.৫ সেকেন্ড পর ড্যাশবোর্ডে পাঠিয়ে দেবে
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                let errMsg = "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।";
+                if(error.code === 'auth/invalid-credential') errMsg = "ইমেইল বা পাসওয়ার্ড ভুল।";
+                if(error.code === 'auth/email-already-in-use') errMsg = "এই ইমেইল দিয়ে ইতিমধ্যে একাউন্ট আছে।";
+                if(error.code === 'auth/weak-password') errMsg = "পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।";
+                showToast(errMsg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = isLoginMode ? "লগইন করুন" : "রেজিস্টার করুন";
+            }
+        });
+    </script>
+</body>
+</html>
+
+```

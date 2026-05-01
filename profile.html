@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - আমার প্রোফাইল</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ══════════════════════════
+           HEADER
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #eee;
+        }
+        .back-btn:active { transform: scale(0.9); }
+        
+        .logout-btn-top {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #fee2e2; color: #ef4444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #fecaca; cursor: pointer;
+        }
+        .logout-btn-top:active { transform: scale(0.9); }
+
+        /* ══════════════════════════
+           MAIN CONTENT - PROFILE
+        ══════════════════════════ */
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+
+        /* Profile Banner */
+        .profile-banner {
+            background: #fff; border-radius: 20px; padding: 25px 20px; 
+            text-align: center; margin-bottom: 25px; box-shadow: var(--card-shadow);
+            border: 1.5px solid rgba(0,0,0,0.03); animation: fadeUp .5s ease both;
+            position: relative; overflow: hidden;
+        }
+        .profile-banner::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 80px;
+            background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
+        }
+        .avatar-container {
+            width: 90px; height: 90px; margin: 10px auto 15px; position: relative; z-index: 2;
+        }
+        .avatar-img {
+            width: 100%; height: 100%; border-radius: 50%; border: 4px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); object-fit: cover; background: #fff;
+        }
+        .edit-avatar {
+            position: absolute; bottom: 0; right: 0; width: 30px; height: 30px;
+            background: var(--primary-green); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+            border: 2px solid #fff; cursor: pointer;
+        }
+        
+        .profile-name { font-size: 18px; font-weight: 800; color: #2d3748; margin: 0; }
+        .profile-email { font-size: 12px; font-weight: 600; color: #718096; margin: 5px 0 15px 0; }
+        
+        .status-badge-pro {
+            display: inline-block; background: #e8fdf4; color: #0d9488; padding: 5px 15px;
+            border-radius: 50px; font-size: 11px; font-weight: 800; border: 1px solid #99f6e4;
+        }
+
+        /* Section Title */
+        .section-title { font-size: 14px; font-weight: 800; color: #64748b; margin-bottom: 12px; padding-left: 5px; text-transform: uppercase; animation: fadeUp .5s .1s ease both; }
+
+        /* Menu List Container */
+        .menu-list {
+            background: #fff; border-radius: 18px; padding: 5px 15px; margin-bottom: 25px;
+            box-shadow: var(--card-shadow); animation: fadeUp .5s .2s ease both;
+        }
+        .menu-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 0; border-bottom: 1px solid #f1f1f1; text-decoration: none; color: #333;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:active { background: #f9fafa; }
+        
+        .menu-left { display: flex; align-items: center; gap: 15px; }
+        .menu-icon {
+            width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        
+        /* Icon Colors */
+        .ic-user { background: #e0e7ff; color: #4f46e5; }
+        .ic-wallet { background: #e8fdf4; color: #0d9488; }
+        .ic-lock { background: #fef3c7; color: #d97706; }
+        .ic-history { background: #f3e8ff; color: #9333ea; }
+        .ic-logout { background: #fee2e2; color: #ef4444; }
+
+        .menu-text h4 { margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; }
+        .menu-text p { margin: 2px 0 0 0; font-size: 11px; font-weight: 600; color: #94a3b8; }
+        
+        .menu-arrow { color: #cbd5e1; font-size: 14px; transition: 0.3s; }
+        .menu-item:hover .menu-arrow { color: var(--primary-green); transform: translateX(3px); }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #f1f1f1;
+            height: 70px; display: flex; align-items: center; z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+        }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+
+        .center-nav {
+            width: 55px; height: 55px; background: var(--primary-green);
+            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
+            display: flex; align-items: center; justify-content: center; color: white;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+        }
+        .center-nav:active { transform: scale(0.9); }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <!-- Audio for Click Effects -->
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <!-- Deep Preloader -->
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">আমার প্রোফাইল</span>
+        <div class="logout-btn-top" onclick="logOutUser()">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container-box">
+        
+        <!-- Profile Info Banner -->
+        <div class="profile-banner">
+            <div class="avatar-container">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TaskBazarPro" alt="Avatar" class="avatar-img" id="userAvatar">
+                <div class="edit-avatar" onclick="alert('ছবি পরিবর্তন ফিচারটি দ্রুত আসছে!')">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+            <h2 class="profile-name" id="userName">লগইন করা হচ্ছে...</h2>
+            <p class="profile-email" id="userEmailAddress">অপেক্ষা করুন...</p>
+            <div class="status-badge-pro">
+                <i class="fas fa-certificate mr-1"></i> ভেরিফাইড ইউজার
+            </div>
+        </div>
+
+        <h3 class="section-title">অ্যাকাউন্ট সেটিংস</h3>
+        
+        <!-- General Settings List -->
+        <div class="menu-list">
+            
+            <div class="menu-item" onclick="alert('ব্যক্তিগত তথ্য আপডেট পেইজ তৈরি হচ্ছে।')">
+                <div class="menu-left">
+                    <div class="menu-icon ic-user"><i class="fas fa-user-edit"></i></div>
+                    <div class="menu-text">
+                        <h4>ব্যক্তিগত তথ্য</h4>
+                        <p>আপনার নাম, ছবি এবং ঠিকানা আপডেট করুন</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right menu-arrow"></i>
+            </div>
+
+            <div class="menu-item" onclick="alert('পেমেন্ট নাম্বার অ্যাড করার অপশন শীঘ্রই যুক্ত হবে।')">
+                <div class="menu-left">
+                    <div class="menu-icon ic-wallet"><i class="fas fa-money-check-dollar"></i></div>
+                    <div class="menu-text">
+                        <h4>পেমেন্ট ইনফো</h4>
+                        <p>বিকাশ/নগদ/রকেট নাম্বার সেভ করুন</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right menu-arrow"></i>
+            </div>
+
+            <div class="menu-item" onclick="alert('পাসওয়ার্ড পরিবর্তনের ফর্মটি দ্রুত আসছে।')">
+                <div class="menu-left">
+                    <div class="menu-icon ic-lock"><i class="fas fa-lock"></i></div>
+                    <div class="menu-text">
+                        <h4>পাসওয়ার্ড পরিবর্তন</h4>
+                        <p>অ্যাকাউন্টের নিরাপত্তা নিশ্চিত করুন</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right menu-arrow"></i>
+            </div>
+
+        </div>
+
+        <h3 class="section-title">অ্যাক্টিভিটি</h3>
+        
+        <!-- Activity List -->
+        <div class="menu-list">
+            
+            <a href="wallet.html" class="menu-item">
+                <div class="menu-left">
+                    <div class="menu-icon ic-history"><i class="fas fa-clock-rotate-left"></i></div>
+                    <div class="menu-text">
+                        <h4>লেনদেন হিস্ট্রি</h4>
+                        <p>আপনার সকল আয় এবং উত্তোলনের বিবরণ</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right menu-arrow"></i>
+            </a>
+
+            <div class="menu-item" onclick="logOutUser()">
+                <div class="menu-left">
+                    <div class="menu-icon ic-logout"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="menu-text">
+                        <h4 class="text-red-500">লগআউট করুন</h4>
+                        <p>এই ডিভাইস থেকে একাউন্ট রিমুভ করুন</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right menu-arrow"></i>
+            </div>
+
+        </div>
+        
+        <div style="height: 30px;"></div>
+    </main>
+
+    <!-- BOTTOM FOOTER -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="wallet.html" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="profile.html" class="footer-link active"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts (Realtime Database only, as requested) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE", // (Dummy placeholder)
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                console.log("User Logged In (Profile)"); 
+                // ইমেইল এবং নামের অংশ ডাইনামিক ভাবে প্রোফাইলে দেখানো হচ্ছে
+                const email = user.email;
+                const namePart = email.split('@')[0];
+                document.getElementById('userName').textContent = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                document.getElementById('userEmailAddress').textContent = email;
+            } else {
+                // ইউজারের লগইন না থাকলে লগইন পেজে রিডাইরেক্ট করবে
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Global function for logout
+        window.logOutUser = function() {
+            if(confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+                signOut(auth).then(() => {
+                    window.location.href = "login.html";
+                }).catch((error) => {
+                    alert("লগআউট করতে সমস্যা হয়েছে!");
+                });
+            }
+        }
+    </script>
+
+    <!-- General Scripts -->
+    <script>
+        // 1. Preloader Logic
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('new-preloader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        // 2. Click Sound
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+    </script>
+</body>
+</html>
