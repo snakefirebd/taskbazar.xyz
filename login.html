@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -117,6 +116,7 @@
             min-height: 100vh;
             padding-top: 80px;
             box-sizing: border-box;
+            padding-bottom: 40px;
         }
 
         .login-card {
@@ -250,6 +250,12 @@
                 <input class="form-control" type="password" id="userPassword" placeholder="পাসওয়ার্ড" required>
             </div>
 
+            <!-- Refer Code Field (Only for Registration) -->
+            <div class="form-group" id="referField" style="display: none;">
+                <i class="fa-solid fa-gift text-orange-500"></i>
+                <input class="form-control" type="text" id="referCode" placeholder="রেফার কোড (যদি থাকে)">
+            </div>
+
             <!-- Extra Options -->
             <div class="d-flex justify-content-between align-items-center mb-4" id="loginOptions" style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px;">
                 <label style="cursor:pointer; color: #555;"><input type="checkbox"> মনে রাখুন</label>
@@ -316,7 +322,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, set, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
@@ -337,6 +343,9 @@
         const authForm = document.getElementById('authForm');
         const userEmail = document.getElementById('userEmail');
         const userPassword = document.getElementById('userPassword');
+        const referCode = document.getElementById('referCode');
+        const referField = document.getElementById('referField');
+        
         const formTitle = document.getElementById('formTitle');
         const submitBtn = document.getElementById('submitBtn');
         const toggleText = document.getElementById('toggleText');
@@ -347,7 +356,7 @@
         const navRegBtn = document.getElementById('navRegBtn');
 
         let isLoginMode = true; 
-        let isRedirecting = false; // রিডাইরেক্ট হওয়ার সময় চেক করার জন্য
+        let isRedirecting = false; 
 
         // UI Toggle Function
         function setMode(mode) {
@@ -356,11 +365,13 @@
                 formTitle.textContent = "একাউন্ট লগইন";
                 submitBtn.textContent = "লগইন করুন";
                 loginOptions.style.display = "flex";
+                referField.style.display = "none"; // Hide Refer Code box
                 toggleText.innerHTML = 'একাউন্ট নেই? <a href="#" id="toggleModeBtn" style="color: var(--primary-green); font-weight: bold; text-decoration: none;">রেজিস্টার করুন</a>';
             } else {
                 formTitle.textContent = "নতুন একাউন্ট খুলুন";
                 submitBtn.textContent = "রেজিস্টার করুন";
                 loginOptions.style.display = "none";
+                referField.style.display = "block"; // Show Refer Code box
                 toggleText.innerHTML = 'আগে থেকে একাউন্ট আছে? <a href="#" id="toggleModeBtn" style="color: var(--primary-green); font-weight: bold; text-decoration: none;">লগইন করুন</a>';
             }
             
@@ -375,13 +386,22 @@
         navLoginBtn.addEventListener('click', () => setMode('login'));
         navRegBtn.addEventListener('click', () => setMode('register'));
 
+        // URL থেকে রেফার কোড ফেচ করা
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+            if(refParam) {
+                setMode('register');
+                referCode.value = refParam;
+                showToast("রেফার কোড অটো-অ্যাপ্লাই হয়েছে!");
+            }
+        });
+
         // Auth State Listener
         onAuthStateChanged(auth, (user) => {
             if (user && !isRedirecting) {
-                // ইউজার আগে থেকেই লগইন করা থাকলে সরাসরি ড্যাশবোর্ডে যাবে
                 window.location.href = 'dashboard.html';
             } else if (!user) {
-                // ইউজার লগআউট করা থাকলে ফর্ম দেখান
                 authArea.style.display = 'flex';
                 navLoginBtn.style.display = 'block';
                 navRegBtn.style.display = 'block';
@@ -393,6 +413,7 @@
             e.preventDefault();
             const email = userEmail.value.trim();
             const password = userPassword.value.trim();
+            const refCodeVal = referCode.value.trim();
 
             if (!email || !password) return;
 
@@ -403,36 +424,51 @@
                 if (isLoginMode) {
                     // লগইন
                     await signInWithEmailAndPassword(auth, email, password);
-                    isRedirecting = true; // ফ্ল্যাগ ট্রু করা হলো যাতে AuthListener কনফ্লিক্ট না করে
+                    isRedirecting = true;
                     showToast("সফলভাবে লগইন হয়েছে!");
                     triggerConfetti();
                     
-                    // ১.৫ সেকেন্ড পর ড্যাশবোর্ডে পাঠিয়ে দেবে
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
 
                 } else {
                     // রেজিস্টার
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
                     
-                    // ইউজারের তথ্য Realtime Database এ সেভ হবে
+                    // ইউজারের তথ্য Database এ সেভ হবে
                     const userRef = ref(db, `users/${user.uid}/profile`);
                     await set(userRef, {
                         email: user.email,
                         createdAt: serverTimestamp(),
-                        platform: "TaskBazar"
+                        platform: "TaskBazar",
+                        points: 0,
+                        todayPoints: 0,
+                        completedTasks: 0
                     });
+
+                    // রেফারেল লজিক (যদি কেউ রেফার কোড ব্যবহার করে)
+                    if(refCodeVal && refCodeVal !== user.uid) {
+                        const referrerRef = ref(db, `users/${refCodeVal}/profile`);
+                        try {
+                            const referrerSnapshot = await get(referrerRef);
+                            if(referrerSnapshot.exists()) {
+                                const rData = referrerSnapshot.val();
+                                await update(referrerRef, {
+                                    points: (rData.points || 0) + 50,
+                                    referBonus: (rData.referBonus || 0) + 50,
+                                    totalRefers: (rData.totalRefers || 0) + 1
+                                });
+                            }
+                        } catch (refError) {
+                            console.error("Referral Error: ", refError);
+                        }
+                    }
                     
                     isRedirecting = true;
                     showToast("সফলভাবে একাউন্ট তৈরি হয়েছে!");
                     triggerConfetti();
                     
-                    // ১.৫ সেকেন্ড পর ড্যাশবোর্ডে পাঠিয়ে দেবে
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
                 }
             } catch (error) {
                 console.error("Auth Error:", error);
@@ -448,5 +484,3 @@
     </script>
 </body>
 </html>
-
-```

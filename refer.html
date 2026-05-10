@@ -1,0 +1,416 @@
+```html
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBazar - রেফার এন্ড আর্ন</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-green: #1ab394;
+            --deep-green: #0d6d5a;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+            padding-top: 70px; 
+            padding-bottom: 85px; 
+            background: var(--bg-color);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ─── Deep Preloader ─── */
+        #new-preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .spinner { width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ══════════════════════════
+           HEADER
+        ══════════════════════════ */
+        .main-header {
+            background: white; border-bottom: 1px solid #f1f1f1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .back-btn {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
+            transition: 0.2s; border: 1px solid #eee;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+
+        /* ══════════════════════════
+           REFER BANNER
+        ══════════════════════════ */
+        .refer-banner {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 20px; padding: 30px 20px; color: white; margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(217, 119, 6, 0.3);
+            text-align: center; position: relative; overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+        .refer-banner::after {
+            content: '\f06b'; font-family: 'FontAwesome'; position: absolute;
+            left: -20px; bottom: -20px; font-size: 120px; opacity: 0.1; transform: rotate(15deg);
+        }
+        .refer-banner i.main-icon { font-size: 45px; margin-bottom: 10px; animation: pulse 2s infinite; }
+        .refer-banner h2 { font-size: 22px; font-weight: 800; margin: 0 0 5px 0; }
+        .refer-banner p { font-size: 13px; font-weight: 600; opacity: 0.9; margin: 0; }
+
+        /* ══════════════════════════
+           STATS GRID
+        ══════════════════════════ */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; animation: fadeUp .5s .1s ease both; }
+        .stat-box { background: white; border-radius: 16px; padding: 15px; box-shadow: var(--card-shadow); text-align: center; border: 1px solid #f1f5f9; }
+        .stat-box h4 { font-size: 24px; font-weight: 800; color: #2d3748; margin: 0; }
+        .stat-box p { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin: 5px 0 0 0; }
+        .text-orange { color: #d97706 !important; }
+        .text-green { color: var(--primary-green) !important; }
+
+        /* ══════════════════════════
+           LINK COPY CARD & REDEEM CARD
+        ══════════════════════════ */
+        .link-card { background: white; border-radius: 18px; padding: 20px; box-shadow: var(--card-shadow); margin-bottom: 25px; border: 1px solid #f1f5f9; animation: fadeUp .5s .2s ease both; }
+        .link-card h3 { font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .link-input-group { display: flex; align-items: center; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 5px 5px 5px 15px; }
+        .link-input { border: none; background: transparent; width: 100%; font-size: 13px; color: #475569; font-weight: 600; outline: none; font-family: 'Inter', sans-serif; }
+        .btn-copy { background: linear-gradient(135deg, var(--primary-green), var(--deep-green)); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; transition: 0.2s; white-space: nowrap; box-shadow: 0 4px 10px rgba(26,179,148,0.2); }
+        .btn-copy:active { transform: scale(0.95); }
+        .btn-copy:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+        .btn-redeem { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2); }
+
+        /* ══════════════════════════
+           HOW IT WORKS
+        ══════════════════════════ */
+        .steps-card { background: white; border-radius: 18px; padding: 20px; box-shadow: var(--card-shadow); border: 1px solid #f1f5f9; animation: fadeUp .5s .3s ease both; }
+        .steps-card h3 { font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 15px; text-align: center; }
+        .step-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; position: relative; }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-number { width: 30px; height: 30px; background: #fef3c7; color: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; z-index: 2; }
+        .step-text h4 { font-size: 13px; font-weight: 800; color: #333; margin: 0 0 2px 0; }
+        .step-text p { font-size: 11px; font-weight: 600; color: #777; margin: 0; line-height: 1.4; }
+        .step-item::after { content: ''; position: absolute; left: 14px; top: 30px; width: 2px; height: calc(100% - 15px); background: #fef3c7; z-index: 1; }
+        .step-item:last-child::after { display: none; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ══════════════════════════
+           FOOTER (FLOATING NAV)
+        ══════════════════════════ */
+        .bottom-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #f1f1f1; height: 70px; display: flex; align-items: center; z-index: 999; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+        .center-nav { width: 55px; height: 55px; background: var(--primary-green); border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s; }
+        .center-nav:active { transform: scale(0.9); }
+    </style>
+</head>
+
+<body onclick="playClick()">
+
+    <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+    <div id="new-preloader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">TaskBazar</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="text-xl font-black text-gray-800 tracking-tighter">রেফার প্রোগ্রাম</span>
+        <div style="width: 40px;"></div> <!-- Placeholder -->
+    </header>
+
+    <main class="container-box">
+        
+        <!-- Banner -->
+        <div class="refer-banner">
+            <i class="fas fa-gift main-icon"></i>
+            <h2>বন্ধুদের ইনভাইট করুন</h2>
+            <p>প্রতিটি সফল রেফারে ইনস্ট্যান্ট <strong class="text-yellow-200">৫০ পয়েন্ট</strong> বোনাস জিতুন!</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h4 class="text-orange" id="totalRefers">০</h4>
+                <p>মোট রেফার</p>
+            </div>
+            <div class="stat-box">
+                <h4 class="text-green" id="referBonus">০</h4>
+                <p>রেফার বোনাস</p>
+            </div>
+        </div>
+
+        <!-- Copy Link Section -->
+        <div class="link-card">
+            <h3><i class="fas fa-link text-indigo-500"></i> আপনার রেফারেল লিংক</h3>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অথবা বন্ধুদের শুধু আপনার কোডটি দিন: <strong id="myReferCodeText" class="text-indigo-600">...</strong></p>
+            <div class="link-input-group">
+                <input type="text" id="referLinkInput" class="link-input" value="লোড হচ্ছে..." readonly>
+                <button class="btn-copy" id="copyBtn" onclick="copyReferLink()">কপি করুন</button>
+            </div>
+        </div>
+
+        <!-- Redeem Code Section -->
+        <div class="link-card" id="redeemSection" style="display: none;">
+            <h3><i class="fas fa-hand-holding-dollar text-yellow-500"></i> রেফার কোড ব্যবহার করুন</h3>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অন্য কারো রেফার কোড থাকলে এখানে বসিয়ে ৫০ পয়েন্ট বোনাস জিতে নিন!</p>
+            <div class="link-input-group">
+                <input type="text" id="redeemInput" class="link-input" placeholder="এখানে রেফার কোড (UID) লিখুন">
+                <button class="btn-copy btn-redeem" id="redeemBtn" onclick="redeemReferralCode()">ক্লেইম</button>
+            </div>
+            <p id="redeemStatus" style="font-size: 11px; margin-top: 8px; font-weight: 600; text-align: center; display: none;"></p>
+        </div>
+
+        <!-- How it works -->
+        <div class="steps-card">
+            <h3>কিভাবে কাজ করে?</h3>
+            <div class="step-item">
+                <div class="step-number">১</div>
+                <div class="step-text">
+                    <h4>লিংক শেয়ার করুন</h4>
+                    <p>উপরের রেফারেল লিংকটি কপি করে আপনার বন্ধুদের পাঠান।</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">২</div>
+                <div class="step-text">
+                    <h4>একাউন্ট তৈরি</h4>
+                    <p>আপনার বন্ধু সেই লিংকে ক্লিক করে নতুন একাউন্ট খুলবে।</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">৩</div>
+                <div class="step-text">
+                    <h4>বোনাস বুঝে নিন</h4>
+                    <p>একাউন্ট সফলভাবে তৈরি হলে আপনার একাউন্টে সাথে সাথে পয়েন্ট যোগ হয়ে যাবে।</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="height: 30px;"></div>
+    </main>
+
+    <!-- Bottom Navbar -->
+    <footer class="bottom-footer">
+        <div class="flex w-full justify-around items-center px-2">
+            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="order.html" class="footer-link"><i class="fas fa-cart-plus"></i>অর্ডার</a>
+            <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
+            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="profile.html" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts (Realtime Database) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, get, child, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); 
+
+        // বাংলা নাম্বার রূপান্তর
+        function convertToBanglaNumber(num) {
+            const banglaDigits = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
+            return String(num).replace(/[0-9]/g, x => banglaDigits[x]);
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                // ইউজারের ইউনিক রেফারেল লিংক তৈরি করা হচ্ছে (বেস ইউআরএল + ?ref=UID)
+                const baseUrl = window.location.origin + window.location.pathname.replace('refer.html', 'login.html');
+                const referLink = `${baseUrl}?ref=${user.uid}`;
+                document.getElementById('referLinkInput').value = referLink;
+                document.getElementById('myReferCodeText').innerText = user.uid;
+
+                // ডাটাবেজ থেকে ইউজারের রেফার ডাটা ফেচ করা
+                const profileRef = ref(db, `users/${user.uid}/profile`);
+                onValue(profileRef, (snapshot) => {
+                    if(snapshot.exists()) {
+                        const data = snapshot.val();
+                        const totalRefers = data.totalRefers || 0;
+                        const referBonus = data.referBonus || 0;
+                        
+                        document.getElementById('totalRefers').innerText = convertToBanglaNumber(totalRefers);
+                        document.getElementById('referBonus').innerText = convertToBanglaNumber(referBonus);
+
+                        // যদি ইউজার ইতিমধ্যে রেফার কোড ব্যবহার না করে থাকে, তবে ইনপুট বক্সটি দেখাবো
+                        if(!data.hasRedeemedReferral) {
+                            document.getElementById('redeemSection').style.display = 'block';
+                        } else {
+                            document.getElementById('redeemSection').style.display = 'none';
+                        }
+                    } else {
+                        // প্রোফাইল ডাটা না থাকলে রিডিম বক্স দেখান
+                        document.getElementById('redeemSection').style.display = 'block';
+                    }
+                });
+
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // লিংক কপি করার ফাংশন
+        window.copyReferLink = function() {
+            const copyText = document.getElementById("referLinkInput");
+            const btn = document.getElementById("copyBtn");
+            
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> কপি হয়েছে';
+                btn.style.background = '#15803d'; 
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                document.execCommand('copy');
+                alert("লিংক কপি করা হয়েছে!");
+            });
+        }
+
+        // রেফার কোড রিডিম করার ফাংশন
+        window.redeemReferralCode = async function() {
+            const refCode = document.getElementById('redeemInput').value.trim();
+            const statusMsg = document.getElementById('redeemStatus');
+            const redeemBtn = document.getElementById('redeemBtn');
+            const currentUser = auth.currentUser;
+
+            statusMsg.style.display = 'block';
+
+            if (!currentUser) return;
+            if (!refCode) {
+                statusMsg.innerText = "দয়া করে একটি সঠিক রেফার কোড দিন।";
+                statusMsg.style.color = "red";
+                return;
+            }
+            if (refCode === currentUser.uid) {
+                statusMsg.innerText = "আপনি নিজের কোড নিজেই ব্যবহার করতে পারবেন না।";
+                statusMsg.style.color = "red";
+                return;
+            }
+
+            redeemBtn.disabled = true;
+            redeemBtn.innerHTML = "অপেক্ষা করুন...";
+
+            const dbRef = ref(db);
+
+            try {
+                // ১. চেক করা রেফারার এর অস্তিত্ব আছে কিনা
+                const referrerSnapshot = await get(child(dbRef, `users/${refCode}/profile`));
+                if (!referrerSnapshot.exists()) {
+                    statusMsg.innerText = "ভুল রেফারেল কোড! কোডটি পুনরায় চেক করুন।";
+                    statusMsg.style.color = "red";
+                    redeemBtn.disabled = false;
+                    redeemBtn.innerHTML = "ক্লেইম";
+                    return;
+                }
+
+                // ২. কারেন্ট ইউজারের প্রোফাইল ডাটা ফেচ করা
+                const userSnapshot = await get(child(dbRef, `users/${currentUser.uid}/profile`));
+                const currentUserData = userSnapshot.val() || {};
+
+                if (currentUserData.hasRedeemedReferral) {
+                    statusMsg.innerText = "আপনি ইতিমধ্যে একটি রেফার কোড ব্যবহার করেছেন।";
+                    statusMsg.style.color = "red";
+                    return;
+                }
+
+                // ৩. উভয়কে বোনাস দেওয়া (এটমিক আপডেট)
+                const referrerData = referrerSnapshot.val();
+                const updates = {};
+                
+                // রেফারারকে ৫০ পয়েন্ট দেওয়া এবং রেফার সংখ্যা বাড়ানো
+                updates[`users/${refCode}/profile/totalRefers`] = (referrerData.totalRefers || 0) + 1;
+                updates[`users/${refCode}/profile/referBonus`] = (referrerData.referBonus || 0) + 50;
+                updates[`users/${refCode}/profile/balance`] = (referrerData.balance || 0) + 50;
+
+                // নতুন ইউজারকে (কারেন্ট ইউজার) ৫০ পয়েন্ট বোনাস দেওয়া এবং স্ট্যাটাস আপডেট করা
+                updates[`users/${currentUser.uid}/profile/hasRedeemedReferral`] = true;
+                updates[`users/${currentUser.uid}/profile/referredBy`] = refCode;
+                updates[`users/${currentUser.uid}/profile/balance`] = (currentUserData.balance || 0) + 50;
+
+                await update(ref(db), updates);
+
+                statusMsg.innerText = "অভিনন্দন! আপনি সফলভাবে ৫০ পয়েন্ট বোনাস পেয়েছেন।";
+                statusMsg.style.color = "green";
+                
+                // রিডিম সেকশন ২ সেকেন্ড পর গায়েব করে দেওয়া
+                setTimeout(() => {
+                    document.getElementById('redeemSection').style.display = 'none';
+                }, 2000);
+
+            } catch (error) {
+                console.error(error);
+                statusMsg.innerText = "সার্ভার এরর! আবার চেষ্টা করুন।";
+                statusMsg.style.color = "red";
+                redeemBtn.disabled = false;
+                redeemBtn.innerHTML = "ক্লেইম";
+            }
+        }
+    </script>
+
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('new-preloader');
+            setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 500); }, 1000);
+        });
+
+        function playClick() {
+            const sound = document.getElementById("clickSound");
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+    </script>
+</body>
+</html>
+
+```

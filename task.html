@@ -5,7 +5,6 @@
     <title>TaskBazar - প্রতিদিনের কাজ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- Fonts and Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"> </script>
@@ -31,178 +30,80 @@
             margin: 0;
         }
 
-        /* ─── New Deep Preloader (Same as Login) ─── */
+        /* ─── Custom Toast Animation ─── */
+        .custom-toast { animation: toastEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .custom-toast.hide { animation: toastExit 0.3s ease-in forwards; }
+        @keyframes toastEnter { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastExit { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-30px) scale(0.9); } }
+
         #new-preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, var(--deep-green) 0%, #052c24 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
         }
-
         .loader-content { text-align: center; }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        .loader-text {
-            color: white;
-            font-size: 22px;
-            letter-spacing: 2px;
-            font-weight: 700;
-            animation: pulse 1.5s infinite;
-        }
-
+        .spinner { width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* ══════════════════════════
-           HEADER & SIDEBAR
-        ══════════════════════════ */
         .main-header {
             background: white; border-bottom: 1px solid #f1f1f1;
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
-        
-        .back-btn {
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-            border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none;
-            transition: 0.2s; border: 1px solid #eee;
-        }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: #f8fafa; color: #444; text-decoration: none; transition: 0.2s; border: 1px solid #eee; }
         .back-btn:active { transform: scale(0.9); }
-
-        .status-badge {
-            display: flex; align-items: center; gap: 5px;
-            padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase;
-        }
+        .status-badge { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
         .active-pulse { animation: p-green 1.5s infinite; background: #e8f5e9; color: #2e7d32; }
-        
         @keyframes p-green { 0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); } }
 
-        /* ══════════════════════════
-           MAIN CONTENT
-        ══════════════════════════ */
-        .container-box {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 10px 15px;
-        }
-
-        .page-banner {
-            background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
-            border-radius: 18px; padding: 20px 15px; color: white; margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(26,179,148,0.25);
-            display: flex; justify-content: space-between; align-items: center;
-            position: relative; overflow: hidden;
-            animation: fadeUp .5s ease both;
-        }
-        .page-banner::after {
-            content: '\f0ae'; font-family: 'FontAwesome'; position: absolute;
-            right: -10px; bottom: -20px; font-size: 100px; opacity: 0.1; transform: rotate(-15deg);
-        }
+        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+        .page-banner { background: linear-gradient(135deg, var(--primary-green), var(--deep-green)); border-radius: 18px; padding: 20px 15px; color: white; margin-bottom: 15px; box-shadow: 0 8px 25px rgba(26,179,148,0.25); display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; animation: fadeUp .5s ease both; }
+        .page-banner::after { content: '\f0ae'; font-family: 'FontAwesome'; position: absolute; right: -10px; bottom: -20px; font-size: 100px; opacity: 0.1; transform: rotate(-15deg); }
         .banner-text h2 { margin: 0; font-size: 18px; font-weight: 800; }
         .banner-text p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.9; font-weight: 600; }
         .banner-stats { text-align: right; }
         .banner-stats h3 { margin: 0; font-size: 22px; font-weight: 800; }
         .banner-stats span { font-size: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
-        .filter-container {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 5px;
-            animation: fadeUp .5s .1s ease both;
-        }
+        .filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 5px; animation: fadeUp .5s .1s ease both; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-chip {
-            background: #fff; border: 1.5px solid rgba(0,0,0,0.05); padding: 8px 16px;
-            border-radius: 50px; font-size: 12px; font-weight: 700; color: #555;
-            white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: 0.3s;
-        }
-        .filter-chip.active {
-            background: var(--primary-green); color: #fff; border-color: var(--primary-green);
-            box-shadow: 0 4px 12px rgba(26,179,148,0.3);
-        }
+        .filter-chip { background: #fff; border: 1.5px solid rgba(0,0,0,0.05); padding: 8px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; color: #555; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: 0.3s; }
+        .filter-chip.active { background: var(--primary-green); color: #fff; border-color: var(--primary-green); box-shadow: 0 4px 12px rgba(26,179,148,0.3); }
 
         .task-list { display: flex; flex-direction: column; gap: 14px; }
-        .task-card {
-            background: #fff; border-radius: 18px; padding: 15px;
-            box-shadow: var(--card-shadow); border: 1.5px solid rgba(26,179,148,0.08);
-            display: flex; align-items: center; gap: 14px;
-            animation: fadeUp .5s both; position: relative; overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+        .task-card { background: #fff; border-radius: 18px; padding: 15px; box-shadow: var(--card-shadow); border: 1.5px solid rgba(26,179,148,0.08); display: flex; align-items: center; gap: 14px; animation: fadeUp .5s both; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
         .task-card:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        
-        .task-card:nth-child(1) { animation-delay: 0.15s; }
-        .task-card:nth-child(2) { animation-delay: 0.20s; }
-        .task-card:nth-child(3) { animation-delay: 0.25s; }
-        .task-card:nth-child(4) { animation-delay: 0.30s; }
-        .task-card:nth-child(5) { animation-delay: 0.35s; }
-
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
-        .task-icon {
-            width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-        }
-        .task-icon.fb { background: #e8f4fd; color: #1877F2; }
+        
+        .task-icon { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         .task-icon.yt { background: #fde8e8; color: #FF0000; }
-        .task-icon.web { background: #e8fdf4; color: #0d9488; }
-        .task-icon.app { background: #f4e8fd; color: #9C27B0; }
-
+        .task-icon.fb { background: #e8f4fd; color: #1877F2; }
         .task-details { flex-grow: 1; }
         .task-title { font-size: 13px; font-weight: 800; color: #2d3748; line-height: 1.4; margin-bottom: 4px; }
-        .task-reward { 
-            display: inline-block; font-size: 11px; font-weight: 800; color: #1ab394; 
-            background: #e8fdf4; padding: 2px 8px; border-radius: 6px;
-        }
-        
-        .btn-task {
-            background: linear-gradient(135deg, #1ab394, #0d9e82); color: #fff;
-            padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800;
-            box-shadow: 0 4px 12px rgba(26,179,148,.3); transition: transform .2s;
-            text-decoration: none; border: none; cursor: pointer;
-        }
+        .task-reward { display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: #1ab394; background: #e8fdf4; padding: 3px 8px; border-radius: 6px; }
+        .btn-task { background: linear-gradient(135deg, #1ab394, #0d9e82); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px rgba(26,179,148,.3); transition: transform .2s; border: none; cursor: pointer; }
         .btn-task:active { transform: scale(.93); }
+        .btn-task:disabled { opacity: 0.6; pointer-events: none; }
 
-        .bottom-footer {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-top: 1px solid #f1f1f1;
-            height: 70px; display: flex; align-items: center; z-index: 999;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
-        }
-        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; }
+        .bottom-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #f1f1f1; height: 70px; display: flex; align-items: center; z-index: 999; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
         .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .footer-link.active { color: var(--primary-green); }
-
-        .center-nav {
-            width: 55px; height: 55px; background: var(--primary-green);
-            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
-            display: flex; align-items: center; justify-content: center; color: white;
-            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3);
-        }
+        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+        .center-nav { width: 55px; height: 55px; background: var(--primary-green); border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s; }
+        .center-nav:active { transform: scale(0.9); }
     </style>
 </head>
 
 <body onclick="playClick()">
 
-    <!-- Audio for Click Effects -->
+    <div id="toast-container" class="fixed top-5 left-0 w-full flex flex-col items-center gap-3 z-[10000] pointer-events-none px-4"></div>
+
     <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
 
-    <!-- Deep Preloader (Same as login.html) -->
     <div id="new-preloader">
         <div class="loader-content">
             <div class="spinner"></div>
@@ -210,88 +111,78 @@
         </div>
     </div>
 
-    <!-- HEADER -->
     <header class="main-header">
         <a href="dashboard.html" class="back-btn">
             <i class="fas fa-arrow-left"></i>
         </a>
         <span class="text-xl font-black text-gray-800 tracking-tighter">টাস্কসমূহ</span>
         <div class="status-badge active-pulse">
-            <i class="fas fa-briefcase"></i> ৫টি কাজ
+            <i class="fas fa-briefcase"></i> <span id="taskCount">০</span>টি কাজ
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
     <main class="container-box">
-        
         <div class="page-banner">
             <div class="banner-text">
                 <h2>আজকের কাজ</h2>
                 <p>সবগুলো কাজ শেষ করে বোনাস নিন!</p>
             </div>
             <div class="banner-stats">
-                <h3>৳১৫.০০</h3>
-                <span>মোট আয় হবে</span>
+                <h3 id="currentPointsDisplay">০</h3>
+                <span>আপনার ব্যালেন্স</span>
             </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[18px] p-4 mb-5 shadow-lg flex items-center justify-between" style="animation: fadeUp .5s .05s ease both;">
+            <div class="text-white flex-1 pr-3">
+                <h3 class="font-extrabold text-[14px] mb-1"><i class="fas fa-download mr-1"></i> ভেরিফাই অ্যাপ ডাউনলোড</h3>
+                <p class="text-[11px] opacity-90 leading-tight">টাস্ক সম্পন্ন করতে এবং পয়েন্ট পেতে আমাদের অফিসিয়াল অ্যাপটি ইনস্টল করুন।</p>
+            </div>
+            <a href="https://www.mediafire.com/file/vqy01wgvvepi39q/Varify+Task.apk/file" target="_blank" class="bg-white text-blue-700 px-4 py-2 rounded-xl font-extrabold text-xs shadow-md active:scale-95 transition-transform whitespace-nowrap text-decoration-none inline-block">
+                ডাউনলোড
+            </a>
         </div>
 
         <div class="filter-container">
             <div class="filter-chip active">সব কাজ</div>
-            <div class="filter-chip"><i class="fab fa-facebook text-blue-500 mr-1"></i> ফেসবুক</div>
             <div class="filter-chip"><i class="fab fa-youtube text-red-500 mr-1"></i> ইউটিউব</div>
-            <div class="filter-chip"><i class="fas fa-globe text-teal-500 mr-1"></i> ওয়েবসাইট</div>
         </div>
 
-        <div class="task-list">
-            
-            <div class="task-card">
-                <div class="task-icon fb"><i class="fa-brands fa-facebook-f"></i></div>
-                <div class="task-details">
-                    <div class="task-title">ফেসবুক পেজে লাইক ও ফলো দিন</div>
-                    <div class="task-reward">আয়: ৳২.০০</div>
-                </div>
-                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
-            </div>
-
-            <div class="task-card">
-                <div class="task-icon yt"><i class="fa-brands fa-youtube"></i></div>
-                <div class="task-details">
-                    <div class="task-title">ইউটিউব ভিডিও দেখুন ও সাবস্ক্রাইব করুন</div>
-                    <div class="task-reward">আয়: ৳৩.৫০</div>
-                </div>
-                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
-            </div>
-
-            <div class="task-card">
-                <div class="task-icon web"><i class="fa-solid fa-globe"></i></div>
-                <div class="task-details">
-                    <div class="task-title">ওয়েবসাইটে ভিজিট করে ২ মিনিট অপেক্ষা করুন</div>
-                    <div class="task-reward">আয়: ৳১.৫০</div>
-                </div>
-                <button class="btn-task" onclick="startTask(this)">শুরু করুন</button>
-            </div>
-
+        <div class="task-list" id="taskListContainer">
+            <p style="text-align:center; color:#777; font-size:12px; margin: 10px 0;">লোড হচ্ছে...</p>
         </div>
         
-        <div style="height: 20px;"></div>
+        <div style="height: 30px;"></div>
+
+        <div id="taskModal" class="fixed inset-0 bg-black/60 z-[9999] hidden flex justify-center items-center px-4">
+            <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="taskModalContent">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-[16px] font-extrabold text-gray-800" id="modalTitle"><i class="fas fa-clipboard-list text-teal-600 mr-1"></i> টাস্কের বিস্তারিত</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div id="modalBody" class="text-sm text-gray-600 mb-6 space-y-2"></div>
+                
+                <div id="modalButtons" class="flex gap-3"></div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- BOTTOM FOOTER -->
     <footer class="bottom-footer">
         <div class="flex w-full justify-around items-center px-2">
-            <a href="#" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
-            <a href="#" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
+            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
+            <a href="order.html" class="footer-link"><i class="fas fa-cart-plus"></i>অর্ডার</a>
             <a href="dashboard.html" class="center-nav"><i class="fas fa-house-chimney text-2xl"></i></a>
-            <a href="#" class="footer-link active"><i class="fas fa-briefcase"></i>কাজ</a>
-            <a href="#" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+            <a href="task.html" class="footer-link active"><i class="fas fa-briefcase"></i>কাজ</a>
+            <a href="profile.html" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
         </div>
     </footer>
 
-    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
@@ -300,50 +191,425 @@
             projectId: "exchange-project-d4028",
             storageBucket: "exchange-project-d4028.firebasestorage.app",
             messagingSenderId: "313976742479",
-            appId: "1:313976742479:web:45951b360d875c4768c03a",
-            measurementId: "G-PQMFYZS958"
+            appId: "1:313976742479:web:45951b360d875c4768c03a"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app); 
 
+        let currentUser = null;
+        let currentBalance = 0;
+        let todayEarned = 0;
+        let completedTasks = 0;
+        
+        let allTasks = [];
+        let myActiveTask = null; 
+
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass, iconClass;
+            if (type === 'success') {
+                bgClass = 'bg-white border-l-4 border-green-500 text-gray-800';
+                iconClass = 'fa-check-circle text-green-500';
+            } else if (type === 'error') {
+                bgClass = 'bg-white border-l-4 border-red-500 text-gray-800';
+                iconClass = 'fa-times-circle text-red-500';
+            } else if (type === 'warning') {
+                bgClass = 'bg-white border-l-4 border-yellow-500 text-gray-800';
+                iconClass = 'fa-exclamation-triangle text-yellow-500';
+            } else {
+                bgClass = 'bg-white border-l-4 border-blue-500 text-gray-800';
+                iconClass = 'fa-info-circle text-blue-500';
+            }
+
+            toast.className = `custom-toast flex items-center gap-3 w-full max-w-sm px-4 py-3 rounded-lg shadow-[0_5px_15px_rgba(0,0,0,0.08)] ${bgClass}`;
+            toast.innerHTML = `<i class="fas ${iconClass} text-xl"></i> <span class="text-sm font-bold flex-1 leading-tight">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.convertToBanglaNumber = function(num) {
+            const banglaDigits = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
+            return String(num).replace(/[0-9]/g, x => banglaDigits[x] || x);
+        }
+
+        function parseBanglaDurationToSeconds(banglaStr) {
+            if(!banglaStr) return 0;
+            const engDigits = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+            let engStr = String(banglaStr).replace(/[০-৯]/g, x => engDigits[x]);
+            
+            let hours = 0, minutes = 0, seconds = 0;
+            let hMatch = engStr.match(/(\d+)\s*ঘণ্টা/);
+            let mMatch = engStr.match(/(\d+)\s*মিনিট/);
+            let sMatch = engStr.match(/(\d+)\s*সেকেন্ড/);
+            
+            if(hMatch) hours = parseInt(hMatch[1]);
+            if(mMatch) minutes = parseInt(mMatch[1]);
+            if(sMatch) seconds = parseInt(sMatch[1]);
+            
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
+
         onAuthStateChanged(auth, (user) => {
-            if (user) { console.log("User Logged In"); }
+            if (user) { 
+                currentUser = user;
+                loadUserData();
+                
+                onValue(ref(db, 'tasks'), (snapshot) => {
+                    allTasks = [];
+                    if(snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            let task = childSnapshot.val();
+                            task.taskId = childSnapshot.key; 
+                            
+                            let completed = task.completedCount || 0;
+                            let total = task.totalQuantity || 0;
+                            
+                            if(total > 0 && completed >= total) {
+                                return; 
+                            }
+
+                            if(task.points == 3 && task.duration && !task.calculatedRandomMin) {
+                                let totalSecs = parseBanglaDurationToSeconds(task.duration);
+                                let maxMin = Math.floor(totalSecs / 60);
+                                if (maxMin < 1) maxMin = 1;
+                                if (maxMin > 5) maxMin = 5;
+                                task.calculatedRandomMin = Math.floor(Math.random() * maxMin) + 1;
+                            }
+                            allTasks.push(task);
+                        });
+                    }
+                    renderTasksUI();
+                });
+
+                onValue(ref(db, `active_tasks/${currentUser.uid}`), (snapshot) => {
+                    if (snapshot.exists() && snapshot.val().status === "pending") {
+                        let taskData = snapshot.val();
+                        let elapsed = Date.now() - taskData.timestamp;
+                        
+                        if (elapsed >= 5 * 60 * 1000) {
+                            remove(ref(db, `active_tasks/${currentUser.uid}`));
+                            myActiveTask = null;
+                        } else {
+                            myActiveTask = taskData;
+                        }
+                    } else {
+                        myActiveTask = null;
+                    }
+                    renderTasksUI(); 
+                });
+
+            } else {
+                window.location.href = 'login.html';
+            }
         });
+
+        function loadUserData() {
+            onValue(ref(db, `users/${currentUser.uid}/profile`), (snapshot) => {
+                if(snapshot.exists()) {
+                    const data = snapshot.val();
+                    currentBalance = data.points || 0;
+                    todayEarned = data.todayPoints || 0;
+                    completedTasks = data.completedTasks || 0;
+                    document.getElementById('currentPointsDisplay').innerText = window.convertToBanglaNumber(currentBalance);
+                }
+            });
+        }
+
+        function renderTasksUI() {
+            const container = document.getElementById('taskListContainer');
+            container.innerHTML = ''; 
+            let taskCount = 0;
+
+            if(allTasks.length > 0) {
+                allTasks.forEach((task) => {
+                    taskCount++;
+
+                    const safeChannelName = task.channelName ? task.channelName.replace(/'/g, "\\'") : '';
+                    const safeTitle = task.title ? task.title.replace(/'/g, "\\'") : '';
+
+                    let iconClass = task.platform === 'youtube' ? 'yt fa-brands fa-youtube' : 'fb fa-brands fa-facebook-f';
+                    let iconColorClass = task.platform === 'youtube' ? 'yt' : 'fb';
+                    let isOwnTask = (task.uid === currentUser.uid);
+
+                    let displayTitle = "";
+                    let requiredTimeSec = 60; 
+
+                    if (task.points == 5) {
+                        displayTitle = "ইউটিউব চ্যানেল সাবস্ক্রাইব করুন";
+                        requiredTimeSec = 60;
+                    } else if (task.points == 2) {
+                        displayTitle = "১ মিনিট ভিডিও দেখুন";
+                        requiredTimeSec = 60;
+                    } else if (task.points == 3) {
+                        let randomMin = task.calculatedRandomMin || 1; 
+                        requiredTimeSec = randomMin * 60;
+                        displayTitle = `${window.convertToBanglaNumber(randomMin)} মিনিট এই ভিডিওটি দেখুন`;
+                    } else {
+                        displayTitle = "ইউটিউব টাস্ক সম্পন্ন করুন";
+                    }
+
+                    let isActiveTask = myActiveTask && myActiveTask.taskId === task.taskId;
+
+                    let actionButton = '';
+                    let ownBadge = '';
+                    let cardStyle = '';
+
+                    if (isOwnTask) {
+                        actionButton = `<div style="background: #fee2e2; color: #dc2626; font-size: 11px; font-weight: 800; padding: 8px 12px; border-radius: 10px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-ban"></i> নিজের কাজ</div>`;
+                        ownBadge = `<span style="font-size: 9px; background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle;">আপনার</span>`;
+                        cardStyle = `border: 1.5px dashed #fca5a5; background: #fef2f2; opacity: 0.9;`;
+                    } else if (isActiveTask) {
+                        actionButton = `<button class="btn-task shadow-md animate-pulse" style="background: #fef08a; color: #854d0e;" onclick="window.resumeActiveTask('${task.taskId}', '${safeTitle}', '${safeChannelName}', ${task.points}, ${myActiveTask.requiredTime}, ${myActiveTask.timestamp})">অপেক্ষমান...</button>`;
+                        cardStyle = `border: 1.5px solid #fbbf24; background: #fefce8;`;
+                    } else if (myActiveTask) {
+                        actionButton = `<button class="btn-task" style="background: #e5e7eb; color: #9ca3af; cursor: not-allowed;" onclick="window.showToast('আগে আপনার চলমান টাস্কটি শেষ করুন!', 'warning')">শুরু করুন</button>`;
+                    } else {
+                        actionButton = `<button class="btn-task" onclick="window.openTaskModal('${task.taskId}', ${task.points}, '${safeTitle}', '${safeChannelName}', ${requiredTimeSec}, '${displayTitle}')">শুরু করুন</button>`;
+                    }
+
+                    container.innerHTML += `
+                        <div class="task-card" style="${cardStyle}">
+                            <div class="task-icon ${iconColorClass}"><i class="${iconClass.split(' ')[1]} ${iconClass.split(' ')[2]}"></i></div>
+                            <div class="task-details">
+                                <div class="task-title">${displayTitle} ${ownBadge}</div>
+                                <div class="task-reward"><i class="fas fa-star text-yellow-500 mr-1"></i> ${window.convertToBanglaNumber(task.points)} পয়েন্ট</div>
+                            </div>
+                            ${actionButton}
+                        </div>
+                    `;
+                });
+                document.getElementById('taskCount').innerText = window.convertToBanglaNumber(taskCount);
+            } else {
+                container.innerHTML = '<p style="text-align:center; color:#777; font-size:12px; margin: 10px 0;">বর্তমানে কোনো কাজ নেই।</p>';
+                document.getElementById('taskCount').innerText = '০';
+            }
+        }
+
+        window.closeModal = function() {
+            if(window.taskTimerInterval) clearInterval(window.taskTimerInterval);
+            const modalContent = document.getElementById('taskModalContent');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('taskModal').classList.add('hidden');
+            }, 200);
+        }
+
+        window.openTaskModal = function(taskId, pointsToEarn, title, channelName, requiredTimeSec, displayTitle) {
+            const bodyHtml = `
+                <div class="bg-gray-50 p-3 rounded-lg border mb-3">
+                    <p class="mb-1"><span class="font-extrabold text-gray-700">কাজ:</span> <span class="text-teal-700 font-bold">${displayTitle}</span></p>
+                    <p class="mb-1"><span class="font-extrabold text-gray-700">চ্যানেল:</span> ${channelName}</p>
+                    <p><span class="font-extrabold text-gray-700">রিওয়ার্ড:</span> <span class="text-yellow-600 font-bold"><i class="fas fa-star"></i> ${window.convertToBanglaNumber(pointsToEarn)} পয়েন্ট</span></p>
+                </div>
+                <p class="text-xs text-gray-500"><i class="fas fa-info-circle text-teal-500"></i> কাজ শুরু করার পর অবশ্যই আমাদের ভেরিফাই অ্যাপ দিয়ে কাজটি সম্পন্ন করতে হবে।</p>
+            `;
+
+            const buttonsHtml = `
+                <button onclick="closeModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl font-extrabold transition-all">বাতিল</button>
+                <button onclick="window.confirmStartTask('${taskId}', ${pointsToEarn}, '${title.replace(/'/g, "\\'")}', '${channelName.replace(/'/g, "\\'")}', ${requiredTimeSec})" class="flex-1 bg-gradient-to-r from-teal-500 to-teal-700 text-white py-2.5 rounded-xl font-extrabold shadow-lg hover:shadow-xl transition-all">টাস্ক শুরু করুন</button>
+            `;
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clipboard-list text-teal-600 mr-1"></i> টাস্কের বিস্তারিত';
+            document.getElementById('modalBody').innerHTML = bodyHtml;
+            document.getElementById('modalButtons').innerHTML = buttonsHtml;
+
+            document.getElementById('taskModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('taskModalContent').classList.remove('scale-95', 'opacity-0');
+                document.getElementById('taskModalContent').classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        window.confirmStartTask = async function(taskId, points, title, channel, reqTime) {
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> শুরু হচ্ছে...';
+            btn.disabled = true;
+
+            try {
+                let startTime = Date.now(); 
+                await update(ref(db, `active_tasks/${currentUser.uid}`), {
+                    taskId: taskId, 
+                    targetTitle: title,
+                    targetChannel: channel,
+                    points: points,
+                    requiredTime: reqTime,
+                    status: "pending",
+                    timestamp: startTime
+                });
+                
+                window.resumeActiveTask(taskId, title, channel, points, reqTime, startTime);
+
+            } catch(e) {
+                window.showToast("সমস্যা হয়েছে! আবার চেষ্টা করুন।", "error");
+                btn.innerHTML = 'টাস্ক শুরু করুন';
+                btn.disabled = false;
+            }
+        }
+
+        window.resumeActiveTask = function(taskId, title, channel, points, reqTime, startTime) {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-rocket text-blue-600 mr-1"></i> টাস্ক চলমান আছে';
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-xl border border-blue-200 text-center shadow-sm">
+                    <i class="fas fa-stopwatch text-4xl mb-3 text-blue-500 animate-pulse"></i>
+                    <p class="font-bold text-sm leading-relaxed">আপনি এখন <span class="text-teal-600">ভেরিফাই অ্যাপে</span> যান এবং সেখান থেকে ইউটিউবে গিয়ে কাজটি সম্পন্ন করুন।</p>
+                    <div class="mt-3 py-2 bg-white rounded-lg border border-blue-100 shadow-inner">
+                        <p class="text-xs text-gray-500 font-bold mb-1">সময় বাকি</p>
+                        <p id="countdownTimer" class="font-black text-2xl text-red-500 tracking-widest">০৫:০০</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="YOUR_APP_DOWNLOAD_LINK_HERE" target="_blank" class="text-xs text-blue-600 font-bold hover:underline">
+                        <i class="fas fa-download"></i> অ্যাপটি না থাকলে এখান থেকে ডাউনলোড করুন
+                    </a>
+                </div>
+            `;
+
+            document.getElementById('modalButtons').innerHTML = `
+                <button onclick="window.cancelActiveTaskUI()" class="flex-1 bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl font-extrabold hover:bg-red-100 transition-all">ক্যান্সেল</button>
+                <button onclick="window.verifyTask(${points})" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2.5 rounded-xl font-extrabold shadow-lg hover:shadow-xl transition-all"><i class="fas fa-check-circle"></i> ভেরিফাই করুন</button>
+            `;
+
+            document.getElementById('taskModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('taskModalContent').classList.remove('scale-95', 'opacity-0');
+                document.getElementById('taskModalContent').classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            if(window.taskTimerInterval) clearInterval(window.taskTimerInterval);
+            if(!startTime) startTime = Date.now();
+
+            window.taskTimerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = (5 * 60 * 1000) - elapsed;
+
+                let timerEl = document.getElementById('countdownTimer');
+                
+                if (remaining <= 0) {
+                    clearInterval(window.taskTimerInterval);
+                    if(timerEl) timerEl.innerText = "০০:০০";
+                    window.autoCancelTask();
+                } else {
+                    if(timerEl) {
+                        let mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                        let secs = Math.floor((remaining % (1000 * 60)) / 1000);
+                        let engTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                        timerEl.innerText = window.convertToBanglaNumber(engTime);
+                    }
+                }
+            }, 1000);
+        }
+
+        window.autoCancelTask = async function() {
+            try {
+                await remove(ref(db, `active_tasks/${currentUser.uid}`));
+                closeModal();
+                window.showToast("৫ মিনিট সময় শেষ! টাস্কটি অটোমেটিক বাতিল করা হয়েছে।", "error");
+            } catch(e) {}
+        }
+
+        window.verifyTask = async function(points) {
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> চেক হচ্ছে...';
+            btn.disabled = true;
+
+            try {
+                const snapshot = await get(ref(db, `active_tasks/${currentUser.uid}`));
+                
+                if (snapshot.exists() && snapshot.val().status === "completed") {
+                    const activeTaskData = snapshot.val();
+                    const currentTaskId = activeTaskData.taskId;
+
+                    if(currentTaskId) {
+                        const taskRef = ref(db, `tasks/${currentTaskId}`);
+                        const taskSnap = await get(taskRef);
+                        if(taskSnap.exists()) {
+                            let currentCompleted = taskSnap.val().completedCount || 0;
+                            await update(taskRef, { completedCount: currentCompleted + 1 });
+                        }
+                    }
+
+                    await update(ref(db, `users/${currentUser.uid}/profile`), {
+                        points: currentBalance + points,
+                        todayPoints: todayEarned + points,
+                        completedTasks: completedTasks + 1
+                    });
+                    
+                    await update(ref(db, `active_tasks/${currentUser.uid}`), { status: "rewarded" });
+                    
+                    window.showToast(`সফলভাবে সম্পন্ন হয়েছে! আপনার অ্যাকাউন্টে ${window.convertToBanglaNumber(points)} পয়েন্ট যোগ করা হয়েছে।`, "success");
+                    closeModal();
+                } else {
+                    window.showToast("আপনি এখনও কাজ সম্পন্ন করেননি! দয়া করে ভেরিফাই অ্যাপ থেকে কাজটি পুরোপুরি সম্পন্ন করুন।", "warning");
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch(error) {
+                window.showToast("সার্ভার কানেকশনে সমস্যা হয়েছে!", "error");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        window.cancelActiveTaskUI = function() {
+            if(window.taskTimerInterval) clearInterval(window.taskTimerInterval); 
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-1"></i> টাস্ক বাতিল';
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="bg-red-50 text-red-800 p-4 rounded-xl border border-red-200 text-center shadow-sm">
+                    <p class="font-bold text-sm leading-relaxed">আপনি কি সত্যিই এই কাজটি বাতিল করতে চান?</p>
+                    <p class="text-xs mt-2 text-red-600 opacity-80">বাতিল করলে আপনি এই কাজের জন্য কোনো পয়েন্ট পাবেন না।</p>
+                </div>
+            `;
+            document.getElementById('modalButtons').innerHTML = `
+                <button onclick="window.keepActiveTask()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl font-extrabold transition-all">না, কাজ করব</button>
+                <button onclick="window.confirmCancelTask()" class="flex-1 bg-red-500 text-white py-2.5 rounded-xl font-extrabold shadow-lg hover:shadow-xl transition-all">হ্যাঁ, বাতিল করুন</button>
+            `;
+        }
+
+        window.keepActiveTask = function() {
+            if(myActiveTask) {
+                window.resumeActiveTask(myActiveTask.taskId, myActiveTask.targetTitle, myActiveTask.targetChannel, myActiveTask.points, myActiveTask.requiredTime, myActiveTask.timestamp);
+            } else {
+                closeModal();
+            }
+        }
+
+        window.confirmCancelTask = async function() {
+            try {
+                await remove(ref(db, `active_tasks/${currentUser.uid}`));
+                closeModal();
+                window.showToast("কাজটি বাতিল করা হয়েছে।", "info");
+            } catch(e) {
+                window.showToast("সমস্যা হয়েছে!", "error");
+            }
+        }
+        
     </script>
 
-    <!-- General Scripts -->
     <script>
-        // 1. Preloader Logic (Same as Login)
         window.addEventListener('load', function() {
             const loader = document.getElementById('new-preloader');
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }, 1000);
+            setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 500); }, 1000);
         });
 
-        /* ── CLICK SOUND ── */
         function playClick() {
             const sound = document.getElementById("clickSound");
             sound.currentTime = 0;
             sound.play().catch(() => {});
-        }
-
-        /* ── TASK START FUNCTION ── */
-        function startTask(btn) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোডিং';
-            btn.style.opacity = '0.7';
-            btn.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                btn.innerHTML = 'সম্পন্ন <i class="fas fa-check-circle"></i>';
-                btn.style.background = '#d1d5db';
-                btn.style.color = '#4b5563';
-                btn.style.boxShadow = 'none';
-                alert('কাজটি সফলভাবে সম্পন্ন হয়েছে!');
-            }, 2000);
         }
     </script>
 </body>
