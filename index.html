@@ -2,14 +2,32 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>TaskBazar - ড্যাশবোর্ড</title>
+    <title>TaskBazar - সেরা মাইক্রো-টাস্কিং এবং আর্নিং প্ল্যাটফর্ম</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <!-- Fonts and Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"> </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1ab394',
+                        deep: '#0d6d5a',
+                        bglight: '#f4f7f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Siliguri', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         :root {
@@ -19,15 +37,11 @@
             --card-shadow: 0 4px 18px rgba(0,0,0,0.06);
         }
 
-        * { box-sizing: border-box; }
-
-        body { 
-            font-family: 'Inter', 'Hind Siliguri', sans-serif; 
-            padding-top: 75px; 
-            padding-bottom: 85px; 
-            background: var(--bg-color);
-            overflow-x: hidden;
+        body {
+            background-color: var(--bg-color);
             margin: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         /* ─── Deep Preloader ─── */
@@ -38,160 +52,98 @@
             z-index: 9999; transition: opacity 0.5s ease;
         }
         .loader-content { text-align: center; }
-        .spinner {
-            width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #fff; border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 0 auto 15px;
-        }
+        .spinner { width: 60px; height: 60px; border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         .loader-text { color: white; font-size: 22px; letter-spacing: 2px; font-weight: 700; animation: pulse 1.5s infinite; }
-
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* ══════════════════════════
-           HEADER
-        ══════════════════════════ */
-        .main-header {
-            background: white; border-bottom: 1px solid #f1f1f1;
-            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        /* ─── Navbar ─── */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* ─── Hero Section ─── */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--deep-green) 100%);
+            position: relative;
+            overflow: hidden;
         }
         
-        .user-profile { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary-green); object-fit: cover; }
-        .user-info h4 { margin: 0; font-size: 14px; font-weight: 800; color: #2d3748; }
-        .user-info p { margin: 0; font-size: 11px; font-weight: 600; color: #718096; }
+        .hero-bg-shapes {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;
+        }
+        
+        .shape {
+            position: absolute; background: rgba(255, 255, 255, 0.05); border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+        .shape-1 { width: 300px; height: 300px; top: -100px; left: -100px; animation-delay: 0s; }
+        .shape-2 { width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: 2s; }
+        .shape-3 { width: 150px; height: 150px; top: 40%; left: 60%; animation-delay: 4s; }
 
-        .notification-btn {
-            position: relative; width: 40px; height: 40px; border-radius: 12px;
-            background: #f8fafa; color: #444; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; text-decoration: none; border: 1px solid #eee; transition: 0.2s;
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
         }
-        .notification-btn:active { transform: scale(0.9); }
-        .notif-badge {
-            position: absolute; top: -3px; right: -3px; width: 14px; height: 14px;
-            background: #ef4444; border: 2px solid white; border-radius: 50%;
-            animation: pulse-red 2s infinite;
-        }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); } }
 
-        /* ══════════════════════════
-           MAIN CONTENT - DASHBOARD
-        ══════════════════════════ */
-        .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
+        /* Buttons */
+        .btn-primary {
+            background: white; color: var(--deep-green);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.15); }
+        .btn-primary:active { transform: translateY(0); }
 
-        /* Notice Board */
-        .notice-board {
-            background: #ebf8f4; border: 1px solid #c6f0e4; color: #0d6d5a;
-            padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px;
-            font-size: 12px; font-weight: 700; margin-bottom: 15px; animation: fadeUp .5s ease both;
+        .btn-outline {
+            border: 2px solid rgba(255,255,255,0.3); color: white; transition: all 0.3s ease;
         }
-        .notice-board i { font-size: 16px; animation: tada 2s infinite; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; }
 
-        /* Main Balance Card */
-        .dashboard-banner {
-            background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
-            border-radius: 20px; padding: 25px 20px; color: white; margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(26,179,148,0.3); position: relative; overflow: hidden;
-            animation: fadeUp .5s .1s ease both;
+        /* ─── Feature Cards ─── */
+        .feature-card {
+            background: white; border-radius: 20px; padding: 30px 25px;
+            box-shadow: var(--card-shadow); border: 1px solid rgba(26,179,148,0.05);
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+            cursor: default;
         }
-        .dashboard-banner::after {
-            content: '\f51e'; font-family: 'FontAwesome'; position: absolute;
-            right: -15px; bottom: -20px; font-size: 110px; opacity: 0.1; transform: rotate(-15deg);
+        .feature-card:hover {
+            transform: translateY(-10px); box-shadow: 0 15px 30px rgba(26,179,148,0.1);
+            border-color: rgba(26,179,148,0.2);
         }
-        .db-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .db-label { font-size: 12px; font-weight: 600; opacity: 0.9; display: block; margin-bottom: 5px; }
-        .db-amount { font-size: 32px; font-weight: 800; margin: 0; line-height: 1; letter-spacing: -1px; }
-        .add-money-btn {
-            background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 10px;
-            font-size: 11px; font-weight: 700; color: white; text-decoration: none; backdrop-filter: blur(5px);
+        .feature-icon-wrapper {
+            width: 70px; height: 70px; border-radius: 18px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 30px;
         }
-        .db-stats { display: flex; gap: 15px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 15px; }
-        .stat-item { flex: 1; }
-        .stat-item span { display: block; font-size: 10px; opacity: 0.8; font-weight: 600; text-transform: uppercase; }
-        .stat-item h4 { margin: 3px 0 0 0; font-size: 15px; font-weight: 800; }
+        .bg-green-light { background: #e8fdf4; color: var(--primary-green); }
+        .bg-blue-light { background: #e8f4fd; color: #3b82f6; }
+        .bg-orange-light { background: #fef3c7; color: #f59e0b; }
 
-        /* Quick Action Grid */
-        .quick-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px;
-            animation: fadeUp .5s .2s ease both;
+        /* ─── Steps Section ─── */
+        .step-box { text-align: center; position: relative; z-index: 1; }
+        .step-number {
+            width: 60px; height: 60px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+            font-size: 24px; font-weight: 800; color: var(--primary-green);
+            box-shadow: 0 10px 20px rgba(26,179,148,0.2); border: 4px solid #e8fdf4;
         }
-        .quick-btn {
-            background: #fff; padding: 15px 5px; border-radius: 16px; text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.04);
-            text-decoration: none; color: #444; transition: 0.2s; display: block; cursor: pointer;
+        
+        @media (min-width: 768px) {
+            .step-connector::after {
+                content: ''; position: absolute; top: 30px; left: 50%; width: 100%; height: 3px;
+                background: dashed 3px #cbd5e1; z-index: -1;
+            }
+            .step-connector:last-child::after { display: none; }
         }
-        .quick-btn:active { transform: scale(0.92); }
-        .quick-icon {
-            width: 42px; height: 42px; margin: 0 auto 8px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 18px; color: white;
-        }
-        .q-task { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .q-wallet { background: linear-gradient(135deg, #1ab394, #0d6d5a); }
-        .q-refer { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .q-history { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-        .quick-btn span { font-size: 11px; font-weight: 800; }
 
-        /* Section Header */
-        .section-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-            animation: fadeUp .5s .3s ease both;
-        }
-        .section-header h3 { font-size: 15px; font-weight: 800; color: #2d3748; margin: 0; }
-        .section-header a { font-size: 11px; font-weight: 700; color: var(--primary-green); text-decoration: none; }
-
-        /* Task Preview Cards (Mini) */
-        .task-list { display: flex; flex-direction: column; gap: 12px; animation: fadeUp .5s .4s ease both; }
-        .task-card {
-            background: #fff; border-radius: 16px; padding: 12px;
-            box-shadow: var(--card-shadow); border: 1.5px solid rgba(26,179,148,0.05);
-            display: flex; align-items: center; gap: 12px;
-            transition: transform 0.2s; cursor: pointer;
-        }
-        .task-card:active { transform: scale(0.98); }
-        .task-icon {
-            width: 45px; height: 45px; border-radius: 12px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
-        .task-icon.yt { background: #fde8e8; color: #FF0000; }
-        .task-icon.fb { background: #e8f4fd; color: #1877F2; }
-        .task-details { flex-grow: 1; }
-        .task-title { font-size: 12px; font-weight: 800; color: #333; line-height: 1.3; margin-bottom: 4px; }
-        .task-reward { font-size: 11px; font-weight: 800; color: var(--primary-green); }
-        .task-go { background: #f1f5f9; color: #475569; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
-        /* ══════════════════════════
-           FOOTER (FLOATING NAV)
-        ══════════════════════════ */
-        .bottom-footer {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-top: 1px solid #f1f1f1;
-            height: 70px; display: flex; align-items: center; z-index: 999;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
-        }
-        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
-        .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
-
-        .center-nav {
-            width: 55px; height: 55px; background: var(--primary-green);
-            border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
-            display: flex; align-items: center; justify-content: center; color: white;
-            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.4); transition: transform 0.2s;
-        }
-        .center-nav:active { transform: scale(0.9); }
-        .center-nav.active-center {
-            background: var(--deep-green); box-shadow: 0 8px 15px rgba(13, 109, 90, 0.4);
-        }
     </style>
 </head>
-
 <body onclick="playClick()">
 
-    <!-- Audio for Click Effects -->
+    <!-- Audio Effect -->
     <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
 
     <!-- Deep Preloader -->
@@ -202,168 +154,333 @@
         </div>
     </div>
 
-    <!-- HEADER -->
-    <header class="main-header">
-        <div class="user-profile">
-            <!-- Placeholder for user avatar -->
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TaskBazarUser" alt="User" class="user-avatar" id="headerAvatar">
-            <div class="user-info">
-                <h4>হ্যালো, <span id="headerName">ব্যবহারকারী</span>!</h4>
-                <p>স্বাগতম টাস্কবাজারে</p>
+    <!-- Navbar -->
+    <nav class="navbar fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white text-xl font-black shadow-lg">
+                        T
+                    </div>
+                    <span class="font-black text-2xl text-deep tracking-tight">TaskBazar</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#features" class="text-gray-600 hover:text-primary font-bold text-sm transition">ফিচারসমূহ</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-primary font-bold text-sm transition">কিভাবে কাজ করে</a>
+                    
+                    <div id="authButtonsArea" class="flex items-center gap-3">
+                        <a href="login.html" class="text-primary font-bold text-sm px-4 py-2 border-2 border-primary rounded-full hover:bg-primary hover:text-white transition">লগইন</a>
+                        <a href="login.html?mode=register" class="bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 hover:bg-deep transition">একাউন্ট খুলুন</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-primary focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
             </div>
         </div>
-        <a href="#" class="notification-btn" onclick="alert('কোনো নতুন নোটিফিকেশন নেই!')">
-            <i class="fas fa-bell"></i>
-            <div class="notif-badge"></div>
-        </a>
-    </header>
-
-    <!-- MAIN CONTENT -->
-    <main class="container-box">
         
-        <!-- Notice Board Marquee -->
-        <div class="notice-board">
-            <i class="fas fa-bullhorn text-teal-600"></i>
-            <marquee behavior="scroll" direction="left" scrollamount="4">
-                দারুণ খবর! এখন প্রতি রেফারে পাচ্ছেন ৫ টাকা ইনস্ট্যান্ট বোনাস। আজই বন্ধুদের ইনভাইট করুন।
-            </marquee>
-        </div>
-
-        <!-- Dashboard Balance Banner -->
-        <div class="dashboard-banner">
-            <div class="db-top">
-                <div>
-                    <span class="db-label">আপনার মূল ব্যালেন্স</span>
-                    <h2 class="db-amount">৳ ৩৫০.০০</h2>
-                </div>
-                <a href="wallet.html" class="add-money-btn"><i class="fas fa-plus-circle mr-1"></i> ডিপোজিট</a>
-            </div>
-            <div class="db-stats">
-                <div class="stat-item">
-                    <span>আজকের আয়</span>
-                    <h4>৳ ৪৫.০০</h4>
-                </div>
-                <div class="stat-item border-l border-white/20 pl-4">
-                    <span>মোট পয়েন্ট</span>
-                    <h4>২৫০ <i class="fas fa-star text-[10px] text-yellow-300"></i></h4>
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+            <div class="px-4 pt-2 pb-6 space-y-3">
+                <a href="#features" class="block px-3 py-2 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-md">ফিচারসমূহ</a>
+                <a href="#how-it-works" class="block px-3 py-2 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-md">কিভাবে কাজ করে</a>
+                <div class="border-t border-gray-100 pt-3 flex flex-col gap-2" id="mobileAuthButtonsArea">
+                    <a href="login.html" class="block text-center text-primary font-bold px-3 py-2 border border-primary rounded-lg">লগইন</a>
+                    <a href="login.html?mode=register" class="block text-center bg-primary text-white font-bold px-3 py-2 rounded-lg">একাউন্ট খুলুন</a>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <!-- Quick Action Grid -->
-        <div class="quick-grid">
-            <a href="task.html" class="quick-btn">
-                <div class="quick-icon q-task"><i class="fas fa-briefcase"></i></div>
-                <span>কাজ</span>
-            </a>
-            <a href="wallet.html" class="quick-btn">
-                <div class="quick-icon q-wallet"><i class="fas fa-wallet"></i></div>
-                <span>ওয়ালেট</span>
-            </a>
-            <a href="#" class="quick-btn" onclick="alert('রেফার প্রোগ্রাম শীঘ্রই আসছে!')">
-                <div class="quick-icon q-refer"><i class="fas fa-user-plus"></i></div>
-                <span>রেফার</span>
-            </a>
-            <a href="#" class="quick-btn" onclick="alert('হিস্ট্রি পেজ তৈরি হচ্ছে!')">
-                <div class="quick-icon q-history"><i class="fas fa-clock-rotate-left"></i></div>
-                <span>হিস্ট্রি</span>
-            </a>
+    <!-- Hero Section -->
+    <section class="hero-section pt-32 pb-20 md:pt-40 md:pb-32 px-4 relative">
+        <div class="hero-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
         </div>
 
-        <!-- Task Preview Section -->
-        <div class="section-header">
-            <h3>চলমান কাজসমূহ</h3>
-            <a href="task.html">সব দেখুন <i class="fas fa-arrow-right ml-1"></i></a>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center max-w-3xl mx-auto animate__animated animate__fadeInUp">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white font-semibold text-sm mb-6 backdrop-blur-md">
+                    <i class="fas fa-star text-yellow-300"></i> বাংলাদেশের সেরা মাইক্রো-টাস্কিং প্ল্যাটফর্ম
+                </div>
+                
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
+                    অনলাইনে কাজ করুন, <br>
+                    <span class="text-yellow-300">প্রতিদিন পয়েন্ট অর্জন করুন!</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-white/90 font-medium mb-10 leading-relaxed">
+                    TaskBazar-এ ছোট ছোট কাজ করে পয়েন্ট অর্জন করুন এবং সহজেই আপনার ইউটিউব চ্যানেলের প্রচার করুন অথবা সফলভাবে রিওয়ার্ড বুঝে নিন।
+                </p>
+                
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="login.html" class="btn-primary px-8 py-3.5 rounded-full font-extrabold text-base flex items-center justify-center gap-2">
+                        <i class="fas fa-rocket"></i> কাজ শুরু করুন
+                    </a>
+                    <a href="#how-it-works" class="btn-outline px-8 py-3.5 rounded-full font-bold text-base flex items-center justify-center gap-2 backdrop-blur-sm">
+                        <i class="fas fa-play-circle"></i> বিস্তারিত জানুন
+                    </a>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div class="task-list">
+    <!-- Stats Banner (Optional overlapping element) -->
+    <div class="max-w-5xl mx-auto px-4 relative z-20 -mt-10 mb-20 hidden md:block animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 flex justify-around items-center">
+            <div class="text-center">
+                <h3 class="text-3xl font-black text-deep">১০,০০০+</h3>
+                <p class="text-gray-500 font-bold text-sm mt-1 uppercase">সক্রিয় ইউজার</p>
+            </div>
+            <div class="w-px h-12 bg-gray-200"></div>
+            <div class="text-center">
+                <h3 class="text-3xl font-black text-deep">১ লাখ+</h3>
+                <p class="text-gray-500 font-bold text-sm mt-1 uppercase">কাজ সম্পন্ন</p>
+            </div>
+            <div class="w-px h-12 bg-gray-200"></div>
+            <div class="text-center">
+                <h3 class="text-3xl font-black text-deep">১০০%</h3>
+                <p class="text-gray-500 font-bold text-sm mt-1 uppercase">নিরাপদ প্ল্যাটফর্ম</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 md:py-24 bg-bglight px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-black text-gray-800 mb-4">কেন <span class="text-primary">TaskBazar</span> ব্যবহার করবেন?</h2>
+                <p class="text-gray-500 font-medium max-w-2xl mx-auto">আমরা দিচ্ছি সবচেয়ে সহজ এবং বিশ্বস্ত উপায়ে অনলাইনে পয়েন্ট অর্জন করার সুযোগ।</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper bg-green-light">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">সহজ টাস্কসমূহ</h3>
+                    <p class="text-gray-500 font-medium text-sm leading-relaxed">
+                        ইউটিউব ভিডিও দেখা, সাবস্ক্রাইব করা বা ওয়াচ টাইম বাড়ানোর মতো সহজ কাজগুলো করে প্রতিদিন আনলিমিটেড পয়েন্ট অর্জন করুন।
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper bg-blue-light">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">নিজস্ব প্রোমোশন</h3>
+                    <p class="text-gray-500 font-medium text-sm leading-relaxed">
+                        আপনার অর্জিত পয়েন্ট ব্যবহার করে আপনি নিজের ইউটিউব চ্যানেল, ভিডিও বা অন্যান্য সোশ্যাল মিডিয়া প্রোফাইল প্রমোট করতে পারবেন।
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper bg-orange-light">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">রেফার এন্ড আর্ন</h3>
+                    <p class="text-gray-500 font-medium text-sm leading-relaxed">
+                        আপনার বন্ধুদের ইনভাইট করুন। আপনার রেফারে কেউ একাউন্ট খুললে সাথে সাথেই পেয়ে যাবেন স্পেশাল পয়েন্ট বোনাস!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="how-it-works" class="py-16 md:py-24 bg-white px-4 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-black text-gray-800 mb-4">কিভাবে কাজ শুরু করবেন?</h2>
+                <p class="text-gray-500 font-medium">মাত্র ৩টি সহজ ধাপে আপনার যাত্রা শুরু করুন</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4 relative">
+                <!-- Step 1 -->
+                <div class="step-box step-connector">
+                    <div class="step-number">১</div>
+                    <h4 class="text-lg font-extrabold text-gray-800 mb-2">একাউন্ট তৈরি করুন</h4>
+                    <p class="text-gray-500 text-sm font-medium px-4">আপনার ইমেইল দিয়ে সম্পূর্ণ বিনামূল্যে একটি নতুন একাউন্ট খুলে নিন।</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-box step-connector">
+                    <div class="step-number">২</div>
+                    <h4 class="text-lg font-extrabold text-gray-800 mb-2">কাজ সম্পন্ন করুন</h4>
+                    <p class="text-gray-500 text-sm font-medium px-4">ড্যাশবোর্ড থেকে ভিডিও দেখা বা অন্যান্য ছোট ছোট কাজ করে পয়েন্ট জমান।</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-box">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <h4 class="text-lg font-extrabold text-gray-800 mb-2">রিওয়ার্ড নিন</h4>
+                    <p class="text-gray-500 text-sm font-medium px-4">পয়েন্ট ব্যবহার করে নিজের অর্ডার করুন অথবা সুবিধা মতো উইথড্র করে নিন।</p>
+                </div>
+            </div>
             
-            <div class="task-card" onclick="location.href='task.html'">
-                <div class="task-icon yt"><i class="fa-brands fa-youtube"></i></div>
-                <div class="task-details">
-                    <div class="task-title">ইউটিউব ভিডিও দেখুন ও সাবস্ক্রাইব করুন</div>
-                    <div class="task-reward"><i class="fas fa-coins mr-1"></i> ৳ ৩.৫০</div>
-                </div>
-                <div class="task-go"><i class="fas fa-play"></i></div>
+            <div class="text-center mt-12">
+                <a href="login.html" class="inline-block bg-primary hover:bg-deep text-white font-bold px-8 py-3.5 rounded-full shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-1">
+                    এখনি একাউন্ট খুলুন
+                </a>
             </div>
-
-            <div class="task-card" onclick="location.href='task.html'">
-                <div class="task-icon fb"><i class="fa-brands fa-facebook-f"></i></div>
-                <div class="task-details">
-                    <div class="task-title">ফেসবুক পেজে লাইক ও ফলো দিন</div>
-                    <div class="task-reward"><i class="fas fa-coins mr-1"></i> ৳ ২.০০</div>
-                </div>
-                <div class="task-go"><i class="fas fa-play"></i></div>
-            </div>
-
         </div>
-        
-        <div style="height: 30px;"></div>
-    </main>
+    </section>
 
-    <!-- BOTTOM FOOTER -->
-    <footer class="bottom-footer">
-        <div class="flex w-full justify-around items-center px-2">
-            <a href="help.html" class="footer-link"><i class="fas fa-headset"></i>হেল্প</a>
-            <a href="wallet.html" class="footer-link"><i class="fas fa-wallet"></i>ওয়ালেট</a>
-            <!-- Center Home Button (Active) -->
-            <a href="dashboard.html" class="center-nav active-center"><i class="fas fa-house-chimney text-2xl"></i></a>
-            <a href="task.html" class="footer-link"><i class="fas fa-briefcase"></i>কাজ</a>
-            <a href="#" class="footer-link"><i class="fas fa-circle-user"></i>প্রোফাইল</a>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 px-4 border-t-4 border-primary">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+                <!-- Brand Info -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black">T</div>
+                        <span class="font-black text-2xl tracking-tight">TaskBazar</span>
+                    </div>
+                    <p class="text-gray-400 text-sm font-medium leading-relaxed mb-6">
+                        TaskBazar হলো একটি বিশ্বস্ত এক্সচেঞ্জ প্ল্যাটফর্ম যেখানে আপনি কাজ করে পয়েন্ট আয় করতে পারবেন এবং নিজের সোশ্যাল মিডিয়া প্রমোট করতে পারবেন।
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-primary hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-primary hover:text-white transition"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-primary hover:text-white transition"><i class="fab fa-telegram-plane"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 border-b border-gray-700 pb-2 inline-block">প্রয়োজনীয় লিংক</h4>
+                    <ul class="space-y-3">
+                        <li><a href="login.html" class="text-gray-400 hover:text-primary transition font-medium text-sm flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> লগইন করুন</a></li>
+                        <li><a href="login.html?mode=register" class="text-gray-400 hover:text-primary transition font-medium text-sm flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> নতুন একাউন্ট</a></li>
+                        <li><a href="help.html" class="text-gray-400 hover:text-primary transition font-medium text-sm flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> হেল্প ও সাপোর্ট</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 border-b border-gray-700 pb-2 inline-block">যোগাযোগ</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 text-gray-400 text-sm font-medium">
+                            <i class="fas fa-envelope mt-1 text-primary"></i>
+                            <span>support@taskbazar.com</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-400 text-sm font-medium">
+                            <i class="fas fa-headset mt-1 text-primary"></i>
+                            <span>24/7 লাইভ সাপোর্ট (টেলিগ্রাম)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8 text-center flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-xs font-medium">
+                    &copy; ২০২৬ TaskBazar. সর্বস্বত্ব সংরক্ষিত।
+                </p>
+                <div class="flex gap-4 text-xs font-medium text-gray-500">
+                    <a href="#" class="hover:text-primary transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-primary transition">Terms of Service</a>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <!-- Firebase Scripts (Realtime Database only) -->
+    <!-- Firebase Scripts (Only Auth Check for UI changes) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // Your existing Firebase Config
         const firebaseConfig = {
-            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE", // Placeholder
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
             authDomain: "exchange-project-d4028.firebaseapp.com",
             databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "exchange-project-d4028",
             storageBucket: "exchange-project-d4028.firebasestorage.app",
             messagingSenderId: "313976742479",
-            appId: "1:313976742479:web:45951b360d875c4768c03a",
-            measurementId: "G-PQMFYZS958"
+            appId: "1:313976742479:web:45951b360d875c4768c03a"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app); 
 
+        // Check if user is logged in
         onAuthStateChanged(auth, (user) => {
-            if (user) { 
-                console.log("User Logged In (Dashboard)"); 
-                // ইমেইল থেকে নামের প্রথম অংশ বের করে ড্যাশবোর্ডে দেখানো
-                const namePart = user.email.split('@')[0];
-                document.getElementById('headerName').textContent = namePart;
-            } else {
-                // ইউজার লগইন না থাকলে লগইন পেজে পাঠিয়ে দেবে (যদি চান চালু করতে পারেন)
-                // window.location.href = 'login.html';
+            if (user) {
+                // User is signed in, update navbar buttons to show 'Dashboard'
+                const desktopArea = document.getElementById('authButtonsArea');
+                const mobileArea = document.getElementById('mobileAuthButtonsArea');
+                
+                const dashboardBtnHTML = `
+                    <a href="dashboard.html" class="bg-deep text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-lg hover:bg-primary transition flex items-center gap-2">
+                        <i class="fas fa-home"></i> ড্যাশবোর্ড
+                    </a>
+                `;
+
+                if(desktopArea) desktopArea.innerHTML = dashboardBtnHTML;
+                if(mobileArea) mobileArea.innerHTML = `
+                    <a href="dashboard.html" class="block text-center bg-deep text-white font-bold px-3 py-2 rounded-lg"><i class="fas fa-home"></i> ড্যাশবোর্ড</a>
+                `;
             }
         });
     </script>
 
-    <!-- General Scripts -->
+    <!-- General UI Scripts -->
     <script>
-        // 1. Preloader Logic
+        // 1. Preloader Timeout
         window.addEventListener('load', function() {
             const loader = document.getElementById('new-preloader');
             setTimeout(() => {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 500);
-            }, 1000);
+            }, 800);
         });
 
-        // 2. Click Sound Global function
+        // 2. Click Sound Function
         function playClick() {
             const sound = document.getElementById("clickSound");
             sound.currentTime = 0;
             sound.play().catch(() => {});
         }
+
+        // 3. Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent trigger clickSound from instantly closing if bubbling
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking a link inside it
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 10) {
+                nav.classList.add('shadow-md');
+                nav.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                nav.classList.remove('shadow-md');
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
     </script>
 </body>
 </html>
