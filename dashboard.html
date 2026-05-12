@@ -57,10 +57,38 @@
             padding: 0 20px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
         
-        .user-profile { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary-green); object-fit: cover; }
-        .user-info h4 { margin: 0; font-size: 14px; font-weight: 800; color: #2d3748; }
-        .user-info p { margin: 0; font-size: 11px; font-weight: 600; color: #718096; }
+        /* Updated Header Styles for Logo */
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* লোগো এবং টেক্সটের মাঝের দূরত্ব */
+        }
+        .header-logo img {
+            height: 52px; /* লোগোর সাইজ বাড়ানো হয়েছে */
+            width: 52px;
+            object-fit: contain;
+            transform: scale(1.2); /* ছবির ভেতরের অতিরিক্ত সাদা অংশ কমানোর জন্য একটু জুম করা হয়েছে */
+            transform-origin: left center;
+        }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--deep-green);
+            letter-spacing: -0.5px;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar { 
+            width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary-green); object-fit: cover; cursor: pointer; transition: 0.2s;
+        }
+        .user-avatar:active {
+            transform: scale(0.9);
+        }
 
         .notification-btn {
             position: relative; width: 40px; height: 40px; border-radius: 12px;
@@ -200,18 +228,24 @@
         </div>
     </div>
 
+    <!-- Updated Header Section -->
     <header class="main-header">
-        <div class="user-profile">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TaskBazarUser" alt="User" class="user-avatar" id="headerAvatar">
-            <div class="user-info">
-                <h4>হ্যালো, <span id="headerName">ব্যবহারকারী</span>!</h4>
-                <p>স্বাগতম টাস্কবাজারে</p>
-            </div>
+        <div class="header-logo">
+            <img src="x.png" alt="TaskBazar Logo">
+            <!-- লোগোকে পূর্ণতা দিতে টেক্সট যুক্ত করা হয়েছে -->
+            <span class="logo-text">TaskBazar</span>
         </div>
-        <a href="#" class="notification-btn" onclick="alert('কোনো নতুন নোটিফিকেশন নেই!')">
-            <i class="fas fa-bell"></i>
-            <div class="notif-badge"></div>
-        </a>
+        
+        <div class="header-right">
+            <!-- জাভাস্ক্রিপ্ট এরর এড়াতে আইডিটি রাখা হয়েছে, তবে ডিসপ্লে নান করা হয়েছে -->
+            <span id="headerName" style="display: none;">ব্যবহারকারী</span>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TaskBazarUser" alt="User profile" class="user-avatar" id="headerAvatar" onclick="location.href='profile.html'">
+            
+            <a href="#" class="notification-btn" onclick="alert('কোনো নতুন নোটিফিকেশন নেই!')">
+                <i class="fas fa-bell"></i>
+                <div class="notif-badge"></div>
+            </a>
+        </div>
     </header>
 
     <main class="container-box">
@@ -251,7 +285,7 @@
                 <div class="quick-icon q-wallet" style="background: linear-gradient(135deg, #10b981, #047857);"><i class="fas fa-user"></i></div>
                 <span>প্রোফাইল</span>
             </a>
-            <a href="#" class="quick-btn" onclick="alert('রেফার প্রোগ্রাম শীঘ্রই আসছে!')">
+            <a href="refer.html" class="quick-btn">
                 <div class="quick-icon q-refer"><i class="fas fa-user-plus"></i></div>
                 <span>রেফার</span>
             </a>
@@ -284,7 +318,6 @@
     </footer>
 
     <script type="module">
-        // update ফাংশনটি ইম্পোর্ট করা হলো
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
@@ -303,13 +336,11 @@
         const auth = getAuth(app);
         const db = getDatabase(app); 
 
-        // ইংরেজি সংখ্যাকে বাংলায় রূপান্তর করার ফাংশন
         function convertToBanglaNumber(num) {
             const banglaDigits = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
             return String(num).replace(/[0-9]/g, x => banglaDigits[x]);
         }
 
-        // ১. ডাইনামিক নোটিশ লোড করা
         const noticeRef = ref(db, `settings/notice`);
         onValue(noticeRef, (snapshot) => {
             const noticeEl = document.getElementById('dynamicNotice');
@@ -320,7 +351,6 @@
             }
         });
 
-        // ২. ডাইনামিক টাস্ক লোড করা (সর্বোচ্চ ২টি প্রিভিউ হিসেবে)
         const tasksRef = ref(db, 'tasks');
         onValue(tasksRef, (snapshot) => {
             const container = document.getElementById('dashboardTaskList');
@@ -329,7 +359,7 @@
             if(snapshot.exists()) {
                 let count = 0;
                 snapshot.forEach((childSnapshot) => {
-                    if(count >= 2) return; // শুধু প্রথম ২টি কাজ দেখাবে
+                    if(count >= 2) return;
                     const task = childSnapshot.val();
 
                     let iconClass = task.platform === 'youtube' ? 'yt fa-brands fa-youtube' : 'fb fa-brands fa-facebook-f';
@@ -352,7 +382,6 @@
             }
         });
 
-        // ৩. ইউজারের ডাটা লোড করা
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 const userProfileRef = ref(db, `users/${user.uid}/profile`);
@@ -361,15 +390,12 @@
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         
-                        // নাম সেট করা
                         const namePart = data.name || user.email.split('@')[0];
                         document.getElementById('headerName').textContent = namePart;
 
-                        // প্রোফাইল পিকচার (Avatar) সেট করা 
                         const avatarSeed = data.avatarSeed || "TaskBazarUser";
                         document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
 
-                        // ব্যালেন্স সেট করা
                         const totalPoints = data.points || 0;
                         const todayPoints = data.todayPoints || 0;
                         const totalTasks = data.completedTasks || 0;
@@ -378,7 +404,6 @@
                         document.getElementById('todayPoints').textContent = `${convertToBanglaNumber(todayPoints)} পয়েন্ট`;
                         document.getElementById('totalTasks').innerHTML = `${convertToBanglaNumber(totalTasks)} টি <i class="fas fa-check-circle text-[10px] text-white/80"></i>`;
                     } else {
-                        // নতুন একাউন্ট
                         document.getElementById('headerName').textContent = user.email.split('@')[0];
                         document.getElementById('totalPoints').innerHTML = `০ <span>পয়েন্ট</span>`;
                         document.getElementById('todayPoints').textContent = `০ পয়েন্ট`;
@@ -386,18 +411,15 @@
                     }
                 });
 
-                // ---- নতুন সিকিউরিটি সিস্টেম: অ্যাপ লগইন রিকোয়েস্ট চেক করা ----
                 const loginReqRef = ref(db, `app_login_requests/${user.uid}`);
                 onValue(loginReqRef, (snapshot) => {
                     if (snapshot.exists() && snapshot.val().status === "pending") {
                         const correctCode = snapshot.val().code;
                         
-                        // ব্রাউজারে একটি সুন্দর পপআপ দেখাবে
                         setTimeout(() => {
                             let enteredCode = prompt("আপনার অ্যাকাউন্ট দিয়ে অ্যাপে লগইনের চেষ্টা করা হচ্ছে!\n\nদয়া করে অ্যাপের স্ক্রিনে দেখানো ৪ ডিজিটের ভেরিফিকেশন কোডটি এখানে লিখুন:");
                             
                             if (enteredCode === correctCode) {
-                                // কোড মিললে ফায়ারবেসে verified লিখে দেবে
                                 update(ref(db, `app_login_requests/${user.uid}`), { status: "verified" });
                                 alert("সফলভাবে ভেরিফাই হয়েছে! আপনার অ্যাপটি এখন অটোমেটিক চালু হয়ে যাবে।");
                             } else if (enteredCode !== null) {
@@ -406,7 +428,6 @@
                         }, 1000); 
                     }
                 });
-                // -------------------------------------------------------------
 
             } else {
                 window.location.href = "login.html";

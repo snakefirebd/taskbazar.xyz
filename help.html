@@ -5,7 +5,6 @@
     <title>TaskBazar - হেল্প ও সাপোর্ট</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- Fonts and Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"> </script>
@@ -48,9 +47,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* ══════════════════════════
-           HEADER
-        ══════════════════════════ */
+        /* HEADER */
         .main-header {
             background: white; border-bottom: 1px solid #f1f1f1;
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
@@ -65,12 +62,9 @@
         }
         .back-btn:active { transform: scale(0.9); }
 
-        /* ══════════════════════════
-           MAIN CONTENT - HELP
-        ══════════════════════════ */
+        /* MAIN CONTENT */
         .container-box { max-width: 500px; margin: 0 auto; padding: 10px 15px; }
 
-        /* Help Banner */
         .help-banner {
             background: linear-gradient(135deg, var(--primary-green), var(--deep-green));
             border-radius: 20px; padding: 30px 20px; color: white; margin-bottom: 25px;
@@ -85,13 +79,9 @@
         .help-banner h2 { font-size: 22px; font-weight: 800; margin: 0 0 5px 0; }
         .help-banner p { font-size: 13px; font-weight: 600; opacity: 0.9; margin: 0; }
 
-        /* Section Title */
         .section-title { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 12px; animation: fadeUp .5s .1s ease both; }
 
-        /* Support Cards Container */
-        .support-grid {
-            display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px;
-        }
+        .support-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px; }
         
         .support-card {
             background: #fff; padding: 16px; border-radius: 16px; 
@@ -100,23 +90,11 @@
             text-decoration: none; color: #333; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
             animation: fadeUp .5s both;
         }
-        .support-card:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-
-        .support-card:nth-child(1) { animation-delay: 0.15s; }
-        .support-card:nth-child(2) { animation-delay: 0.20s; }
-        .support-card:nth-child(3) { animation-delay: 0.25s; }
-        .support-card:nth-child(4) { animation-delay: 0.30s; }
-        .support-card:nth-child(5) { animation-delay: 0.35s; }
+        .support-card:active { transform: scale(0.97); }
 
         .card-left { display: flex; align-items: center; gap: 15px; }
+        .icon-box { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; }
         
-        .icon-box {
-            width: 48px; height: 48px; border-radius: 14px; 
-            display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;
-            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1);
-        }
-        
-        /* Brand Colors */
         .bg-livechat { background: linear-gradient(135deg, var(--primary-green), var(--deep-green)); }
         .bg-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); }
         .bg-telegram { background: linear-gradient(135deg, #0088cc, #005a88); }
@@ -125,41 +103,88 @@
 
         .card-info h4 { margin: 0 0 3px 0; font-size: 15px; font-weight: 800; }
         .card-info p { margin: 0; font-size: 11px; font-weight: 600; color: #777; }
-        
         .card-arrow { color: #ccc; font-size: 18px; transition: 0.3s; }
-        .support-card:hover .card-arrow { color: var(--primary-green); transform: translateX(3px); }
 
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-        /* ══════════════════════════
-           FOOTER (FLOATING NAV)
-        ══════════════════════════ */
+        /* ─── LIVE CHAT MODAL (Premium Glass Style) ─── */
+        .chat-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s ease;
+        }
+        .chat-overlay.active { opacity: 1; visibility: visible; }
+        
+        .chat-modal {
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 80vh; max-height: 600px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
+            z-index: 2001; display: flex; flex-direction: column;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+        }
+        @media(min-width: 500px) {
+            .chat-modal { width: 400px; left: 50%; transform: translateX(-50%); border-radius: 25px 25px 0 0; }
+        }
+        .chat-modal.active { bottom: 0; }
+        
+        .chat-header-bar {
+            padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex;
+            justify-content: space-between; align-items: center;
+            background: white; border-top-left-radius: 25px; border-top-right-radius: 25px;
+        }
+        .chat-header-bar h3 { margin: 0; font-size: 16px; font-weight: 800; color: var(--deep-green); display: flex; align-items: center; gap: 8px;}
+        .chat-header-bar h3 .online-dot { width: 8px; height: 8px; background: #25D366; border-radius: 50%; box-shadow: 0 0 5px rgba(37, 211, 102, 0.5); }
+        .close-chat { background: #f8fafa; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 14px; color: #444; transition: 0.2s;}
+        .close-chat:active { transform: scale(0.9); }
+        
+        .chat-messages {
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+            background: #fdfdfd; scroll-behavior: smooth;
+        }
+        .msg-bubble { padding: 10px 15px; border-radius: 18px; font-size: 14px; max-width: 80%; line-height: 1.4; word-wrap: break-word; }
+        .msg-bubble.sent { background: var(--primary-green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(26,179,148,0.2);}
+        .msg-bubble.received { background: #f1f5f4; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(0,0,0,0.02);}
+        
+        .chat-input-area {
+            padding: 15px; background: white; border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex; gap: 10px; align-items: center;
+        }
+        .chat-input {
+            flex: 1; padding: 12px 20px; border: 1px solid #eaeaea; border-radius: 25px; 
+            outline: none; font-size: 14px; background: #f8fafa; transition: border 0.3s;
+        }
+        .chat-input:focus { border-color: var(--primary-green); }
+        .chat-send-btn {
+            background: var(--primary-green); color: white; border: none; width: 45px; height: 45px; 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(26,179,148,0.3);
+        }
+        .chat-send-btn:active { transform: scale(0.9); }
+
+        /* FOOTER */
         .bottom-footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: white; border-top: 1px solid #f1f1f1;
             height: 70px; display: flex; align-items: center; z-index: 999;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
         }
-        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; text-transform: uppercase; transition: 0.3s; }
+        .footer-link { text-decoration: none; color: #9ca3af; font-size: 11px; font-weight: 700; text-align: center; flex: 1; }
         .footer-link i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .footer-link.active, .footer-link:hover { color: var(--primary-green); }
+        .footer-link.active { color: var(--primary-green); }
 
         .center-nav {
             width: 55px; height: 55px; background: var(--primary-green);
             border-radius: 18px; margin-top: -35px; border: 5px solid var(--bg-color);
             display: flex; align-items: center; justify-content: center; color: white;
-            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3); transition: transform 0.2s;
+            box-shadow: 0 8px 15px rgba(26, 179, 148, 0.3);
         }
-        .center-nav:active { transform: scale(0.9); }
     </style>
 </head>
 
 <body onclick="playClick()">
 
-    <!-- Audio for Click Effects -->
     <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
 
-    <!-- Deep Preloader -->
     <div id="new-preloader">
         <div class="loader-content">
             <div class="spinner"></div>
@@ -167,19 +192,13 @@
         </div>
     </div>
 
-    <!-- HEADER -->
     <header class="main-header">
-        <a href="dashboard.html" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-        </a>
+        <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <span class="text-xl font-black text-gray-800 tracking-tighter">সাপোর্ট সেন্টার</span>
-        <div style="width: 40px;"></div> <!-- Placeholder to balance header -->
+        <div style="width: 40px;"></div>
     </header>
 
-    <!-- MAIN CONTENT -->
     <main class="container-box">
-        
-        <!-- Banner -->
         <div class="help-banner">
             <h2>আমরা আছি আপনার পাশে</h2>
             <p>যেকোনো সমস্যা সমাধানে আমাদের সাথে যোগাযোগ করুন</p>
@@ -187,11 +206,8 @@
 
         <h3 class="section-title">যোগাযোগের মাধ্যম সমূহ</h3>
         
-        <!-- Support Options Grid -->
         <div class="support-grid">
-            
-            <!-- Live Chat -->
-            <div class="support-card" onclick="openLiveChat()">
+            <div class="support-card" onclick="window.openLiveChat()">
                 <div class="card-left">
                     <div class="icon-box bg-livechat"><i class="fas fa-headset"></i></div>
                     <div class="card-info">
@@ -202,8 +218,7 @@
                 <i class="fas fa-chevron-right card-arrow"></i>
             </div>
 
-            <!-- WhatsApp -->
-            <div class="support-card" onclick="openLink('https://wa.me/8801XXXXXXXXX')">
+            <div class="support-card" onclick="openLink('https://chat.whatsapp.com/EAmxyszThlUGsGaFCXh2Wu')">
                 <div class="card-left">
                     <div class="icon-box bg-whatsapp"><i class="fab fa-whatsapp"></i></div>
                     <div class="card-info">
@@ -214,8 +229,7 @@
                 <i class="fas fa-chevron-right card-arrow"></i>
             </div>
 
-            <!-- Telegram -->
-            <div class="support-card" onclick="openLink('https://t.me/your_telegram_channel')">
+            <div class="support-card" onclick="openLink('https://t.me/TaskBazarbd')">
                 <div class="card-left">
                     <div class="icon-box bg-telegram"><i class="fab fa-telegram-plane"></i></div>
                     <div class="card-info">
@@ -225,37 +239,24 @@
                 </div>
                 <i class="fas fa-chevron-right card-arrow"></i>
             </div>
-
-            <!-- Facebook -->
-            <div class="support-card" onclick="openLink('https://facebook.com/your_page_link')">
-                <div class="card-left">
-                    <div class="icon-box bg-facebook"><i class="fab fa-facebook-f"></i></div>
-                    <div class="card-info">
-                        <h4>ফেসবুক পেজ</h4>
-                        <p>অফিসিয়াল পেজে লাইক দিয়ে পাশে থাকুন</p>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-right card-arrow"></i>
-            </div>
-
-            <!-- YouTube -->
-            <div class="support-card" onclick="openLink('https://youtube.com/your_channel')">
-                <div class="card-left">
-                    <div class="icon-box bg-youtube"><i class="fab fa-youtube"></i></div>
-                    <div class="card-info">
-                        <h4>ইউটিউব চ্যানেল</h4>
-                        <p>কাজের নিয়ম ও টিউটোরিয়াল দেখুন</p>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-right card-arrow"></i>
-            </div>
-
         </div>
-        
-        <div style="height: 30px;"></div>
     </main>
 
-    <!-- BOTTOM FOOTER -->
+    <div class="chat-overlay" id="chatOverlay" onclick="window.closeLiveChat()"></div>
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header-bar">
+            <h3><div class="online-dot"></div> লাইভ সাপোর্ট</h3>
+            <button class="close-chat" onclick="window.closeLiveChat()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg-bubble received">আসসালামু আলাইকুম! TaskBazar সাপোর্টে আপনাকে স্বাগতম। আপনাকে কীভাবে সাহায্য করতে পারি?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" class="chat-input" placeholder="মেসেজ লিখুন..." onkeypress="handleEnter(event)">
+            <button class="chat-send-btn" onclick="window.sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <footer class="bottom-footer">
         <div class="flex w-full justify-around items-center px-2">
             <a href="help.html" class="footer-link active"><i class="fas fa-headset"></i>হেল্প</a>
@@ -266,60 +267,108 @@
         </div>
     </footer>
 
-    <!-- Firebase Scripts (Realtime Database only, as requested) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE", // (Dummy placeholder based on your keys)
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
             authDomain: "exchange-project-d4028.firebaseapp.com",
             databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "exchange-project-d4028",
             storageBucket: "exchange-project-d4028.firebasestorage.app",
             messagingSenderId: "313976742479",
-            appId: "1:313976742479:web:45951b360d875c4768c03a",
-            measurementId: "G-PQMFYZS958"
+            appId: "1:313976742479:web:45951b360d875c4768c03a"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app); 
 
+        // Live Chat Logic
+        let currentUserId = "guest_user_" + Math.floor(Math.random() * 10000); 
+        let isChatLoaded = false;
+        const chatMessages = document.getElementById('chatMessages');
+
         onAuthStateChanged(auth, (user) => {
-            if (user) { console.log("User Logged In (Help Page)"); }
+            if (user) { currentUserId = user.uid; }
         });
+
+        // Load Messages from Realtime Database
+        function loadChatMessages() {
+            if(isChatLoaded) return;
+            const messagesRef = ref(db, `support_chats/${currentUserId}/messages`);
+            
+            onChildAdded(messagesRef, (snapshot) => {
+                const msgData = snapshot.val();
+                appendMessage(msgData.text, msgData.sender);
+            });
+            isChatLoaded = true;
+        }
+
+        // Append to UI
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg-bubble ${sender === 'user' ? 'sent' : 'received'}`;
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // Expose functions to global window object
+        window.openLiveChat = function() {
+            document.getElementById('chatOverlay').classList.add('active');
+            document.getElementById('chatModal').classList.add('active');
+            loadChatMessages();
+        }
+
+        window.closeLiveChat = function() {
+            document.getElementById('chatOverlay').classList.remove('active');
+            document.getElementById('chatModal').classList.remove('active');
+        }
+
+        window.sendChatMsg = function() {
+            const inputField = document.getElementById('chatInput');
+            const messageText = inputField.value.trim();
+            if (messageText === "") return;
+
+            inputField.value = ""; // Clear input
+            
+            // Push to Realtime Database
+            const messagesRef = ref(db, `support_chats/${currentUserId}/messages`);
+            push(messagesRef, {
+                text: messageText,
+                sender: 'user',
+                timestamp: serverTimestamp()
+            });
+        }
     </script>
 
-    <!-- General Scripts -->
     <script>
-        // 1. Preloader Logic
+        // Preloader
         window.addEventListener('load', function() {
-            const loader = document.getElementById('new-preloader');
             setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
+                document.getElementById('new-preloader').style.display = 'none';
             }, 1000);
         });
 
-        // 2. Click Sound
+        // Audio
         function playClick() {
             const sound = document.getElementById("clickSound");
             sound.currentTime = 0;
             sound.play().catch(() => {});
         }
 
-        // 3. Actions for Cards
         function openLink(url) {
-            // ডামি এলার্ট (আসল ব্যবহারের সময় window.open(url, '_blank') কাজ করবে)
-            alert(`আপনাকে এই লিংকে রিডাইরেক্ট করা হচ্ছে:\n\n${url}`);
-            // window.open(url, '_blank'); 
+            window.open(url, '_blank'); 
         }
 
-        function openLiveChat() {
-            // এখানে Tawk.to বা অন্যান্য চ্যাট উইজেট এর কোড কল করা যাবে
-            alert("লাইভ চ্যাট উইন্ডো ওপেন হচ্ছে... \nআমাদের একজন এজেন্ট শীঘ্রই যুক্ত হবেন।");
+        // Handle Enter key for Chat
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                window.sendChatMsg();
+            }
         }
     </script>
 </body>
