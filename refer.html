@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -174,7 +173,7 @@
         <!-- Copy Link Section -->
         <div class="link-card">
             <h3><i class="fas fa-link text-indigo-500"></i> আপনার রেফারেল লিংক</h3>
-            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অথবা বন্ধুদের শুধু আপনার কোডটি দিন: <strong id="myReferCodeText" class="text-indigo-600">...</strong></p>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অথবা বন্ধুদের শুধু আপনার কোডটি দিন: <strong id="myReferCodeText" class="text-indigo-600 text-lg">...</strong></p>
             <div class="link-input-group">
                 <input type="text" id="referLinkInput" class="link-input" value="লোড হচ্ছে..." readonly>
                 <button class="btn-copy" id="copyBtn" onclick="copyReferLink()">কপি করুন</button>
@@ -184,9 +183,9 @@
         <!-- Redeem Code Section -->
         <div class="link-card" id="redeemSection" style="display: none;">
             <h3><i class="fas fa-hand-holding-dollar text-yellow-500"></i> রেফার কোড ব্যবহার করুন</h3>
-            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অন্য কারো রেফার কোড থাকলে এখানে বসিয়ে ৫০ পয়েন্ট বোনাস জিতে নিন!</p>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">অন্য কারো ৪ সংখ্যার রেফার কোড থাকলে এখানে বসিয়ে ৫০ পয়েন্ট বোনাস জিতে নিন!</p>
             <div class="link-input-group">
-                <input type="text" id="redeemInput" class="link-input" placeholder="এখানে রেফার কোড (UID) লিখুন">
+                <input type="number" id="redeemInput" class="link-input" placeholder="এখানে ৪ সংখ্যার রেফার কোড লিখুন">
                 <button class="btn-copy btn-redeem" id="redeemBtn" onclick="redeemReferralCode()">ক্লেইম</button>
             </div>
             <p id="redeemStatus" style="font-size: 11px; margin-top: 8px; font-weight: 600; text-align: center; display: none;"></p>
@@ -236,7 +235,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, onValue, get, child, update } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        // ডাটাবেজ কোয়েরি করার ফাংশনগুলো ইম্পোর্ট করা হলো 
+        import { getDatabase, ref, onValue, get, child, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
@@ -258,19 +258,32 @@
             return String(num).replace(/[0-9]/g, x => banglaDigits[x]);
         }
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) { 
-                // ইউজারের ইউনিক রেফারেল লিংক তৈরি করা হচ্ছে (বেস ইউআরএল + ?ref=UID)
-                const baseUrl = window.location.origin + window.location.pathname.replace('refer.html', 'login.html');
-                const referLink = `${baseUrl}?ref=${user.uid}`;
-                document.getElementById('referLinkInput').value = referLink;
-                document.getElementById('myReferCodeText').innerText = user.uid;
-
-                // ডাটাবেজ থেকে ইউজারের রেফার ডাটা ফেচ করা
                 const profileRef = ref(db, `users/${user.uid}/profile`);
-                onValue(profileRef, (snapshot) => {
-                    if(snapshot.exists()) {
-                        const data = snapshot.val();
+                
+                // প্রথমে চেক করবো ইউজারের আগে থেকে ৪ সংখ্যার কোড আছে কিনা
+                const snapshot = await get(profileRef);
+                let userData = snapshot.exists() ? snapshot.val() : {};
+                
+                let myReferCode = userData.referCode;
+
+                // যদি কোড না থাকে, তাহলে নতুন ৪ সংখ্যার কোড (১০০০ থেকে ৯৯৯৯ এর মধ্যে) জেনারেট করবো
+                if (!myReferCode) {
+                    myReferCode = Math.floor(1000 + Math.random() * 9000).toString();
+                    await update(profileRef, { referCode: myReferCode });
+                }
+
+                // ইউজারের ইউনিক রেফারেল লিংক আপডেট করা হচ্ছে
+                const baseUrl = window.location.origin + window.location.pathname.replace('refer.html', 'login.html');
+                const referLink = `${baseUrl}?ref=${myReferCode}`;
+                document.getElementById('referLinkInput').value = referLink;
+                document.getElementById('myReferCodeText').innerText = myReferCode;
+
+                // ডাটাবেজ থেকে ইউজারের অন্যান্য ডাটা লাইভ আপডেট করার জন্য লিসেনার
+                onValue(profileRef, (snap) => {
+                    if(snap.exists()) {
+                        const data = snap.val();
                         const totalRefers = data.totalRefers || 0;
                         const referBonus = data.referBonus || 0;
                         
@@ -284,7 +297,6 @@
                             document.getElementById('redeemSection').style.display = 'none';
                         }
                     } else {
-                        // প্রোফাইল ডাটা না থাকলে রিডিম বক্স দেখান
                         document.getElementById('redeemSection').style.display = 'block';
                     }
                 });
@@ -317,7 +329,7 @@
             });
         }
 
-        // রেফার কোড রিডিম করার ফাংশন
+        // ৪ সংখ্যার রেফার কোড রিডিম করার ফাংশন
         window.redeemReferralCode = async function() {
             const refCode = document.getElementById('redeemInput').value.trim();
             const statusMsg = document.getElementById('redeemStatus');
@@ -327,13 +339,8 @@
             statusMsg.style.display = 'block';
 
             if (!currentUser) return;
-            if (!refCode) {
-                statusMsg.innerText = "দয়া করে একটি সঠিক রেফার কোড দিন।";
-                statusMsg.style.color = "red";
-                return;
-            }
-            if (refCode === currentUser.uid) {
-                statusMsg.innerText = "আপনি নিজের কোড নিজেই ব্যবহার করতে পারবেন না।";
+            if (!refCode || refCode.length !== 4) {
+                statusMsg.innerText = "দয়া করে সঠিক ৪ সংখ্যার একটি রেফার কোড দিন।";
                 statusMsg.style.color = "red";
                 return;
             }
@@ -341,12 +348,25 @@
             redeemBtn.disabled = true;
             redeemBtn.innerHTML = "অপেক্ষা করুন...";
 
-            const dbRef = ref(db);
-
             try {
-                // ১. চেক করা রেফারার এর অস্তিত্ব আছে কিনা
-                const referrerSnapshot = await get(child(dbRef, `users/${refCode}/profile`));
-                if (!referrerSnapshot.exists()) {
+                // ১. কারেন্ট ইউজারের প্রোফাইল ডাটা চেক করা
+                const userSnapshot = await get(child(ref(db), `users/${currentUser.uid}/profile`));
+                const currentUserData = userSnapshot.val() || {};
+
+                if (currentUserData.hasRedeemedReferral) {
+                    statusMsg.innerText = "আপনি ইতিমধ্যে একটি রেফার কোড ব্যবহার করেছেন।";
+                    statusMsg.style.color = "red";
+                    redeemBtn.disabled = false;
+                    redeemBtn.innerHTML = "ক্লেইম";
+                    return;
+                }
+
+                // ২. ডাটাবেজ কোয়েরি করে বের করা কার প্রোফাইলে এই ৪ সংখ্যার কোডটি আছে
+                const usersRef = ref(db, 'users');
+                const codeQuery = query(usersRef, orderByChild('profile/referCode'), equalTo(refCode));
+                const querySnapshot = await get(codeQuery);
+
+                if (!querySnapshot.exists()) {
                     statusMsg.innerText = "ভুল রেফারেল কোড! কোডটি পুনরায় চেক করুন।";
                     statusMsg.style.color = "red";
                     redeemBtn.disabled = false;
@@ -354,28 +374,34 @@
                     return;
                 }
 
-                // ২. কারেন্ট ইউজারের প্রোফাইল ডাটা ফেচ করা
-                const userSnapshot = await get(child(dbRef, `users/${currentUser.uid}/profile`));
-                const currentUserData = userSnapshot.val() || {};
+                // ৩. যার কোড তার UID এবং ডাটা বের করা
+                let referrerUid = null;
+                let referrerData = null;
 
-                if (currentUserData.hasRedeemedReferral) {
-                    statusMsg.innerText = "আপনি ইতিমধ্যে একটি রেফার কোড ব্যবহার করেছেন।";
+                querySnapshot.forEach((childSnapshot) => {
+                    referrerUid = childSnapshot.key;
+                    referrerData = childSnapshot.val().profile || {};
+                });
+
+                if (referrerUid === currentUser.uid) {
+                    statusMsg.innerText = "আপনি নিজের কোড নিজেই ব্যবহার করতে পারবেন না।";
                     statusMsg.style.color = "red";
+                    redeemBtn.disabled = false;
+                    redeemBtn.innerHTML = "ক্লেইম";
                     return;
                 }
 
-                // ৩. উভয়কে বোনাস দেওয়া (এটমিক আপডেট)
-                const referrerData = referrerSnapshot.val();
+                // ৪. উভয়কে বোনাস দেওয়া (এটমিক আপডেট)
                 const updates = {};
                 
                 // রেফারারকে ৫০ পয়েন্ট দেওয়া এবং রেফার সংখ্যা বাড়ানো
-                updates[`users/${refCode}/profile/totalRefers`] = (referrerData.totalRefers || 0) + 1;
-                updates[`users/${refCode}/profile/referBonus`] = (referrerData.referBonus || 0) + 50;
-                updates[`users/${refCode}/profile/balance`] = (referrerData.balance || 0) + 50;
+                updates[`users/${referrerUid}/profile/totalRefers`] = (referrerData.totalRefers || 0) + 1;
+                updates[`users/${referrerUid}/profile/referBonus`] = (referrerData.referBonus || 0) + 50;
+                updates[`users/${referrerUid}/profile/balance`] = (referrerData.balance || 0) + 50;
 
                 // নতুন ইউজারকে (কারেন্ট ইউজার) ৫০ পয়েন্ট বোনাস দেওয়া এবং স্ট্যাটাস আপডেট করা
                 updates[`users/${currentUser.uid}/profile/hasRedeemedReferral`] = true;
-                updates[`users/${currentUser.uid}/profile/referredBy`] = refCode;
+                updates[`users/${currentUser.uid}/profile/referredBy`] = referrerUid;
                 updates[`users/${currentUser.uid}/profile/balance`] = (currentUserData.balance || 0) + 50;
 
                 await update(ref(db), updates);
@@ -412,5 +438,3 @@
     </script>
 </body>
 </html>
-
-```
