@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TikTok Follow Matcher</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
@@ -30,29 +28,24 @@
 </head>
 <body class="text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-  <!-- গ্লোবাল পয়েন্ট কাউন্টার -->
   <div class="absolute top-4 right-4 glass px-4 py-2 rounded-full flex items-center gap-2 text-pink-400 font-bold shadow-lg">
     <i class="fa-solid fa-coins"></i>
-    <span>পয়েন্ট: <span id="my-points">১০</span></span>
+    <span>পয়েন্ট: <span id="my-points">০</span></span>
   </div>
 
-  <!-- মেইন কন্টেইনার -->
   <div class="w-full max-w-md glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
     
-    <!-- ব্যাকগ্রাউন্ড গ্লো ইফেক্ট -->
     <div class="absolute -top-10 -left-10 w-32 h-32 bg-pink-500 rounded-full blur-[80px] opacity-30"></div>
     <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-purple-500 rounded-full blur-[80px] opacity-30"></div>
 
-    <!-- লোগো এবং টাইটেল -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-600 shadow-lg text-2xl mb-3">
         <i class="fa-brands fa-tiktok text-white animate-bounce"></i>
       </div>
       <h1 class="text-2xl font-black bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">TikTok Follow Matcher</h1>
-      <p class="text-xs text-gray-400 mt-1">ফলো করুন, পয়েন্ট জিতুন!</p>
+      <p class="text-xs text-gray-400 mt-1">একে অপরকে ফলো করুন এবং পয়েন্ট জিতুন!</p>
     </div>
 
-    <!-- স্ক্রিন ১: লগইন / প্রোফাইল সেটআপ -->
     <div id="screen-login" class="space-y-4">
       <div class="space-y-2">
         <label class="text-sm font-medium text-gray-300 block">আপনার টিকটক ইউজারনেম দিন</label>
@@ -61,12 +54,11 @@
           <input type="text" id="tiktok-input" placeholder="username" class="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-9 pr-4 text-white focus:outline-none focus:border-pink-500 transition-all text-sm">
         </div>
       </div>
-      <button onclick="loginUser()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 rounded-xl glow-btn cursor-pointer">
+      <button id="login-btn" onclick="loginUser()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 rounded-xl glow-btn cursor-pointer">
         এগিয়ে যান <i class="fa-solid fa-arrow-right ml-1"></i>
       </button>
     </div>
 
-    <!-- স্ক্রিন ২: ম্যাচ মেকিং (প্লে বাটন) -->
     <div id="screen-lobby" class="hidden text-center space-y-6 py-4">
       <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
         <p class="text-sm text-gray-400">স্বাগতম, <span id="display-name" class="text-white font-semibold"></span></p>
@@ -78,24 +70,21 @@
       <p class="text-xs text-gray-500 animate-pulse hidden" id="searching-text">অন্য প্লেয়ার খোঁজা হচ্ছে...</p>
     </div>
 
-    <!-- স্ক্রิน ৩: লাইভ ম্যাচ এরিয়া -->
     <div id="screen-match" class="hidden space-y-6">
       
-      <!-- প্লেয়ার কার্ডস -->
       <div class="grid grid-cols-2 gap-4 text-center">
         <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-          <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">আপনি</div>
+          <div class="text-xs text-gray-400 uppercase tracking-wider mb-1" id="p1-label">PLAYER 1</div>
           <div class="font-bold text-pink-400 truncate" id="p1-name">@you</div>
         </div>
         <div class="p-4 bg-pink-500/10 rounded-2xl border border-pink-500/20">
-          <div class="text-xs text-pink-300 uppercase tracking-wider mb-1">বিপক্ষ</div>
+          <div class="text-xs text-pink-300 uppercase tracking-wider mb-1" id="p2-label">PLAYER 2</div>
           <div class="font-bold text-purple-400 truncate" id="p2-name">@opponent</div>
         </div>
       </div>
 
-      <!-- টিকটক ভিজিট বাটন -->
       <div class="text-center py-2" id="visit-action-area">
-        <p class="text-xs text-gray-400 mb-2">নিচের বাটনে ক্লিক করে তাকে ফলো করুন:</p>
+        <p class="text-xs text-gray-400 mb-2">নিচের বাটনে ক্লিক করে বিপক্ষকে ফলো করুন:</p>
         <a id="tiktok-link" href="#" target="_blank" class="inline-flex items-center gap-2 bg-black px-6 py-3 rounded-xl font-bold text-sm border border-white/20 hover:border-pink-500 transition-all">
           <i class="fa-brands fa-tiktok text-pink-500"></i> প্রোফাইল ভিজিট করুন
         </a>
@@ -103,66 +92,54 @@
 
       <div class="border-t border-white/5 my-4"></div>
 
-      <!-- অ্যাকশন বাটন গ্রুপ -->
-      <div class="space-y-3" id="action-buttons">
-        <!-- রোল ১ এর বাটন (যে ফলো করবে) -->
-        <div id="p1-buttons" class="hidden space-y-3">
-          <button onclick="p1ClickedFollowed()" class="w-full bg-emerald-600 hover:bg-emerald-700 font-bold py-3 rounded-xl transition-all shadow-md">
+      <div class="space-y-4" id="action-buttons">
+        <div>
+          <button id="btn-submit-follow" onclick="clickFollowed()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40 disabled:text-gray-500 font-bold py-3 rounded-xl transition-all shadow-md cursor-pointer">
             <i class="fa-solid fa-check-double mr-1"></i> আমি ফলো করেছি
           </button>
         </div>
 
-        <!-- রোল ২ এর বাটন (যে ফলো চেক করবে) -->
-        <div id="p2-buttons" class="hidden grid grid-cols-2 gap-3">
-          <button onclick="p2ClickedReceived()" class="bg-emerald-600 hover:bg-emerald-700 font-bold py-3 rounded-xl transition-all text-sm shadow-md">
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btn-recv-yes" onclick="clickReceived(true)" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-900/40 disabled:text-gray-500 font-bold py-3 rounded-xl transition-all text-sm shadow-md cursor-pointer">
             <i class="fa-solid fa-thumbs-up mr-1"></i> ফলো পেয়েছি
           </button>
-          <button onclick="p2ClickedNotReceived()" class="bg-rose-600 hover:bg-rose-700 font-bold py-3 rounded-xl transition-all text-sm shadow-md">
-            <i class="fa-solid fa-user-xmark mr-1"></i> আমাকে ফলো করেনি
+          <button id="btn-recv-no" onclick="clickReceived(false)" class="bg-rose-600 hover:bg-rose-700 disabled:bg-rose-900/40 disabled:text-gray-500 font-bold py-3 rounded-xl transition-all text-sm shadow-md cursor-pointer">
+            <i class="fa-solid fa-user-xmark mr-1"></i> ফলো পাইনি
           </button>
         </div>
       </div>
 
-      <!-- ম্যাচ স্ট্যাটাস টেক্সট -->
       <p id="match-status-text" class="text-center text-xs text-yellow-400 bg-yellow-500/10 py-2 rounded-lg border border-yellow-500/20"></p>
 
     </div>
 
   </div>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // --- ১. ফাইয়ারবেজ কনফিগারেশন ---
-    // আপনার Firebase Project থেকে নিচের এই কনফিগটি পরিবর্তন করে নিবেন
- // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
-  authDomain: "exchange-project-d4028.firebaseapp.com",
-  databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "exchange-project-d4028",
-  storageBucket: "exchange-project-d4028.firebasestorage.app",
-  messagingSenderId: "313976742479",
-  appId: "1:313976742479:web:45951b360d875c4768c03a",
-  measurementId: "G-PQMFYZS958"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+      authDomain: "exchange-project-d4028.firebaseapp.com",
+      databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "exchange-project-d4028",
+      storageBucket: "exchange-project-d4028.firebasestorage.app",
+      messagingSenderId: "313976742479",
+      appId: "1:313976742479:web:45951b360d875c4768c03a",
+      measurementId: "G-PQMFYZS958"
+    };
 
-    
-    // ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // অ্যাপ ভেরিয়েবল
-    let myId = "";
+    let myId = ""; 
     let myTikTok = "";
-    let myPoints = 10;
+    let myPoints = 0; 
     let currentMatchId = null;
-    let myRole = ""; // 'player1' (ফলোয়ার) অথবা 'player2' (ফলো রিসিভার)
+    let myRole = ""; 
     let matchListenerRef = null;
 
-    // স্ক্রিন চেঞ্জার
     function showScreen(screenId) {
       document.getElementById('screen-login').classList.add('hidden');
       document.getElementById('screen-lobby').classList.add('hidden');
@@ -170,65 +147,89 @@ const firebaseConfig = {
       document.getElementById(screenId).classList.remove('hidden');
     }
 
-    // --- ২. লগইন ফাংশন ---
     function loginUser() {
       const input = document.getElementById('tiktok-input').value.trim();
       if(!input) return alert("অনুগ্রহ করে টিকটক ইউজারনেম দিন!");
       
+      myId = input.replace(/[\.\#\$\[\]]/g, "").toLowerCase();
       myTikTok = input;
-      myId = "user_" + Math.random().toString(36).substr(2, 9); // ডেমো ইউনিক আইডি জেনারেশন
-      
-      document.getElementById('display-name').innerText = "@" + myTikTok;
-      document.getElementById('my-points').innerText = myPoints;
-      showScreen('screen-lobby');
+
+      const loginBtn = document.getElementById('login-btn');
+      loginBtn.innerText = "লোডিং...";
+      loginBtn.disabled = true;
+
+      const userRef = database.ref('users/' + myId);
+
+      userRef.once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          myPoints = snapshot.val().points;
+        } else {
+          myPoints = 10;
+          userRef.set({
+            tiktokId: myTikTok,
+            points: myPoints
+          });
+        }
+
+        document.getElementById('display-name').innerText = "@" + myTikTok;
+        document.getElementById('my-points').innerText = myPoints;
+        showScreen('screen-lobby');
+      }).catch((error) => {
+        alert("ত্রুটি ঘটেছে: " + error.message);
+      }).finally(() => {
+        loginBtn.innerText = "এগিয়ে যান";
+        loginBtn.disabled = false;
+      });
     }
 
-    // --- ৩. ম্যাচমেকিং লজিক (কিউ সিস্টেম) ---
+    function updateUserPointsInDB(newPoints) {
+      myPoints = newPoints;
+      document.getElementById('my-points').innerText = myPoints;
+      database.ref('users/' + myId).update({ points: myPoints });
+    }
+
     function startMatching() {
+      document.getElementById('searching-text').innerText = "অন্য প্লেয়ার খোঁজা হচ্ছে...";
       document.getElementById('searching-text').classList.remove('hidden');
       const queueRef = database.ref('queue');
 
       queueRef.once('value', (snapshot) => {
         if (snapshot.exists()) {
-          // লাইনে কেউ একজন অলরেডি আছে!
           const queueData = snapshot.val();
           const opponentId = Object.keys(queueData)[0];
           const opponentData = queueData[opponentId];
 
-          if (opponentId === myId) return; // নিজের সাথেই ম্যাচ প্রতিরোধ
+          if (opponentId === myId) {
+             document.getElementById('searching-text').innerText = "আপনি ইতিমধ্যে লাইনে আছেন...";
+             return; 
+          }
 
-          // একটি নতুন লাইভ ম্যাচ রুম তৈরি হচ্ছে
           const newMatchRef = database.ref('matches').push();
           currentMatchId = newMatchRef.key;
-          myRole = 'player2'; // যে পরের লাইনে এসেছে সে হবে প্লেয়ার ২ (রিসিভার)
 
           newMatchRef.set({
             player1: opponentId,
             player1_tiktok: opponentData.tiktokId,
-            player1_status: 'waiting',
+            player1_followed: false,
+            player1_received: 'waiting',
             player2: myId,
             player2_tiktok: myTikTok,
-            player2_status: 'waiting',
+            player2_followed: false,
+            player2_received: 'waiting',
             status: 'active'
           }).then(() => {
-            // ম্যাচ হয়ে যাওয়ায় কিউ থেকে অপোনেন্টকে রিমুভ করা হচ্ছে
             database.ref('queue/' + opponentId).remove();
             initMatchSession(currentMatchId);
           });
 
         } else {
-          // কিউ ফাঁকা, তাই নিজে লাইনে বসা
-          myRole = 'player1'; // যে প্রথমে লাইনে দাঁড়ায় সে হবে প্লেয়ার ১ (যে ফলো করবে)
           database.ref('queue/' + myId).set({
             tiktokId: myTikTok
           });
 
-          // নিজের আইডি কিউতে থাকা অবস্থায় খেয়াল রাখা যেন কেউ ম্যাচ করালে সাথে সাথে ডিটেক্ট হয়
-          const myQueueRef = database.ref('queue/' + myId);
-          // অল্টারনেটিভলি matches নোড লিসেন করা হচ্ছে
           database.ref('matches').orderByChild('player1').equalTo(myId).on('child_added', (matchSnapshot) => {
             const match = matchSnapshot.val();
-            if (match && match.status === 'active') {
+            if (match && match.player1 === myId) {
               currentMatchId = matchSnapshot.key;
               database.ref('matches').orderByChild('player1').equalTo(myId).off('child_added');
               initMatchSession(currentMatchId);
@@ -238,110 +239,130 @@ const firebaseConfig = {
       });
     }
 
-    // --- ৪. লাইভ ম্যাচ সেশন হ্যান্ডলার ---
+    // --- ৪. লাইভ ম্যাচ সেশন হ্যান্ডলার (দ্বিমুখী এক্সচেঞ্জ সংস্করণ) ---
     function initMatchSession(matchId) {
       document.getElementById('searching-text').classList.add('hidden');
       showScreen('screen-match');
+
+      // বাটনগুলো রিসেট করা
+      document.getElementById('btn-submit-follow').disabled = false;
+      document.getElementById('btn-recv-yes').disabled = false;
+      document.getElementById('btn-recv-no').disabled = false;
 
       matchListenerRef = database.ref('matches/' + matchId);
       matchListenerRef.on('value', (snapshot) => {
         const match = snapshot.val();
         if (!match) return;
 
-        // স্ক্রিনে নাম সেট করা
+        // রোল চেক
+        if (match.player1 === myId) {
+          myRole = 'player1';
+        } else if (match.player2 === myId) {
+          myRole = 'player2';
+        }
+
+        // UI ও টিকিটক লিংক আপডেট
         if (myRole === 'player1') {
+          document.getElementById('p1-label').innerText = "আপনি (Player 1)";
+          document.getElementById('p2-label').innerText = "বিপক্ষ (Player 2)";
           document.getElementById('p1-name').innerText = "@" + myTikTok;
           document.getElementById('p2-name').innerText = "@" + match.player2_tiktok;
           document.getElementById('tiktok-link').href = "https://www.tiktok.com/@" + match.player2_tiktok;
-          
-          document.getElementById('p1-buttons').classList.remove('hidden');
-          document.getElementById('p2-buttons').classList.add('hidden');
-          document.getElementById('visit-action-area').classList.remove('hidden');
+
+          // নিজের দেওয়া বাটনের স্টেট লক করা
+          if(match.player1_followed) document.getElementById('btn-submit-follow').disabled = true;
+          if(match.player1_received !== 'waiting') {
+            document.getElementById('btn-recv-yes').disabled = true;
+            document.getElementById('btn-recv-no').disabled = true;
+          }
         } else {
+          document.getElementById('p1-label').innerText = "বিপক্ষ (Player 1)";
+          document.getElementById('p2-label').innerText = "আপনি (Player 2)";
           document.getElementById('p1-name').innerText = "@" + match.player1_tiktok;
           document.getElementById('p2-name').innerText = "@" + myTikTok;
-          
-          document.getElementById('p1-buttons').classList.add('hidden');
-          document.getElementById('p2-buttons').classList.remove('hidden');
-          document.getElementById('visit-action-area').classList.add('hidden'); // রিসিভারের প্রোফাইল ভিজিট করার দরকার নেই
+          document.getElementById('tiktok-link').href = "https://www.tiktok.com/@" + match.player1_tiktok;
+
+          // নিজের দেওয়া বাটনের স্টেট লক করা
+          if(match.player2_followed) document.getElementById('btn-submit-follow').disabled = true;
+          if(match.player2_received !== 'waiting') {
+            document.getElementById('btn-recv-yes').disabled = true;
+            document.getElementById('btn-recv-no').disabled = true;
+          }
         }
 
-        // লাইভ স্টেটাস টেক্সট আপডেট
-        if (match.player1_status === 'waiting') {
-          document.getElementById('match-status-text').innerText = "অপেক্ষা করা হচ্ছে: প্লেয়ার ১ ফলো করার পর বাটনে চাপ দিবে।";
-        } else if (match.player1_status === 'p1_clicked_followed' && match.player2_status === 'waiting') {
-          document.getElementById('match-status-text').innerText = "প্লেয়ার ১ দাবি করেছে সে ফলো করেছে। প্লেয়ার ২ চেক করে বাটন চাপুন।";
+        // লাইভ স্ট্যাটাস মেসেজ রেন্ডারিং
+        let statusText = "একে অপরকে ফলো করে কনফর্ম করুন।";
+        if (match.player1_followed && !match.player2_followed) {
+          statusText = "প্লেয়ার ১ ফলো করেছে, প্লেয়ার ২ এর ফলো করার অপেক্ষা...";
+        } else if (!match.player1_followed && match.player2_followed) {
+          statusText = "প্লেয়ার ২ ফলো করেছে, প্লেয়ার ১ এর ফলো করার অপেক্ষা...";
+        } else if (match.player1_followed && match.player2_followed) {
+          statusText = "উভয়েই ফলো করেছেন! এখন চেক করে 'ফলো পেয়েছি' বাটনে চাপুন।";
         }
+        document.getElementById('match-status-text').innerText = statusText;
 
-        // ফলাফল প্রসেসিং
+        // ম্যাচ শেষ হওয়ার শর্তসমূহ পরীক্ষা
         if (match.status === 'completed') {
-          endMatchFlow("ম্যাচ সফল! দুজনেই +১ পয়েন্ট পেয়েছেন।");
+          endMatchFlow("ম্যাচ সফল! উভয়ই একে অপরকে ফলো করেছেন। +১ পয়েন্ট যোগ হয়েছে।", true);
         } else if (match.status === 'disputed') {
-          endMatchFlow("বিপক্ষ দাবি করেছে আপনি ফলো করেননি! আপনার -১ পয়েন্ট কাটা হয়েছে।");
+          endMatchFlow("ম্যাচ বাতিল! কোনো একজন ফলো পাননি বলে ক্লেইম করেছেন।", false);
         }
       });
     }
 
-    // --- ৫. প্লেয়ার অ্যাকশন বাটন ফাংশনস ---
-    
-    // প্লেয়ার ১: "আমি ফলো করেছি"
-    function p1ClickedFollowed() {
-      if (myRole !== 'player1') return;
-      database.ref('matches/' + currentMatchId).update({
-        player1_status: 'p1_clicked_followed'
-      });
+    // --- ৫. অ্যাকশন ফাংশনস ---
+
+    // আমি ফলো করেছি বাটন
+    function clickFollowed() {
+      let updateData = {};
+      updateData[myRole + '_followed'] = true;
+      database.ref('matches/' + currentMatchId).update(updateData);
     }
 
-    // প্লেয়ার ২: "ফলো পেয়েছি"
-    function p2ClickedReceived() {
-      if (myRole !== 'player2') return;
+    // ফলো পেয়েছি / পাইনি বাটন
+    function clickReceived(isReceived) {
+      const matchRef = database.ref('matches/' + currentMatchId);
       
-      // উভয়কে ১ পয়েন্ট করে দেওয়া এবং ম্যাচ কমপ্লিট করা
-      myPoints += 1;
-      document.getElementById('my-points').innerText = myPoints;
-      
-      database.ref('matches/' + currentMatchId).update({
-        player2_status: 'p2_received',
-        status: 'completed'
+      matchRef.once('value').then((snapshot) => {
+        const match = snapshot.val();
+        if(!match) return;
+
+        let currentStatus = isReceived ? 'yes' : 'no';
+        let updateData = {};
+        updateData[myRole + '_received'] = currentStatus;
+
+        // যদি কেউ 'ফলো পাইনি' (no) সিলেক্ট করে, ম্যাচ সাথে সাথে ডিস্পিউট (বাতিল) হবে
+        if (!isReceived) {
+          updateData['status'] = 'disputed';
+        } else {
+          // যদি আমি 'yes' দিই, তাহলে দেখতে হবে অন্যজনও ইতিমধ্যে 'yes' দিয়েছে কিনা
+          let opponentRole = (myRole === 'player1') ? 'player2' : 'player1';
+          if (match[opponentRole + '_received'] === 'yes') {
+            updateData['status'] = 'completed';
+          }
+        }
+
+        matchRef.update(updateData);
       });
     }
 
-    // প্লেয়ার ২: "আমাকে ফলো করেনি"
-    function p2ClickedNotReceived() {
-      if (myRole !== 'player2') return;
-
-      // ম্যাচ ডিস্পিউট স্টেটে নেওয়া (যার ফলে প্লেয়ার ১ এর ১ পয়েন্ট মাইনাস হবে)
-      database.ref('matches/' + currentMatchId).update({
-        player2_status: 'p2_claimed_not_followed',
-        status: 'disputed'
-      });
-    }
-
-    // --- ৬. ম্যাচ সমাপ্তি এবং লবিতে ফেরত যাওয়া ---
-    function endMatchFlow(message) {
-      // রিয়েলটাইম লিসেনার বন্ধ করা
+    // --- ৬. ম্যাচ সমাপ্তি এবং পয়েন্ট বণ্টন ---
+    function endMatchFlow(message, isSuccess) {
       if(matchListenerRef) {
         matchListenerRef.off();
       }
 
-      // লোকাল পয়েন্ট এডজাস্টমেন্ট যদি আমি প্লেয়ার ১ হই এবং চিটিং কেস হয়
-      database.ref('matches/' + currentMatchId).once('value', (snapshot) => {
-        const match = snapshot.val();
-        if(match) {
-          if(myRole === 'player1' && match.status === 'completed') {
-            myPoints += 1;
-          } else if(myRole === 'player1' && match.status === 'disputed') {
-            myPoints -= 1;
-          }
-          document.getElementById('my-points').innerText = myPoints;
-        }
-        
-        alert(message);
-        // রিসেট ও লবিতে ব্যাক
-        currentMatchId = null;
-        myRole = "";
-        showScreen('screen-lobby');
-      });
+      if (isSuccess) {
+        updateUserPointsInDB(myPoints + 1);
+      } else {
+        // ফলো না পেলে কোনো পয়েন্ট যোগ হবে না (চাইলে এখানে মাইনাস পয়েন্ট লজিকও দিতে পারেন)
+        updateUserPointsInDB(myPoints); 
+      }
+      
+      alert(message);
+      currentMatchId = null;
+      myRole = "";
+      showScreen('screen-lobby');
     }
   </script>
 </body>
