@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Tracker App - Navigation</title>
+    
+    <script src="https://cdn.tailwindcss.com"> </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
+    <style>
+        #map { height: 100vh; width: 100%; z-index: 1; }
+        
+        #bottom-sheet { 
+            transform: translateY(100%); 
+            transition: transform 0.3s ease-in-out; 
+        }
+        #bottom-sheet.show { 
+            transform: translateY(0); 
+        }
+
+        /* ম্যাপের লোগো এবং রাউটিংয়ের ডিফল্ট টেক্সট বক্স লুকানোর জন্য (ক্লিন লুক) */
+        .leaflet-control-attribution, .leaflet-routing-container {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 relative overflow-hidden">
+
+    <div id="map"></div>
+
+    <div id="routing-instruction" class="hidden absolute top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full z-[1000] shadow-xl text-sm font-semibold tracking-wide text-center w-max">
+        Tap anywhere on the map to set destination
+    </div>
+
+    <button id="directions-btn" class="absolute bottom-48 right-6 bg-white hover:bg-gray-50 text-blue-600 w-14 h-14 rounded-full shadow-lg text-2xl z-[1000] focus:outline-none flex justify-center items-center transition-all transform hover:scale-105 border border-gray-200">
+        🧭
+    </button>
+
+    <button id="my-location-btn" class="absolute bottom-28 right-6 bg-white hover:bg-gray-50 text-gray-800 w-14 h-14 rounded-full shadow-lg text-2xl z-[1000] focus:outline-none flex justify-center items-center transition-all transform hover:scale-105 border border-gray-200">
+        🎯
+    </button>
+
+    <button id="report-btn" class="absolute bottom-8 right-6 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-2xl text-2xl z-[1000] focus:outline-none flex justify-center items-center transition-all transform hover:scale-105">
+        📍
+    </button>
+
+    <div id="bottom-sheet" class="absolute bottom-0 left-0 w-full bg-white rounded-t-[2rem] shadow-[0_-10px_25px_rgba(0,0,0,0.15)] z-[1050] p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-extrabold text-gray-800 tracking-wide">Report Traffic</h2>
+            <button id="close-btn" class="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-colors">&times;</button>
+        </div>
+        <div class="flex flex-col gap-4">
+            <button onclick="submitReport('High')" class="bg-red-500 active:bg-red-700 text-white py-4 rounded-2xl text-xl font-bold shadow-lg transition-all">🔴 Heavy Traffic</button>
+            <button onclick="submitReport('Medium')" class="bg-orange-500 active:bg-orange-700 text-white py-4 rounded-2xl text-xl font-bold shadow-lg transition-all">🟠 Moderate Traffic</button>
+            <button onclick="submitReport('Low')" class="bg-yellow-400 active:bg-yellow-500 text-gray-800 py-4 rounded-2xl text-xl font-bold shadow-lg transition-all">🟡 Light Traffic</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Firebase Realtime Database Configuration 
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let map;
+        let userMarker = null; 
+        let routingControl = null; // রাস্তার লাইন সেভ রাখার জন্য
+        let destinationMarker = null; 
+        let isRoutingMode = false; // রাউটিং অন আছে কি না তা চেক করার জন্য
+
+        // 2. Initialize Map
+        function initMap() {
+            const defaultLocation = [21.4225, 39.8262]; 
+            map = L.map('map', { zoomControl: false }).setView(defaultLocation, 14);
+
+            L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', {
+                maxZoom: 21, 
+                maxNativeZoom: 20, 
+                tileSize: 512,      // ম্যাপের লেখা এবং রাস্তা বড় ও স্পষ্ট করার জন্য
+                zoomOffset: -1      // জুম লেভেল ব্যালেন্স করার জন্য
+            }).addTo(map);
+
+            loadReports();
+        }
+
+        window.onload = initMap;
+
+        // 3. UI Controls
+        const reportBtn = document.getElementById('report-btn');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const closeBtn = document.getElementById('close-btn');
+        const myLocationBtn = document.getElementById('my-location-btn');
+        const directionsBtn = document.getElementById('directions-btn');
+        const instructionBar = document.getElementById('routing-instruction');
+
+        reportBtn.addEventListener('click', () => bottomSheet.classList.add('show'));
+        closeBtn.addEventListener('click', () => bottomSheet.classList.remove('show'));
+
+        // My Location Button Logic
+        myLocationBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                myLocationBtn.innerHTML = "⏳"; 
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
+
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]); 
+                    } else {
+                        const userIcon = L.divIcon({
+                            className: 'user-location-pin',
+                            html: `<div class="bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(37,99,235,0.8)] animate-pulse"></div>`,
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        });
+                        userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+                    }
+                    myLocationBtn.innerHTML = "🎯"; 
+                }, () => {
+                    alert("Location not found. Please turn on GPS.");
+                    myLocationBtn.innerHTML = "🎯"; 
+                });
+            }
+        });
+
+        // --- NEW: Routing Logic (পথ নির্দেশনা) ---
+        
+        // ইউজারের বর্তমান লোকেশন সেভ রাখার জন্য ভেরিয়েবল
+        let currentLat = null;
+        let currentLng = null;
+
+        // অ্যাপ চালু হলেই ব্যাকগ্রাউন্ডে ইউজারের লোকেশন ট্র‍্যাক করা শুরু করবে
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition((position) => {
+                currentLat = position.coords.latitude;
+                currentLng = position.coords.longitude;
+            }, (error) => {
+                console.log("GPS signal is weak or disabled.");
+            }, { enableHighAccuracy: true, maximumAge: 0 });
+        }
+
+        // Directions বাটনে ক্লিক করলে রাউটিং মোড চালু হবে
+        directionsBtn.addEventListener('click', () => {
+            if (!currentLat || !currentLng) {
+                alert("আপনার জিপিএস লোকেশন এখনো পাওয়া যায়নি। দয়া করে জিপিএস অন করুন এবং একটু অপেক্ষা করুন।");
+                return;
+            }
+
+            isRoutingMode = true;
+            instructionBar.innerHTML = "Tap anywhere on the map to set destination";
+            instructionBar.classList.remove('hidden'); // নোটিফিকেশন দেখাবে
+            
+            // আগের কোনো রুট থাকলে ক্লিয়ার করে দেওয়া
+            if(routingControl) map.removeControl(routingControl);
+            if(destinationMarker) map.removeLayer(destinationMarker);
+        });
+
+        // ম্যাপের যেকোনো জায়গায় ক্লিক করলে রাস্তা তৈরি হবে
+        map.on('click', function(e) {
+            if (isRoutingMode && currentLat && currentLng) {
+                const destLat = e.latlng.lat;
+                const destLng = e.latlng.lng;
+
+                instructionBar.innerHTML = "Calculating route... ⏳"; // লোডিং মেসেজ
+
+                // নতুন ডেসটিনেশন পিন বসানো (গুগল ম্যাপের মতো লাল পিন)
+                const destIcon = L.divIcon({
+                    className: 'dest-pin',
+                    html: `<div class="bg-red-600 w-5 h-5 rounded-full border-2 border-white shadow-lg"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                destinationMarker = L.marker([destLat, destLng], { icon: destIcon }).addTo(map);
+
+                // রাস্তা (Route) তৈরি করা
+                routingControl = L.Routing.control({
+                    waypoints: [
+                        L.latLng(currentLat, currentLng),
+                        L.latLng(destLat, destLng)
+                    ],
+                    createMarker: function() { return null; }, // ডিফল্ট পিন লুকানো
+                    routeWhileDragging: false,
+                    addWaypoints: false,
+                    fitSelectedRoutes: true, // রাস্তা অনুযায়ী ম্যাপ জুম হওয়া
+                    show: false, // রাউটিংয়ের সাইডবার টেক্সট পুরোপুরি বন্ধ রাখা
+                    lineOptions: {
+                        styles: [{color: '#2563EB', opacity: 0.9, weight: 6}] // গুগল ম্যাপের মতো নীল রঙের মোটা লাইন
+                    }
+                }).addTo(map);
+
+                // কাজ শেষ হলে রাউটিং মোড অফ করা এবং নোটিফিকেশন লুকানো
+                isRoutingMode = false;
+                setTimeout(() => {
+                    instructionBar.classList.add('hidden');
+                }, 2000);
+            }
+        });
+
+    </script>
+</body>
+</html>
