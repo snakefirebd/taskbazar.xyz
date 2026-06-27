@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাডমিন প্যানেল - আমাদের লাকসাম</title>
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f8fafc; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-5xl mx-auto space-y-6 relative">
+        <header class="flex justify-between items-center bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-700">অ্যাডমিন ড্যাশবোর্ড</h1>
+                <p class="text-slate-500 text-sm">অ্যাপের কন্টেন্ট নিয়ন্ত্রণ করুন</p>
+            </div>
+            <a href="index.html" class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-100 font-medium transition">
+                <i class="fas fa-eye mr-2"></i>অ্যাপ দেখুন
+            </a>
+        </header>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-images text-indigo-500 mr-2"></i>ব্যানার স্লাইডার সেটিং</h2>
+            <div class="flex flex-col md:flex-row gap-6">
+                <form id="bannerForm" class="flex-1 space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ছবির লিংক (URL)</label>
+                        <input type="url" id="bannerUrl" placeholder="https://example.com/image.jpg" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition w-full md:w-auto">
+                        <i class="fas fa-upload mr-2"></i>ব্যানার যুক্ত করুন
+                    </button>
+                </form>
+
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-700 mb-2">যুক্ত করা ব্যানার সমূহ:</p>
+                    <div id="bannerList" class="flex flex-wrap gap-3">
+                        <span class="text-sm text-slate-400 italic">লোড হচ্ছে...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-1 h-fit sticky top-6">
+                <h2 id="formTitle" class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">নতুন ক্যাটাগরি যুক্ত করুন</h2>
+                <form id="addForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ক্যাটাগরির নাম</label>
+                        <input type="text" id="itemName" placeholder="যেমন: ফায়ার সার্ভিস" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">প্রধান ক্যাটাগরি (Section)</label>
+                        <input type="text" id="itemFatherCategory" placeholder="যেমন: জরুরী সেবা / অন্যান্য" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">উপ-শিরোনাম (যেমন: গ্রামসমূহ / ডাক্তারসমূহ)</label>
+                        <input type="text" id="itemSubHeader" placeholder="যেমন: গ্রামসমূহ" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">আইকন ক্লাস (FontAwesome)</label>
+                        <input type="text" id="itemIcon" placeholder="যেমন: fa-fire-extinguisher" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">আইকন কালার (Tailwind)</label>
+                        <input type="text" id="itemColor" placeholder="যেমন: text-orange-500" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ব্যাকগ্রাউন্ড কালার (Tailwind)</label>
+                        <input type="text" id="itemBg" placeholder="যেমন: bg-orange-50" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button type="submit" id="submitBtn" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                            <i class="fas fa-plus mr-2"></i>যুক্ত করুন
+                        </button>
+                        <button type="button" id="cancelBtn" class="hidden flex-1 bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg hover:bg-red-200 transition">
+                            বাতিল
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-2">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">বিদ্যমান ক্যাটাগরি সমূহ</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <th class="p-3 text-sm font-semibold">আইকন</th>
+                                <th class="p-3 text-sm font-semibold">নাম ও সেকশন</th>
+                                <th class="p-3 text-sm font-semibold text-right">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <tr><td colspan="3" class="text-center p-5 text-slate-500">লোড হচ্ছে...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex justify-between items-center">
+                <h2 id="modalCategoryTitle" class="text-xl font-bold text-indigo-800 flex items-center gap-2">
+                    <i class="fas fa-list"></i> ক্যাটাগরির তথ্য
+                </h2>
+                <button id="closeModalBtn" class="w-8 h-8 bg-white text-slate-500 rounded-full hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition shadow-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto custom-scroll bg-slate-50">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 h-fit shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">নতুন তথ্য যুক্ত করুন</h3>
+                    <form id="addItemForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">নাম / প্রতিষ্ঠানের নাম</label>
+                            <input type="text" id="subItemName" placeholder="যেমন: মো. করিম / ফায়ার স্টেশন" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">মোবাইল নাম্বার</label>
+                            <input type="text" id="subItemPhone" placeholder="যেমন: 017XXXXX" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">ঠিকানা (ঐচ্ছিক)</label>
+                            <input type="text" id="subItemAddress" placeholder="যেমন: লাকসাম বাজার" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-700 transition">
+                            <i class="fas fa-save mr-2"></i>সেভ করুন
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">বিদ্যমান তথ্যসমূহ</h3>
+                    <div id="modalItemsList" class="space-y-3 flex-1 overflow-y-auto custom-scroll pr-2 max-h-[350px]">
+                        <p class="text-sm text-slate-500 text-center py-4">লোড হচ্ছে...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // --- Categories Logic ---
+        const categoryRef = ref(db, 'categories');
+        const tableBody = document.getElementById('adminTableBody');
+        const addForm = document.getElementById('addForm');
+        let currentEditId = null; 
+
+        onValue(categoryRef, (snapshot) => {
+            tableBody.innerHTML = '';
+            const data = snapshot.val();
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition';
+                    
+                    tr.innerHTML = `
+                        <td class="p-3">
+                            <div class="w-10 h-10 ${item.bg} rounded-full flex items-center justify-center">
+                                <i class="fas ${item.icon} ${item.color}"></i>
+                            </div>
+                        </td>
+                        <td class="p-3 font-medium text-slate-700 leading-tight">
+                            ${item.name} <br> 
+                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full inline-block mt-1 mr-1">${item.fatherCategory || 'অন্যান্য'}</span>
+                            <span class="text-[10px] text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full inline-block mt-1">${item.subHeader || 'তথ্যসমূহ'}</span>
+                        </td>
+                        <td class="p-3 text-right whitespace-nowrap">
+                            <button class="manage-btn text-emerald-500 hover:bg-emerald-50 p-2 rounded-lg transition mr-1" data-id="${key}" data-name="${item.name}" title="তথ্য যুক্ত করুন">
+                                <i class="fas fa-plus-circle text-lg"></i>
+                            </button>
+                            <button class="edit-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition mr-1" 
+                                data-id="${key}" data-name="${item.name}" data-father="${item.fatherCategory || ''}" data-subheader="${item.subHeader || ''}" data-icon="${item.icon}" data-color="${item.color}" data-bg="${item.bg}" title="ক্যাটাগরি এডিট করুন">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn text-red-500 hover:bg-red-50 p-2 rounded-lg transition" data-id="${key}" title="ক্যাটাগরি ডিলিট করুন">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                // Edit Action
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const dataset = e.currentTarget.dataset;
+                        currentEditId = dataset.id;
+                        document.getElementById('itemName').value = dataset.name;
+                        document.getElementById('itemFatherCategory').value = dataset.father; 
+                        document.getElementById('itemSubHeader').value = dataset.subheader; 
+                        document.getElementById('itemIcon').value = dataset.icon;
+                        document.getElementById('itemColor').value = dataset.color;
+                        document.getElementById('itemBg').value = dataset.bg;
+                        
+                        document.getElementById('formTitle').innerText = "ক্যাটাগরি আপডেট করুন";
+                        const subBtn = document.getElementById('submitBtn');
+                        subBtn.innerHTML = '<i class="fas fa-save mr-2"></i>আপডেট করুন';
+                        subBtn.classList.replace('bg-indigo-600', 'bg-blue-600');
+                        document.getElementById('cancelBtn').classList.remove('hidden');
+                        
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+                });
+
+                // Delete Action
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if(confirm('ক্যাটাগরিটি ডিলিট করবেন? এর ভেতরের সব তথ্য মুছে যাবে!')) {
+                            remove(ref(db, `categories/${id}`));
+                            remove(ref(db, `items/${id}`)); 
+                            if (currentEditId === id) resetForm(); 
+                        }
+                    });
+                });
+
+                // Manage Items Action
+                document.querySelectorAll('.manage-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        openItemModal(e.currentTarget.dataset.id, e.currentTarget.dataset.name);
+                    });
+                });
+
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center p-5 text-slate-500">কোনো ডেটা পাওয়া যায়নি।</td></tr>';
+            }
+        });
+
+        // Form Submission
+        addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const itemData = {
+                name: document.getElementById('itemName').value,
+                fatherCategory: document.getElementById('itemFatherCategory').value,
+                subHeader: document.getElementById('itemSubHeader').value, 
+                icon: document.getElementById('itemIcon').value,
+                color: document.getElementById('itemColor').value,
+                bg: document.getElementById('itemBg').value
+            };
+            
+            if (currentEditId) {
+                update(ref(db, `categories/${currentEditId}`), itemData).then(() => resetForm());
+            } else {
+                itemData.clicks = 0; 
+                push(categoryRef, itemData).then(() => resetForm());
+            }
+        });
+
+        function resetForm() {
+            addForm.reset();
+            currentEditId = null;
+            document.getElementById('formTitle').innerText = "নতুন ক্যাটাগরি যুক্ত করুন";
+            const subBtn = document.getElementById('submitBtn');
+            subBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>যুক্ত করুন';
+            subBtn.classList.replace('bg-blue-600', 'bg-indigo-600');
+            document.getElementById('cancelBtn').classList.add('hidden');
+        }
+        document.getElementById('cancelBtn').addEventListener('click', resetForm);
+
+        // --- Banner Logic ---
+        const bannerRef = ref(db, 'banners');
+        onValue(bannerRef, (snapshot) => {
+            const bannerList = document.getElementById('bannerList');
+            bannerList.innerHTML = '';
+            const data = snapshot.val();
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    bannerList.innerHTML += `
+                        <div class="relative group w-20 h-12 rounded overflow-hidden border border-slate-300">
+                            <img src="${data[key].url}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                <button class="delete-banner-btn text-white hover:text-red-400" data-id="${key}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.querySelectorAll('.delete-banner-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if(confirm('ব্যানারটি ডিলিট করবেন?')) remove(ref(db, `banners/${e.currentTarget.dataset.id}`));
+                    });
+                });
+            } else {
+                bannerList.innerHTML = '<span class="text-sm text-slate-400 italic">কোনো ব্যানার নেই।</span>';
+            }
+        });
+        document.getElementById('bannerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const urlInput = document.getElementById('bannerUrl');
+            push(bannerRef, { url: urlInput.value }).then(() => urlInput.value = '');
+        });
+
+        // --- Item Management Modal ---
+        const itemModal = document.getElementById('itemModal');
+        const modalCategoryTitle = document.getElementById('modalCategoryTitle');
+        const modalItemsList = document.getElementById('modalItemsList');
+        const addItemForm = document.getElementById('addItemForm');
+        let activeCategoryId = null;
+        let itemsListenerUnsubscribe = null;
+
+        function openItemModal(categoryId, categoryName) {
+            activeCategoryId = categoryId;
+            modalCategoryTitle.innerHTML = `<i class="fas fa-list text-indigo-600"></i> ${categoryName}`;
+            itemModal.classList.remove('hidden');
+
+            if (itemsListenerUnsubscribe) itemsListenerUnsubscribe();
+
+            itemsListenerUnsubscribe = onValue(ref(db, `items/${categoryId}`), (snapshot) => {
+                modalItemsList.innerHTML = '';
+                const itemsData = snapshot.val();
+                
+                if (itemsData) {
+                    Object.keys(itemsData).forEach(key => {
+                        const info = itemsData[key];
+                        let subItemsHtml = '';
+                        if(info.subItems) {
+                            Object.keys(info.subItems).forEach(subKey => {
+                                subItemsHtml += `<li class="text-xs text-slate-600 flex justify-between">• ${info.subItems[subKey].name} 
+                                    <button onclick="removeSubItem('${categoryId}', '${key}', '${subKey}')" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button></li>`;
+                            });
+                        }
+
+                        modalItemsList.innerHTML += `
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg hover:shadow-sm transition">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm">${info.name}</h4>
+                                        <p class="text-xs text-indigo-600 font-medium">${info.phone}</p>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button onclick="addSubItemPrompt('${categoryId}', '${key}')" class="text-emerald-600 hover:bg-emerald-100 p-1 rounded"><i class="fas fa-plus"></i></button>
+                                        <button class="delete-info-btn text-red-500 hover:bg-red-100 p-1 rounded" data-id="${key}"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <ul class="mt-2 space-y-1 pl-1">${subItemsHtml}</ul>
+                            </div>
+                        `;
+                    });
+
+                    document.querySelectorAll('.delete-info-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            if(confirm('এই তথ্যটি ডিলিট করতে চান?')) {
+                                remove(ref(db, `items/${activeCategoryId}/${e.currentTarget.dataset.id}`));
+                            }
+                        });
+                    });
+                } else {
+                    modalItemsList.innerHTML = `<p class="text-center text-sm text-slate-500 py-4">কোনো তথ্য নেই।</p>`;
+                }
+            });
+        }
+
+        window.addSubItemPrompt = function(categoryId, itemId) {
+            const subName = prompt("সাব-আইটেম (গ্রাম/ডাক্তারের নাম) লিখুন:");
+            if (subName) {
+                push(ref(db, `items/${categoryId}/${itemId}/subItems`), { name: subName });
+            }
+        }
+
+        window.removeSubItem = function(categoryId, itemId, subId) {
+            if(confirm('এই তথ্যটি ডিলিট করতে চান?')) {
+                remove(ref(db, `items/${categoryId}/${itemId}/subItems/${subId}`));
+            }
+        }
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            itemModal.classList.add('hidden');
+            if (itemsListenerUnsubscribe) itemsListenerUnsubscribe(); 
+            activeCategoryId = null;
+            addItemForm.reset();
+        });
+
+        addItemForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!activeCategoryId) return;
+
+            const newItemData = {
+                name: document.getElementById('subItemName').value,
+                phone: document.getElementById('subItemPhone').value,
+                address: document.getElementById('subItemAddress').value
+            };
+
+            push(ref(db, `items/${activeCategoryId}`), newItemData).then(() => {
+                addItemForm.reset();
+            }).catch(error => {
+                alert('ত্রুটি: ' + error.message);
+            });
+        });
+
+    </script>
+</body>
+</html>
