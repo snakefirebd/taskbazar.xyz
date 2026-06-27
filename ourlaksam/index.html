@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমাদের লাকসাম</title>
+    
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f1f5f9; }
+        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; }
+        .marquee-content { display: inline-block; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex justify-center min-h-screen">
+
+    <div class="w-full max-w-md bg-slate-50 min-h-screen shadow-2xl relative overflow-hidden">
+        
+        <header class="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-4 flex justify-between items-center shadow-md rounded-b-2xl relative z-10">
+            <button class="hover:bg-white/20 p-2 rounded-lg transition"><i class="fas fa-bars text-xl"></i></button>
+            <h1 class="text-xl font-bold tracking-wide">আমাদের লাকসাম</h1>
+            <button class="hover:bg-white/20 p-2 rounded-lg transition relative">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+            </button>
+        </header>
+
+        <div class="bg-blue-50 text-blue-700 text-sm py-2 px-4 marquee-container border-b border-blue-100 shadow-sm">
+            <div class="marquee-content font-medium">
+                <i class="fas fa-info-circle mr-1"></i> আমাদের লাকসাম মোবাইল অ্যাপে আপনাকে স্বাগতম! নিয়মিত আপডেট পেতে সাথেই থাকুন।
+            </div>
+        </div>
+
+        <div class="px-4 mt-5 mb-5 relative w-full h-32 rounded-2xl overflow-hidden group">
+            <div id="sliderContainer" class="flex w-full h-full transition-transform duration-700 ease-in-out transform translate-x-0"></div>
+            <div id="sliderDots" class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-20"></div>
+        </div>
+
+        <div class="px-4 py-2">
+            <h2 class="text-sm font-bold text-slate-700 mb-2">কুইক এক্সেস</h2>
+            <div id="quickAccessContainer" class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                <p class="text-xs text-slate-400">লোড হচ্ছে...</p>
+            </div>
+        </div>
+
+        <div id="mainCategoryContainer" class="pb-10 mt-2">
+            <div class="text-center text-slate-500 py-10" id="loadingState">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p>ডেটা লোড হচ্ছে...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // update ফাংশনটি ইম্পোর্ট করা হলো
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // --- Categories Logic (Quick Access & Father Categories) ---
+        const categoryRef = ref(db, 'categories');
+        const quickAccessContainer = document.getElementById('quickAccessContainer');
+        const mainContainer = document.getElementById('mainCategoryContainer');
+
+        onValue(categoryRef, (snapshot) => {
+            quickAccessContainer.innerHTML = ''; 
+            mainContainer.innerHTML = ''; 
+            const data = snapshot.val();
+            
+            if (data) {
+                // 1. Quick Access Logic
+                const sortedCategories = Object.keys(data)
+                    .map(key => ({ id: key, ...data[key], clicks: data[key].clicks || 0 }))
+                    .sort((a, b) => b.clicks - a.clicks); 
+
+                sortedCategories.forEach(item => {
+                    const button = document.createElement('a');
+                    button.href = `details.html?id=${item.id}`;
+                    button.onclick = () => {
+                        const currentClicks = item.clicks || 0;
+                        update(ref(db, `categories/${item.id}`), { clicks: currentClicks + 1 });
+                    };
+                    button.className = `flex-shrink-0 bg-white px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-slate-200 flex items-center gap-2 hover:bg-indigo-50 transition`;
+                    button.innerHTML = `
+                        <i class="fas ${item.icon} ${item.color}"></i>
+                        <span>${item.name}</span>
+                    `;
+                    quickAccessContainer.appendChild(button);
+                });
+
+                // 2. Father Category Grouping Logic
+                const groupedCategories = {};
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    const fatherCat = item.fatherCategory || 'অন্যান্য সার্ভিস';
+                    if(!groupedCategories[fatherCat]) {
+                        groupedCategories[fatherCat] = [];
+                    }
+                    groupedCategories[fatherCat].push({ id: key, ...item });
+                });
+
+                // Render Grouped Sections
+                Object.keys(groupedCategories).forEach(fatherCat => {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'mb-6';
+                    
+                    // Section Title
+                    const sectionTitle = document.createElement('h2');
+                    sectionTitle.className = 'text-sm font-bold text-slate-700 mb-3 px-4';
+                    sectionTitle.innerText = fatherCat;
+                    
+                    // Grid for this specific section
+                    const gridDiv = document.createElement('div');
+                    gridDiv.className = 'grid grid-cols-3 gap-3 px-4';
+                    
+                    groupedCategories[fatherCat].forEach(item => {
+                        const button = document.createElement('a');
+                        button.href = `details.html?id=${item.id}`;
+                        button.onclick = () => {
+                            const currentClicks = item.clicks || 0;
+                            update(ref(db, `categories/${item.id}`), { clicks: currentClicks + 1 });
+                        };
+                        button.className = `flex flex-col items-center justify-center p-3 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 group`;
+                        button.innerHTML = `
+                            <div class="w-12 h-12 ${item.bg} rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                                <i class="fas ${item.icon} ${item.color} text-xl"></i>
+                            </div>
+                            <span class="text-[12px] font-semibold text-slate-700 text-center leading-tight w-full">${item.name}</span>
+                        `;
+                        gridDiv.appendChild(button);
+                    });
+
+                    sectionDiv.appendChild(sectionTitle);
+                    sectionDiv.appendChild(gridDiv);
+                    mainContainer.appendChild(sectionDiv);
+                });
+
+            } else {
+                quickAccessContainer.innerHTML = '<span class="text-xs text-slate-400">খালি</span>';
+                mainContainer.innerHTML = '<p class="text-center text-slate-500 py-5">কোনো সার্ভিস যুক্ত করা হয়নি।</p>';
+            }
+        });
+
+        // --- Banner Slider Logic ---
+        const bannerRef = ref(db, 'banners');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const sliderDots = document.getElementById('sliderDots');
+        let slideInterval;
+
+        const defaultBannerHtml = `
+            <div class="min-w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 p-5 flex flex-col items-center justify-center text-center relative overflow-hidden rounded-2xl">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                <div class="absolute -bottom-4 -left-4 w-20 h-20 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                <h2 class="text-3xl font-extrabold text-indigo-900 mb-1 tracking-wider relative z-10">Our <span class="text-purple-600">Laksam</span></h2>
+                <p class="text-[11px] text-indigo-700 font-semibold relative z-10">অ্যান্ড্রয়েড মোবাইল অ্যাপ তৈরি ও রক্ষণাবেক্ষণ সেবা</p>
+            </div>
+        `;
+
+        onValue(bannerRef, (snapshot) => {
+            const data = snapshot.val();
+            clearInterval(slideInterval); 
+            
+            let slidesHtml = defaultBannerHtml;
+            let totalSlides = 1;
+
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    const imgUrl = data[key].url;
+                    slidesHtml += `
+                        <div class="min-w-full h-full rounded-2xl overflow-hidden">
+                            <img src="${imgUrl}" class="w-full h-full object-cover rounded-2xl border border-slate-200" alt="Banner Image">
+                        </div>
+                    `;
+                    totalSlides++;
+                });
+            }
+
+            sliderContainer.innerHTML = slidesHtml;
+
+            let dotsHtml = '';
+            for(let i=0; i<totalSlides; i++) {
+                dotsHtml += `<div class="w-1.5 h-1.5 rounded-full ${i===0 ? 'bg-indigo-600 w-3' : 'bg-slate-300'} transition-all duration-300" id="dot-${i}"></div>`;
+            }
+            sliderDots.innerHTML = totalSlides > 1 ? dotsHtml : '';
+
+            if (totalSlides > 1) {
+                let currentSlide = 0;
+                slideInterval = setInterval(() => {
+                    currentSlide = (currentSlide + 1) % totalSlides;
+                    sliderContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+                    
+                    for(let i=0; i<totalSlides; i++) {
+                        const dot = document.getElementById(`dot-${i}`);
+                        if(dot) {
+                            dot.className = (i === currentSlide) ? 'w-3 h-1.5 rounded-full bg-indigo-600 transition-all duration-300' : 'w-1.5 h-1.5 rounded-full bg-slate-300 transition-all duration-300';
+                        }
+                    }
+                }, 3500);
+            } else {
+                sliderContainer.style.transform = `translateX(0%)`;
+            }
+        });
+    </script>
+</body>
+</html>
