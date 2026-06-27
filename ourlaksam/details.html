@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বিস্তারিত - আমাদের লাকসাম</title>
+    
+    <script src="https://cdn.tailwindcss.com"> </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="flex justify-center min-h-screen">
+
+    <div class="w-full max-w-md bg-slate-50 min-h-screen shadow-2xl relative">
+        
+        <header class="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-4 flex justify-between items-center shadow-md rounded-b-2xl sticky top-0 z-50">
+            <a href="index.html" class="hover:bg-white/20 p-2 rounded-lg transition">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <h1 id="pageTitle" class="text-xl font-bold tracking-wide flex items-center gap-2">
+                <i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...
+            </h1>
+            <div class="w-8"></div> </header>
+
+        <div class="p-4 bg-slate-50 sticky top-[72px] z-40 border-b border-slate-200">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="খুঁজুন..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm">
+                <i class="fas fa-search absolute left-3.5 top-3 text-slate-400"></i>
+            </div>
+        </div>
+
+        <div class="p-4 space-y-3 pb-10" id="listContainer">
+            <div class="text-center text-slate-500 py-10" id="loadingState">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p>তথ্য খোঁজা হচ্ছে...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+            authDomain: "exchange-project-d4028.firebaseapp.com",
+            databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "exchange-project-d4028",
+            storageBucket: "exchange-project-d4028.firebasestorage.app",
+            messagingSenderId: "313976742479",
+            appId: "1:313976742479:web:45951b360d875c4768c03a",
+            measurementId: "G-PQMFYZS958"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('id');
+
+        // গ্লোবাল ফাংশন হিসেবে ডিক্লেয়ার করা হয়েছে যাতে onclick থেকে কল করা যায়
+window.loadSubItems = function(itemId, itemName, element) {
+    const existingList = document.getElementById(`sublist-${itemId}`);
+    if (existingList) {
+        existingList.remove();
+        return;
+    }
+
+    // ডাটাবেজ থেকে এই ক্যাটাগরির জন্য নির্ধারিত 'subHeader' আনা
+    const catRef = ref(db, `categories/${categoryId}`);
+    onValue(catRef, (snapshot) => {
+        const catData = snapshot.val();
+        const subHeader = catData.subHeader || "তথ্যসমূহ"; // ডিফল্ট 'তথ্যসমূহ'
+
+        const subListContainer = document.createElement('div');
+        subListContainer.id = `sublist-${itemId}`;
+        subListContainer.className = 'mt-2 bg-slate-100 rounded-lg p-3 w-full';
+        subListContainer.innerHTML = '<p class="text-xs text-slate-500">লোড হচ্ছে...</p>';
+        element.closest('.item-card').after(subListContainer);
+
+        const subRef = ref(db, `items/${categoryId}/${itemId}/subItems`);
+        onValue(subRef, (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                // এখানে ডাইনামিক হেডলাইন ব্যবহার করা হয়েছে
+                let html = `<h4 class="font-bold text-xs text-slate-600 mb-2 border-b border-slate-200 pb-1">${itemName} এর ${subHeader}:</h4><ul class="space-y-1">`;
+                Object.keys(data).forEach(key => {
+                    html += `<li class="text-sm text-slate-700 flex items-center gap-2"><i class="fas fa-location-dot text-[10px] text-indigo-400"></i> ${data[key].name}</li>`;
+                });
+                html += '</ul>';
+                subListContainer.innerHTML = html;
+            } else {
+                subListContainer.innerHTML = `<p class="text-xs text-slate-500">কোনো ${subHeader} যুক্ত করা হয়নি।</p>`;
+            }
+        });
+    }, { onlyOnce: true });
+};
+
+
+        // পেজ লোড ও ডেটা রেন্ডারিং
+        const pageTitle = document.getElementById('pageTitle');
+        const listContainer = document.getElementById('listContainer');
+        const searchInput = document.getElementById('searchInput');
+
+        if (categoryId) {
+            onValue(ref(db, `categories/${categoryId}`), (snapshot) => {
+                if (snapshot.exists()) pageTitle.innerHTML = `<i class="fas ${snapshot.val().icon}"></i> ${snapshot.val().name}`;
+            });
+
+            onValue(ref(db, `items/${categoryId}`), (snapshot) => {
+                listContainer.innerHTML = ''; 
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const item = data[key];
+                        const card = document.createElement('div');
+                        card.className = 'item-card bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition';
+                        card.innerHTML = `
+                            <div class="cursor-pointer flex-1" onclick="loadSubItems('${key}', '${item.name}', this)">
+                                <h3 class="font-bold text-slate-800 item-name">${item.name}</h3>
+                                <p class="text-sm text-indigo-600 font-medium mt-1"><i class="fas fa-phone-alt mr-1"></i>${item.phone}</p>
+                            </div>
+                            <a href="tel:${item.phone}" class="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-100 transition shadow-inner">
+                                <i class="fas fa-phone"></i>
+                            </a>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.style.display = card.querySelector('.item-name').innerText.toLowerCase().includes(filter) ? 'flex' : 'none';
+            });
+        });
+    </script>
+
+</body>
+</html>
