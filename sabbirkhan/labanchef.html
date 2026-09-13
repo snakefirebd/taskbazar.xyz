@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laban Master Pro | স্টক ও ওলবা ট্র্যাকার</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"> </script>
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts: Hind Siliguri & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Firebase SDKs (Realtime Database Only) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .num-font {
+      font-family: 'Outfit', sans-serif;
+    }
+    .app-card {
+      background: #ffffff;
+      box-shadow: 0 14px 40px -10px rgba(16, 185, 129, 0.1), 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+    }
+    .active-glow {
+      box-shadow: 0 0 30px -4px rgba(16, 185, 129, 0.4);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.96); opacity: 0.8; }
+      50% { transform: scale(1.06); opacity: 0.4; }
+      100% { transform: scale(0.96); opacity: 0.8; }
+    }
+    .pulse-animation {
+      animation: pulse-ring 2.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#F6F8F6] text-slate-800 min-h-screen pb-36 text-base selection:bg-emerald-600 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-emerald-100 px-4 py-3.5 shadow-sm">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 shrink-0">
+          <i class="fa-solid fa-boxes-stacked text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">লাবান শেফ প্রো</h1>
+            <span class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md">স্টক ও ওলবা</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">সালাতা লাবান সহকারী</p>
+        </div>
+      </div>
+      
+      <div class="text-right">
+        <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">আজকের তারিখ</span>
+        <span id="headerDateText" class="text-sm font-bold text-slate-800 num-font">-</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-4">
+
+    <!-- LOW STOCK WARNING BANNER (Shows automatically when milk is low) -->
+    <div id="lowStockWarning" class="hidden bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-2xl p-4 shadow-lg shadow-rose-500/25 flex items-center justify-between animate-bounce-short">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-black tracking-tight">সতর্কতা: গুঁড়া দুধের স্টক কম!</h4>
+          <p id="lowStockText" class="text-xs text-rose-100 font-medium">আর মাত্র ১-২ দিনের মতো দুধ বাকি আছে।</p>
+        </div>
+      </div>
+      <button onclick="toggleModal('stockModal', true)" class="bg-white text-rose-700 font-black text-xs px-3 py-2 rounded-xl shrink-0 shadow-sm">
+        বস্তা যোগ করুন
+      </button>
+    </div>
+
+    <!-- Active Fermenting Live Card -->
+    <div id="activeBatchSection" class="hidden">
+      <!-- Injected via JavaScript -->
+    </div>
+
+    <!-- MILK STOCK INVENTORY WIDGET (NEW) -->
+    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-4.5 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-weight-scale"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">গুঁড়া দুধের বর্তমান মজুদ</h3>
+            <span id="stockDaysLeftBadge" class="text-[11px] font-bold text-emerald-600">হিসাব হচ্ছে...</span>
+          </div>
+        </div>
+        <button onclick="toggleModal('stockModal', true)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1.5">
+          <i class="fa-solid fa-plus text-[10px]"></i> স্টক আপডেট
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+          <span class="text-[11px] font-bold text-slate-400 block">মোট মজুদ আছে</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="displayStockKg" class="text-2xl font-black text-slate-900 num-font">-</span>
+            <span class="text-xs font-bold text-slate-500">কেজি</span>
+          </div>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+          <span class="text-[11px] font-bold text-slate-400 block">সর্বশেষ খরচ</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="displayLastUsed" class="text-2xl font-black text-emerald-600 num-font">-</span>
+            <span class="text-xs font-bold text-slate-500">গ্রাম</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Recommendation Card -->
+    <div class="app-card border border-emerald-100 rounded-[2.2rem] p-5 sm:p-6 space-y-4">
+      
+      <!-- Day Selector & Location Filter -->
+      <div class="space-y-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">আজকের সঠিক অনুপাত</span>
+            <span id="learnedBadge" class="text-xs font-bold text-slate-400">ডাটা বিশ্লেষণ চলছে</span>
+          </div>
+
+          <!-- Day Tabs -->
+          <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1 border border-slate-200/60">
+            <button onclick="setBatchDays(1, this)" class="day-tab px-4 py-1.5 rounded-xl bg-white text-emerald-700 font-extrabold text-sm shadow-sm transition">১ দিন</button>
+            <button onclick="setBatchDays(2, this)" class="day-tab px-4 py-1.5 rounded-xl text-slate-500 font-extrabold text-sm hover:text-slate-800 transition">২ দিন</button>
+            <button onclick="setBatchDays(3, this)" class="day-tab px-4 py-1.5 rounded-xl text-slate-500 font-extrabold text-sm hover:text-slate-800 transition">৩ দিন</button>
+          </div>
+        </div>
+
+        <!-- Room Selector -->
+        <div class="flex items-center gap-2 pt-1">
+          <span class="text-xs font-bold text-slate-500 shrink-0">কোথায় রাখবেন:</span>
+          <div class="grid grid-cols-2 gap-2 flex-1">
+            <button onclick="setRecLocation('prep_room', this)" class="rec-loc-btn px-2.5 py-1.5 rounded-xl border border-teal-500 bg-teal-50 text-teal-800 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-soap text-xs"></i> কাটাকাটির রুম
+            </button>
+            <button onclick="setRecLocation('upstairs', this)" class="rec-loc-btn px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-fire text-xs"></i> ওপরের তলা
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Olba Yield Output Banner -->
+      <div class="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shadow-sm">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <div>
+            <span class="text-[11px] font-bold text-emerald-950 uppercase tracking-wider block">আনুমানিক সালাতার ওলবা</span>
+            <span class="text-xs text-slate-500 font-medium">ক্ষিরা ও শাবাত সহ মোট বাটি</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span id="recOlbaCount" class="text-2xl font-black text-emerald-800 num-font">-</span>
+          <span class="text-xs font-bold text-emerald-700 ml-0.5">ওলবা</span>
+        </div>
+      </div>
+
+      <!-- Ingredients Grid -->
+      <div class="grid grid-cols-2 gap-3.5">
+        
+        <!-- Milk Powder -->
+        <div class="bg-gradient-to-br from-emerald-50/80 to-teal-50/40 border border-emerald-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-extrabold text-emerald-950">দুধের গুঁড়া</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-600 text-sm">
+              <i class="fa-solid fa-cubes"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="recPowder" class="text-3xl sm:text-4xl font-black text-slate-900 num-font">-</span>
+            <span class="text-sm font-bold text-emerald-800">গ্রাম</span>
+          </div>
+        </div>
+
+        <!-- Zabadi -->
+        <div class="bg-gradient-to-br from-amber-50/80 to-orange-50/40 border border-amber-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-extrabold text-amber-950">জবাদি (দই)</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-600/10 flex items-center justify-center text-amber-600 text-sm">
+              <i class="fa-solid fa-bowl-rice"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="recZabadi" class="text-3xl sm:text-4xl font-black text-slate-900 num-font">-</span>
+            <span class="text-sm font-bold text-amber-800">গ্রাম</span>
+          </div>
+        </div>
+
+        <!-- Hot Water -->
+        <div class="bg-gradient-to-br from-rose-50/80 to-red-50/40 border border-rose-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <span class="text-sm font-extrabold text-rose-950 block">গরম পানি</span>
+              <span class="text-[11px] font-bold text-rose-500">বুদবুদ ওঠা</span>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-rose-600/10 flex items-center justify-center text-rose-600 text-sm">
+              <i class="fa-solid fa-fire-burner"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="recHotWater" class="text-3xl sm:text-4xl font-black text-rose-700 num-font">-</span>
+            <span class="text-sm font-bold text-rose-800">জগ</span>
+          </div>
+        </div>
+
+        <!-- Cold Water -->
+        <div class="bg-gradient-to-br from-sky-50/80 to-cyan-50/40 border border-sky-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <span class="text-sm font-extrabold text-sky-950 block">ঠান্ডা পানি</span>
+              <span class="text-[11px] font-bold text-sky-500">স্বাভাবিক</span>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-sky-600/10 flex items-center justify-center text-sky-600 text-sm">
+              <i class="fa-solid fa-droplet"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="recColdWater" class="text-3xl sm:text-4xl font-black text-sky-700 num-font">-</span>
+            <span class="text-sm font-bold text-sky-800">জগ</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recommendation Summary Footer -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-sm">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 font-bold block">ফার্মেন্টেশন সময়</span>
+            <span id="idealTimeRange" class="font-extrabold text-slate-800">৫ ঘণ্টা</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-400 font-bold block">মোট তরল পানি</span>
+          <span id="totalWaterText" class="font-black text-slate-900 num-font text-base">০ জগ</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- History Feed Header -->
+    <div class="space-y-3 pt-1">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> পূর্ববর্তী ব্যাচ হিস্ট্রি
+        </h2>
+        <span id="totalLogsBadge" class="text-xs font-bold text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">০ টি ব্যাচ</span>
+      </div>
+
+      <!-- Feed Container -->
+      <div id="logsContainer" class="space-y-3">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Big Floating Action Bar -->
+  <div class="fixed bottom-5 inset-x-0 z-40 px-4 pointer-events-none">
+    <div class="max-w-md mx-auto flex items-center justify-center pointer-events-auto">
+      <button onclick="toggleModal('entryModal', true)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl shadow-emerald-600/35 flex items-center justify-center gap-3 transition active:scale-[0.98] text-base">
+        <i class="fa-solid fa-blender text-lg"></i>
+        <span>নতুন ব্যাচ ঢালুন</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: দুধের স্টক রিফিল / আপডেট (NEW) -->
+  <div id="stockModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-boxes-packing text-emerald-600"></i> গুঁড়া দুধের স্টক আপডেট
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">নতুন বস্তা বা প্যাকেট আসলে স্টক যোগ করুন</p>
+        </div>
+        <button onclick="toggleModal('stockModal', false)" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 hover:text-slate-800 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1.5">কত কেজি যোগ করবেন?</label>
+          <div class="flex items-center gap-2">
+            <input type="number" step="0.1" id="inputAddStockKg" placeholder="যেমন: ২৫ বা ১০" class="w-full bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3.5 text-2xl font-black text-slate-900 num-font focus:bg-white focus:border-emerald-500 focus:outline-none">
+            <span class="text-base font-bold text-slate-700 shrink-0">কেজি (Kg)</span>
+          </div>
+        </div>
+
+        <!-- Quick Bags Buttons -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 block mb-1.5">দ্রুত বস্তা যোগ করুন:</span>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="setQuickStock(25)" class="py-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-extrabold text-sm rounded-xl transition flex flex-col items-center">
+              <span class="num-font text-base">+২৫ কেজি</span>
+              <span class="text-[10px] text-emerald-700 font-normal">বড় বস্তা</span>
+            </button>
+            <button type="button" onclick="setQuickStock(10)" class="py-3 bg-slate-100 hover:bg-slate-200 font-extrabold text-sm rounded-xl transition flex flex-col items-center">
+              <span class="num-font text-base">+১০ কেজি</span>
+              <span class="text-[10px] text-slate-500 font-normal">মাঝারি</span>
+            </button>
+            <button type="button" onclick="setQuickStock(5)" class="py-3 bg-slate-100 hover:bg-slate-200 font-extrabold text-sm rounded-xl transition flex flex-col items-center">
+              <span class="num-font text-base">+৫ কেজি</span>
+              <span class="text-[10px] text-slate-500 font-normal">প্যাকেট</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="button" onclick="addStockAction()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-600/25 transition active:scale-[0.98] text-base flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i> স্টকে যোগ করুন
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STEP 1: Modal - নতুন ব্যাচ ইনপুট -->
+  <div id="entryModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-flask-vial text-emerald-600"></i> নতুন মিশ্রণ ঢালুন
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">আজকের তারিখে স্বয়ংক্রিয়ভাবে সেভ হবে[span_5](start_span)[span_5](end_span)</p>
+        </div>
+        <button onclick="toggleModal('entryModal', false)" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 hover:text-slate-800 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <form id="batchForm" onsubmit="saveNewBatch(event)" class="space-y-4">
+        
+        <!-- Optional Past Time Offset -->
+        <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+              <i class="fa-regular fa-clock text-emerald-600"></i> কতক্ষণ আগে বসিয়েছেন? <span class="text-[11px] text-slate-400 font-normal">(ঐচ্ছিক)</span>
+            </label>
+            <span class="text-[10px] text-emerald-700 font-bold bg-white px-2 py-0.5 rounded-md border border-emerald-200">দেরিতে এন্ট্রি দিলে</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" step="any" min="0" id="inputPastTime" placeholder="যেমন: ৩০ বা ১.৫" class="w-full bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-base font-black text-slate-800 focus:outline-none focus:border-emerald-500">
+            <select id="inputPastTimeUnit" class="w-full bg-white border border-emerald-200 rounded-xl px-2.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500">
+              <option value="minutes">মিনিট আগে</option>
+              <option value="hours">ঘণ্টা আগে</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 1. Location Selector -->
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1.5">১. বালতি কোথায় রাখবেন?</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <label class="cursor-pointer">
+              <input type="radio" name="inputLocation" value="prep_room" checked class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 peer-checked:border-teal-500 peer-checked:bg-teal-50/80 peer-checked:text-teal-900 transition text-center">
+                <i class="fa-solid fa-soap text-lg mb-1 block text-teal-600"></i>
+                <span class="text-xs font-bold block">কাটাকাটির রুম</span>
+                <span class="text-[10px] text-slate-400 block mt-0.5">মৃদু এসি (~৫ ঘণ্টা)</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="inputLocation" value="upstairs" class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 peer-checked:border-rose-500 peer-checked:bg-rose-50/80 peer-checked:text-rose-900 transition text-center">
+                <i class="fa-solid fa-fire text-lg mb-1 block text-rose-600"></i>
+                <span class="text-xs font-bold block">ওপরের তলা</span>
+                <span class="text-[10px] text-slate-400 block mt-0.5">বেশি গরম (~৪ ঘণ্টা)</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Disturbance / Movement Risk Selector -->
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1.5">২. বালতি কেউ নাড়া দেওয়ার সম্ভাবনা আছে?</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <label class="cursor-pointer">
+              <input type="radio" name="inputDisturbance" value="safe" checked class="peer sr-only">
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 peer-checked:border-emerald-500 peer-checked:bg-emerald-50/80 peer-checked:text-emerald-950 transition text-center">
+                <i class="fa-solid fa-shield-check text-base mb-1 block text-emerald-600"></i>
+                <span class="text-xs font-bold block">কেউ নাড়বে না</span>
+                <span class="text-[10px] text-slate-400 block">ঝুঁকিমুক্ত শিফট</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="inputDisturbance" value="risky" class="peer sr-only">
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 peer-checked:border-amber-500 peer-checked:bg-amber-50/80 peer-checked:text-amber-950 transition text-center">
+                <i class="fa-solid fa-triangle-exclamation text-base mb-1 block text-amber-500"></i>
+                <span class="text-xs font-bold block">নাড়া লাগতে পারে</span>
+                <span class="text-[10px] text-slate-400 block">ব্যস্ত শিফট/যাতায়াত</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Ingredients Inputs -->
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1.5">দুধের গুঁড়া (গ্রাম)</label>
+            <input type="number" step="any" id="inputPowder" placeholder="যেমন: ৫০০" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base font-black text-slate-800 focus:bg-white focus:border-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1.5">জবাদি দই (গ্রাম)</label>
+            <input type="number" step="any" id="inputZabadi" placeholder="যেমন: ১৭০" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base font-black text-slate-800 focus:bg-white focus:border-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-xs font-bold text-rose-700 block mb-1.5">গরম পানি (জগ)</label>
+            <input type="number" step="any" id="inputHotWater" placeholder="যেমন: ১.৫" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base font-black text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+            <span class="text-[11px] text-slate-400 mt-1 block">বুদবুদ ওঠা গরম</span>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-sky-700 block mb-1.5">ঠান্ডা পানি (জগ)</label>
+            <input type="number" step="any" id="inputColdWater" placeholder="যেমন: ২.৫" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base font-black text-slate-800 focus:bg-white focus:border-sky-500 focus:outline-none">
+            <span class="text-[11px] text-slate-400 mt-1 block">স্বাভাবিক ঠান্ডা</span>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-600/25 transition active:scale-[0.98] flex items-center justify-center gap-2 mt-2 text-base">
+          <i class="fa-solid fa-play text-sm"></i> ব্যাচ শুরু করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- STEP 2: Modal - ফলাফল ও ২য় ধাপ (ওলবা সংখ্যা) -->
+  <div id="resultModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-lg font-black text-slate-900 leading-tight">ফলাফল ও ওলবা রেকর্ড</h3>
+          <p id="resultModalSub" class="text-xs text-slate-400 mt-0.5">ব্যাচের বিস্তারিত</p>
+        </div>
+        <button onclick="toggleModal('resultModal', false)" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 hover:text-slate-800 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="targetBatchId">
+      <input type="hidden" id="selectedResultTemp">
+
+      <!-- STEP 2.A: ঘনত্ব ও ঘণ্টা নির্বাচন -->
+      <div id="modalStepConsistency" class="space-y-4">
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-900">
+            <span class="text-sm">কত ঘণ্টা পর দেখলেন?</span>
+            <span class="text-xs text-amber-700 font-medium">অটো স্টপওয়াচ</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="number" step="0.1" id="actualHoursInput" class="w-full bg-white border border-amber-300 rounded-2xl px-4 py-3 text-lg font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <span class="text-base font-bold text-amber-900 shrink-0">ঘণ্টা পর</span>
+          </div>
+          <p id="timeNoticeText" class="text-xs text-amber-800 leading-relaxed pt-1"></p>
+        </div>
+
+        <p class="text-sm font-bold text-slate-700 pt-1">১ম ধাপ: লাবানের ঘনত্ব কেমন হলো?</p>
+        <div class="space-y-2.5">
+          <button type="button" onclick="goToOlbaStep('perfect')" class="w-full text-left p-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 transition flex items-center justify-between group active:scale-[0.98]">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-sm shrink-0">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-emerald-950 block">পারফেক্ট / নিখুঁত</span>
+                <span class="text-xs text-emerald-700">আল মারাই লাবানের মতো সঠিক ঘনত্ব[span_6](start_span)[span_6](end_span)</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-emerald-500 group-hover:translate-x-1 transition text-sm"></i>
+          </button>
+
+          <button type="button" onclick="goToOlbaStep('thick')" class="w-full text-left p-4 rounded-2xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100 transition flex items-center justify-between group active:scale-[0.98]">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-sm shrink-0">
+                <i class="fa-solid fa-cubes"></i>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-amber-950 block">বেশি ঘন হয়ে গেছে</span>
+                <span class="text-xs text-amber-700">দইয়ের মতো শক্ত ও ভারী[span_7](start_span)[span_7](end_span)</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-amber-500 group-hover:translate-x-1 transition text-sm"></i>
+          </button>
+
+          <button type="button" onclick="goToOlbaStep('thin')" class="w-full text-left p-4 rounded-2xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 transition flex items-center justify-between group active:scale-[0.98]">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-lg shadow-sm shrink-0">
+                <i class="fa-solid fa-water"></i>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-sky-950 block">বেশি পাতলা / নরম</span>
+                <span class="text-xs text-sky-700">পানির মতো পাতলা, জমে নাই[span_8](start_span)[span_8](end_span)</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-sky-500 group-hover:translate-x-1 transition text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2.B: ২য় প্রশ্ন - কত ওলবা সালাতা হলো? -->
+      <div id="modalStepOlba" class="hidden space-y-4">
+        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
+          <span class="text-xs font-bold text-emerald-900 uppercase tracking-wider block">২য় ধাপ: ওলবা গণনা</span>
+          <h4 class="text-base font-extrabold text-emerald-950">ক্ষিরা ও শাবাত মেশানোর পর মোট কত ওলবা সালাতা হলো?</h4>
+          <p class="text-xs text-emerald-800 leading-relaxed">এই সংখ্যাটি দিলে অ্যাপ নিজে থেকে শিখে নেবে কতটুকু বানালে কত ওলবা হয়[span_9](start_span)[span_9](end_span)。</p>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1.5">মোট ওলবার সংখ্যা:</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="inputOlbaCount" placeholder="যেমন: ৫৫ বা ৬০" class="w-full bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3.5 text-2xl font-black text-slate-900 num-font focus:bg-white focus:border-emerald-500 focus:outline-none">
+            <span class="text-base font-bold text-slate-700 shrink-0">ওলবা/বাটি</span>
+          </div>
+        </div>
+
+        <!-- Quick Tap Numbers -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 block mb-1">দ্রুত নির্বাচন করুন:</span>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" onclick="setQuickOlba(40)" class="py-2 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl num-font">৪০</button>
+            <button type="button" onclick="setQuickOlba(50)" class="py-2 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl num-font">৫০</button>
+            <button type="button" onclick="setQuickOlba(60)" class="py-2 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl num-font">৬০</button>
+            <button type="button" onclick="setQuickOlba(70)" class="py-2 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl num-font">৭০</button>
+          </div>
+        </div>
+
+        <!-- Final Submit Buttons -->
+        <div class="space-y-2 pt-2">
+          <button type="button" onclick="finalizeBatchSave()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-600/25 transition active:scale-[0.98] text-base flex items-center justify-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> ওলবা সহ সেভ করুন
+          </button>
+          <button type="button" onclick="finalizeBatchSave(true)" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs transition">
+            ওলবা গণনা ছাড়াই সেভ করুন
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- ১. Firebase Realtime Database কনফিগারেশন ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgFaTrHW7Grp_Q22p6KNcHZxaEujHsLsE",
+      authDomain: "exchange-project-d4028.firebaseapp.com",
+      databaseURL: "https://exchange-project-d4028-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "exchange-project-d4028",
+      storageBucket: "exchange-project-d4028.firebasestorage.app",
+      messagingSenderId: "313976742479",
+      appId: "1:313976742479:web:45951b360d875c4768c03a",
+      measurementId: "G-PQMFYZS958"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    } catch (e) {
+      console.warn("Firebase কানেক্ট হয়নি, লোকালস্টোরেজে ডাটা সেভ হচ্ছে।");
+    }
+
+    let currentDays = 1;
+    let recLocation = 'prep_room';
+    let logs = [];
+    let promptedBatchIds = new Set();
+    let currentMilkStockGrams = 25000; // ডিফল্ট ২৫ কেজি
+
+    const today = new Date();
+    document.getElementById('headerDateText').innerText = today.toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' });
+
+    function toggleModal(modalId, show) {
+      const modal = document.getElementById(modalId);
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    function setBatchDays(days, btn) {
+      currentDays = days;
+      document.querySelectorAll('.day-tab').forEach(t => {
+        t.className = 'day-tab px-4 py-1.5 rounded-xl text-slate-500 font-extrabold text-sm hover:text-slate-800 transition';
+      });
+      btn.className = 'day-tab px-4 py-1.5 rounded-xl bg-white text-emerald-700 font-extrabold text-sm shadow-sm transition';
+      calculateSmartBatch();
+    }
+
+    function setRecLocation(loc, btn) {
+      recLocation = loc;
+      document.querySelectorAll('.rec-loc-btn').forEach(b => {
+        b.className = 'rec-loc-btn px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+      });
+      btn.className = loc === 'prep_room'
+        ? 'rec-loc-btn px-2.5 py-1.5 rounded-xl border border-teal-500 bg-teal-50 text-teal-800 text-xs font-bold flex items-center justify-center gap-1.5 transition'
+        : 'rec-loc-btn px-2.5 py-1.5 rounded-xl border border-rose-500 bg-rose-50 text-rose-800 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+      calculateSmartBatch();
+    }
+
+    // --- ২. ডাটা ইনিট ও স্টক সিঙ্ক ---
+    function initData() {
+      if (db) {
+        // ব্যাচ ডাটা লিসেনার
+        db.ref('laban_batches').on('value', snapshot => {
+          logs = [];
+          const val = snapshot.val();
+          if (val) {
+            Object.keys(val).forEach(k => logs.push({ id: k, ...val[k] }));
+          }
+          renderApp();
+        });
+
+        // স্টক ডাটা লিসেনার
+        db.ref('laban_stock').on('value', snapshot => {
+          const stockVal = snapshot.val();
+          if (stockVal && stockVal.grams !== undefined) {
+            currentMilkStockGrams = parseFloat(stockVal.grams);
+          } else {
+            // প্রথমবার ২৫ কেজি সেট করা
+            db.ref('laban_stock').set({ grams: 25000, lastUpdated: Date.now() });
+          }
+          updateStockUI();
+        });
+      } else {
+        const local = localStorage.getItem('laban_batches');
+        if (local) logs = JSON.parse(local);
+        const localStock = localStorage.getItem('laban_milk_stock_grams');
+        if (localStock) currentMilkStockGrams = parseFloat(localStock);
+        renderApp();
+        updateStockUI();
+      }
+
+      setInterval(checkActiveTimers, 30000);
+    }
+
+    // --- ৩. স্টক আপডেট / রিফিল লজিক (NEW) ---
+    function setQuickStock(kg) {
+      document.getElementById('inputAddStockKg').value = kg;
+    }
+
+    function addStockAction() {
+      const addKg = parseFloat(document.getElementById('inputAddStockKg').value) || 0;
+      if (addKg <= 0) {
+        alert("অনুগ্রহ করে সঠিক কেজির পরিমাণ লিখুন");
+        return;
+      }
+
+      currentMilkStockGrams += (addKg * 1000);
+
+      if (db) {
+        db.ref('laban_stock').set({
+          grams: currentMilkStockGrams,
+          lastUpdated: Date.now()
+        });
+      } else {
+        localStorage.setItem('laban_milk_stock_grams', currentMilkStockGrams);
+      }
+
+      document.getElementById('inputAddStockKg').value = '';
+      toggleModal('stockModal', false);
+      updateStockUI();
+      alert(`সফলভাবে ${addKg} কেজি গুঁড়া দুধ স্টকে যোগ করা হয়েছে!`);
+    }
+
+    function updateStockUI() {
+      const stockKg = (currentMilkStockGrams / 1000).toFixed(1);
+      document.getElementById('displayStockKg').innerText = stockKg;
+
+      // সর্বশেষ ব্যাচে কতটুকু খরচ হয়েছে
+      if (logs.length > 0) {
+        const latest = logs[0];
+        document.getElementById('displayLastUsed').innerText = latest.powder || 0;
+      } else {
+        document.getElementById('displayLastUsed').innerText = '০';
+      }
+
+      // প্রতিদিনের গড় খরচ বের করা
+      const powders = logs.map(l => l.powder).filter(p => p > 0);
+      const avgDailyUsage = powders.length > 0 
+        ? (powders.reduce((a, b) => a + b, 0) / powders.length) 
+        : 600; // ডিফল্ট ৬০০ গ্রাম/দিন
+
+      const daysLeft = Math.floor(currentMilkStockGrams / avgDailyUsage);
+      const badge = document.getElementById('stockDaysLeftBadge');
+      const warningBanner = document.getElementById('lowStockWarning');
+      const warningText = document.getElementById('lowStockText');
+
+      if (daysLeft <= 0) {
+        badge.innerText = 'স্টক শেষ!';
+        badge.className = 'text-[11px] font-black text-rose-600';
+      } else {
+        badge.innerText = `আনুমানিক আর ${daysLeft} দিন চলবে`;
+        badge.className = daysLeft <= 3 ? 'text-[11px] font-black text-amber-600' : 'text-[11px] font-bold text-emerald-600';
+      }
+
+      // লো স্টক অ্যালার্ট (যদি ৩ দিন বা তার কম বাকি থাকে)
+      if (daysLeft <= 3 || currentMilkStockGrams < 2000) {
+        warningText.innerText = `দোকানে আর মাত্র ${stockKg} কেজি দুধ আছে (প্রায় ${Math.max(daysLeft, 1)} দিন চলবে)। দ্রুত নতুন বস্তা আনুন!`;
+        warningBanner.classList.remove('hidden');
+      } else {
+        warningBanner.classList.add('hidden');
+      }
+    }
+
+    // --- ৪. নতুন ব্যাচ সংরক্ষণ (স্টক থেকে অটো বিয়োগ) ---
+    function saveNewBatch(e) {
+      e.preventDefault();
+      const powder = parseFloat(document.getElementById('inputPowder').value) || 0;
+      const zabadi = parseFloat(document.getElementById('inputZabadi').value) || 0;
+      const hotWater = parseFloat(document.getElementById('inputHotWater').value) || 0;
+      const coldWater = parseFloat(document.getElementById('inputColdWater').value) || 0;
+      const location = document.querySelector('input[name="inputLocation"]:checked').value;
+      const disturbance = document.querySelector('input[name="inputDisturbance"]:checked').value;
+      
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+
+      let startTime = Date.now();
+      const pastTimeVal = parseFloat(document.getElementById('inputPastTime').value) || 0;
+      const pastTimeUnit = document.getElementById('inputPastTimeUnit').value;
+      if (pastTimeVal > 0) {
+        const offsetMs = pastTimeUnit === 'hours' ? pastTimeVal * 60 * 60 * 1000 : pastTimeVal * 60 * 1000;
+        startTime = startTime - offsetMs;
+      }
+
+      // দুধের স্টক থেকে খরচ বিয়োগ করা
+      currentMilkStockGrams = Math.max(0, currentMilkStockGrams - powder);
+      if (db) {
+        db.ref('laban_stock').set({
+          grams: currentMilkStockGrams,
+          lastUpdated: Date.now()
+        });
+      } else {
+        localStorage.setItem('laban_milk_stock_grams', currentMilkStockGrams);
+      }
+
+      const newBatch = {
+        date,
+        powder,
+        zabadi,
+        hotWater,
+        coldWater,
+        location,
+        disturbance,
+        startTime,
+        status: 'pending',
+        result: null,
+        actualHours: null,
+        olbaCount: null
+      };
+
+      if (db) {
+        db.ref('laban_batches').push(newBatch);
+      } else {
+        const id = 'local_' + Date.now();
+        logs.unshift({ id, ...newBatch });
+        localStorage.setItem('laban_batches', JSON.stringify(logs));
+        renderApp();
+      }
+
+      document.getElementById('batchForm').reset();
+      toggleModal('entryModal', false);
+      updateStockUI();
+    }
+
+    // --- ৫. ফলাফল ওপেন করা ---
+    function openResultModal(id) {
+      const batch = logs.find(item => item.id === id);
+      if (!batch) return;
+
+      document.getElementById('targetBatchId').value = id;
+      
+      document.getElementById('modalStepConsistency').classList.remove('hidden');
+      document.getElementById('modalStepOlba').classList.add('hidden');
+      document.getElementById('inputOlbaCount').value = batch.olbaCount || '';
+
+      const now = Date.now();
+      const diffHours = ((now - (batch.startTime || now)) / (1000 * 60 * 60)).toFixed(1);
+      
+      const hoursField = document.getElementById('actualHoursInput');
+      hoursField.value = batch.actualHours || diffHours;
+
+      const notice = document.getElementById('timeNoticeText');
+      const isUpstairs = (batch.location === 'upstairs');
+      const isRisky = (batch.disturbance === 'risky');
+
+      let text = '';
+      if (isRisky) text += `⚠️ এই ব্যাচে নাড়া লাগার ঝুঁকি ছিল! `;
+      if (isUpstairs) {
+        text += (diffHours >= 5) 
+          ? `ওপরের তলায় ${diffHours} ঘণ্টা থাকায় অতিরিক্ত তাপে বেশি ঘন হতে পারে।`
+          : `ওপরের তলার গরম আবহাওয়ায় প্রায় ${diffHours} ঘণ্টা অতিক্রান্ত হয়েছে।`;
+      } else {
+        text += (diffHours < 4.5) 
+          ? `কাটাকাটির রুমে মৃদু ঠান্ডা থাকায় পুরো ৫ ঘণ্টা না হলে ঠিকমতো জমে না।`
+          : `কাটাকাটির রুমের স্বাভাবিক আবহাওয়ায় ${diffHours} ঘণ্টা পর দেখা হচ্ছে।`;
+      }
+
+      notice.innerText = text;
+      const locName = isUpstairs ? 'ওপরের তলা' : 'কাটাকাটির রুম';
+      const riskName = isRisky ? 'নাড়া ঝুঁকি ছিল' : 'স্থির ছিল';
+      document.getElementById('resultModalSub').innerText = `${batch.date}-এর ব্যাচ | ${locName} (${riskName})`;
+      toggleModal('resultModal', true);
+    }
+
+    function goToOlbaStep(resultValue) {
+      document.getElementById('selectedResultTemp').value = resultValue;
+      document.getElementById('modalStepConsistency').classList.add('hidden');
+      document.getElementById('modalStepOlba').classList.remove('hidden');
+      document.getElementById('inputOlbaCount').focus();
+    }
+
+    function setQuickOlba(num) {
+      document.getElementById('inputOlbaCount').value = num;
+    }
+
+    // --- ৬. চূড়ান্ত সংরক্ষণ (ফলাফল ও ওলবা সহ) ---
+    function finalizeBatchSave(skipOlba = false) {
+      const batchId = document.getElementById('targetBatchId').value;
+      const resultValue = document.getElementById('selectedResultTemp').value;
+      const actualHours = parseFloat(document.getElementById('actualHoursInput').value) || 5;
+      const olbaCount = skipOlba ? null : (parseInt(document.getElementById('inputOlbaCount').value) || null);
+
+      const batch = logs.find(l => l.id === batchId);
+      const isUpstairs = batch && (batch.location === 'upstairs');
+      const wasRisky = batch && (batch.disturbance === 'risky');
+
+      let diagnosis = '';
+      if (wasRisky && resultValue === 'thin') {
+        diagnosis = 'মাঝপথে নাড়া বা ঝাঁকুনি লাগার কারণে পানি কেটে পাতলা হয়েছে (দুধের দোষ নয়)[span_10](start_span)[span_10](end_span)';
+      } else if (isUpstairs && actualHours >= 5 && resultValue === 'thick') {
+        diagnosis = 'ওপরের তলার অতিরিক্ত তাপে দ্রুত জমে ঘন হয়েছে (দুধের পরিমাণ সঠিক ছিল)';
+      } else if (!isUpstairs && actualHours < 4.5 && resultValue === 'thin') {
+        diagnosis = 'কাটাকাটির রুমের মৃদু ঠান্ডায় জমতে সময় পায়নি';
+      } else if (resultValue === 'perfect') {
+        diagnosis = wasRisky ? 'নাড়ার ঝুঁকি সত্ত্বেও নিখুঁত জমেছে' : 'পারফেক্ট ফার্মেন্টেশন ও ব্যালান্সড ঘনত্ব';
+      } else if (resultValue === 'thick') {
+        diagnosis = 'দুধ বা জবাদির মাত্রা কিছুটা বেশি ছিল';
+      } else {
+        diagnosis = 'পানির মাত্রা কিছুটা বেশি ছিল';
+      }
+
+      const updateData = {
+        result: resultValue,
+        actualHours: actualHours,
+        olbaCount: olbaCount,
+        diagnosis: diagnosis,
+        status: 'completed',
+        completedAt: Date.now()
+      };
+
+      if (db) {
+        db.ref(`laban_batches/${batchId}`).update(updateData);
+      } else {
+        if (batch) {
+          Object.assign(batch, updateData);
+          localStorage.setItem('laban_batches', JSON.stringify(logs));
+          renderApp();
+        }
+      }
+
+      toggleModal('resultModal', false);
+    }
+
+    // ব্যাচ ডিলিট করলে দুধ স্টকে ফেরত দেওয়া
+    function deleteEntry(id) {
+      if (!confirm("এই ব্যাচটি মুছে ফেলতে চান?")) return;
+      const target = logs.find(item => item.id === id);
+      if (target && target.powder) {
+        // ডিলিট হওয়া ব্যাচের পাউডার স্টকে রিভার্স করা
+        currentMilkStockGrams += target.powder;
+        if (db) {
+          db.ref('laban_stock').set({
+            grams: currentMilkStockGrams,
+            lastUpdated: Date.now()
+          });
+        } else {
+          localStorage.setItem('laban_milk_stock_grams', currentMilkStockGrams);
+        }
+        updateStockUI();
+      }
+
+      if (db) {
+        db.ref(`laban_batches/${id}`).remove();
+      } else {
+        logs = logs.filter(item => item.id !== id);
+        localStorage.setItem('laban_batches', JSON.stringify(logs));
+        renderApp();
+      }
+    }
+
+    function checkActiveTimers() {
+      const now = Date.now();
+      const pendingBatches = logs.filter(b => b.status === 'pending');
+
+      for (let batch of pendingBatches) {
+        const passedTime = now - (batch.startTime || 0);
+        const targetMs = (batch.location === 'upstairs') ? (4 * 60 * 60 * 1000) : (5 * 60 * 60 * 1000);
+
+        if (passedTime >= targetMs && !promptedBatchIds.has(batch.id)) {
+          promptedBatchIds.add(batch.id);
+          openResultModal(batch.id);
+          break;
+        }
+      }
+      renderApp();
+    }
+
+    // --- ৭. স্মার্ট ক্যালকুলেটর ---
+    function calculateSmartBatch() {
+      const perfects = logs.filter(l => l.result === 'perfect');
+      const roomPerfects = perfects.filter(l => l.location === recLocation);
+      const targetList = roomPerfects.length > 0 ? roomPerfects : perfects;
+
+      const badge = document.getElementById('learnedBadge');
+      const idealTime = document.getElementById('idealTimeRange');
+      const olbaDisplay = document.getElementById('recOlbaCount');
+
+      if (targetList.length === 0) {
+        document.getElementById('recPowder').innerText = '-';
+        document.getElementById('recZabadi').innerText = '-';
+        document.getElementById('recHotWater').innerText = '-';
+        document.getElementById('recColdWater').innerText = '-';
+        document.getElementById('totalWaterText').innerText = `০ জগ`;
+        olbaDisplay.innerText = '-';
+        badge.innerText = "ডাটা প্রয়োজন";
+        badge.className = "text-xs font-semibold text-slate-400";
+        idealTime.innerText = recLocation === 'upstairs' ? "৩.৫-৪ ঘণ্টা (গরম)" : "৫-৫.৫ ঘণ্টা (মৃদু এসি)";
+        return;
+      }
+
+      const sum = targetList.reduce((acc, cur) => {
+        acc.powder += cur.powder;
+        acc.zabadi += cur.zabadi;
+        acc.hotWater += cur.hotWater;
+        acc.coldWater += cur.coldWater;
+        acc.hours += (cur.actualHours || (cur.location === 'upstairs' ? 4 : 5));
+        if (cur.olbaCount) {
+          acc.olba += cur.olbaCount;
+          acc.olbaBatches += 1;
+        }
+        return acc;
+      }, { powder: 0, zabadi: 0, hotWater: 0, coldWater: 0, hours: 0, olba: 0, olbaBatches: 0 });
+
+      const n = targetList.length;
+      const powder = ((sum.powder / n) * currentDays).toFixed(0);
+      const zabadi = ((sum.zabadi / n) * currentDays).toFixed(0);
+      const hotWater = ((sum.hotWater / n) * currentDays).toFixed(1);
+      const coldWater = ((sum.coldWater / n) * currentDays).toFixed(1);
+      const avgHours = (sum.hours / n).toFixed(1);
+      const totalWater = (parseFloat(hotWater) + parseFloat(coldWater)).toFixed(1);
+
+      document.getElementById('recPowder').innerText = powder;
+      document.getElementById('recZabadi').innerText = zabadi;
+      document.getElementById('recHotWater').innerText = hotWater;
+      document.getElementById('recColdWater').innerText = coldWater;
+      document.getElementById('totalWaterText').innerText = `${totalWater} জগ`;
+
+      if (sum.olbaBatches > 0) {
+        const avgOlbaPerDay = (sum.olba / sum.olbaBatches);
+        const estimatedOlba = Math.round(avgOlbaPerDay * currentDays);
+        olbaDisplay.innerText = `${estimatedOlba}`;
+      } else {
+        const fallbackOlba = Math.round(parseFloat(totalWater) * 16);
+        olbaDisplay.innerText = `~${fallbackOlba}`;
+      }
+
+      idealTime.innerText = `গড়ে ${avgHours} ঘণ্টা`;
+      badge.innerText = `${targetList.length}টি নিখুঁত ব্যাচ থেকে শেখা[span_11](start_span)[span_11](end_span)`;
+      badge.className = "text-xs font-bold text-emerald-600";
+    }
+
+    // --- ৮. UI রেন্ডার ---
+    function renderApp() {
+      logs.sort((a, b) => (b.startTime || 0) - (a.startTime || 0));
+
+      const now = Date.now();
+      const container = document.getElementById('logsContainer');
+      const activeSection = document.getElementById('activeBatchSection');
+
+      document.getElementById('totalLogsBadge').innerText = `${logs.length} টি ব্যাচ`;
+
+      // চলমান ব্যাচের কার্ড
+      const latestPending = logs.find(b => b.status === 'pending');
+      if (latestPending) {
+        const passedMs = now - (latestPending.startTime || 0);
+        const hoursPassed = (passedMs / (1000 * 60 * 60)).toFixed(1);
+        const isUpstairs = (latestPending.location === 'upstairs');
+        const isRisky = (latestPending.disturbance === 'risky');
+        const targetHoursMs = isUpstairs ? (4 * 60 * 60 * 1000) : (5 * 60 * 60 * 1000);
+
+        let timerTag = '';
+        if (passedMs < targetHoursMs) {
+          const remainMin = Math.floor((targetHoursMs - passedMs) / (1000 * 60));
+          timerTag = `বাকি ${Math.floor(remainMin/60)} ঘণ্টা ${remainMin%60} মি.`;
+        } else {
+          timerTag = `সময় পূর্ণ হয়েছে!`;
+        }
+
+        const locBadgeText = isUpstairs ? '🔥 ওপরের তলা' : '🧼 কাটাকাটির রুম';
+        const riskBadge = isRisky 
+          ? '<span class="text-[10px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full font-black animate-pulse">⚠️ নাড়ার ঝুঁকি আছে</span>'
+          : '<span class="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">🛡️ স্থির থাকবে</span>';
+
+        activeSection.innerHTML = `
+          <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-[2rem] p-5 shadow-xl shadow-emerald-600/25 flex items-center justify-between active-glow">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white text-xl pulse-animation shrink-0">
+                <i class="fa-solid fa-stopwatch"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs bg-white/25 px-2.5 py-0.5 rounded-full font-bold">${timerTag}</span>
+                  <span class="text-[11px] bg-black/20 px-2 py-0.5 rounded-full font-semibold">${locBadgeText}</span>
+                  ${riskBadge}
+                </div>
+                <p class="text-xs text-emerald-100 font-medium mt-1">মিশ্রণটি প্রায় ${hoursPassed} ঘণ্টা ধরে রাখা আছে</p>
+              </div>
+            </div>
+            <button onclick="openResultModal('${latestPending.id}')" class="bg-white text-emerald-900 font-black text-xs sm:text-sm px-4 py-3 rounded-2xl shadow-md transition active:scale-95 shrink-0">
+              ফলাফল দিন
+            </button>
+          </div>
+        `;
+        activeSection.classList.remove('hidden');
+      } else {
+        activeSection.classList.add('hidden');
+      }
+
+      // হিস্ট্রি তালিকা
+      if (logs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-14 bg-white border border-slate-200/80 rounded-3xl text-slate-400">
+            <i class="fa-solid fa-mug-hot text-3xl mb-2 text-slate-300 block"></i>
+            <p class="text-sm font-bold text-slate-600">কোন ব্যাচ রেকর্ড করা নেই</p>
+            <p class="text-xs text-slate-400 mt-0.5">নিচের বাটনে চাপ দিয়ে প্রথম ব্যাচ শুরু করুন</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = logs.slice(0, 7).map(item => {
+          let badge = '';
+          let timeBadge = '';
+
+          const isUpstairs = (item.location === 'upstairs');
+          const isRisky = (item.disturbance === 'risky');
+
+          const locIcon = isUpstairs
+            ? '<span class="text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-lg"><i class="fa-solid fa-fire text-xs"></i> ওপরের তলা</span>'
+            : '<span class="text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded-lg"><i class="fa-solid fa-soap text-xs"></i> কাটাকাটির রুম</span>';
+
+          const riskIcon = isRisky
+            ? '<span class="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-xs"></i> নাড়া ঝুঁকি</span>'
+            : '<span class="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-lg"><i class="fa-solid fa-shield-check text-xs"></i> স্থির</span>';
+
+          const olbaTag = item.olbaCount 
+            ? `<span class="text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-lg num-font"><i class="fa-solid fa-box-open text-xs"></i> ${item.olbaCount} ওলবা</span>`
+            : '';
+
+          if (item.status === 'pending') {
+            const passedH = ((now - (item.startTime || 0)) / (1000 * 60 * 60)).toFixed(1);
+            badge = '<span class="text-xs font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">চলছে</span>';
+            timeBadge = `<span class="text-xs text-amber-600 font-bold">${passedH} ঘণ্টা চলমান</span>`;
+          } else {
+            timeBadge = `<span class="text-xs text-slate-500 font-bold">${item.actualHours || 5} ঘণ্টা পর দেখা</span>`;
+            if (item.result === 'perfect') {
+              badge = '<span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-lg">পারফেক্ট</span>';
+            } else if (item.result === 'thick') {
+              badge = '<span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-lg">বেশি ঘন</span>';
+            } else {
+              badge = '<span class="text-xs font-bold bg-sky-100 text-sky-800 px-3 py-1 rounded-lg">বেশি পাতলা</span>';
+            }
+          }
+
+          const actionBtn = item.status === 'pending'
+            ? `<button onclick="openResultModal('${item.id}')" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm transition">ফলাফল দিন</button>`
+            : `<button onclick="openResultModal('${item.id}')" class="text-slate-400 hover:text-emerald-700 p-2" title="পরিবর্তন"><i class="fa-solid fa-pen text-sm"></i></button>`;
+
+          return `
+            <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm space-y-2.5 hover:border-emerald-200 transition">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-black text-slate-800 font-mono">${item.date}</span>
+                  ${locIcon}
+                  ${riskIcon}
+                  ${badge}
+                  ${olbaTag}
+                  ${timeBadge}
+                </div>
+                <div class="flex items-center gap-1.5">
+                  ${actionBtn}
+                  <button onclick="deleteEntry('${item.id}')" class="text-slate-300 hover:text-rose-500 p-1.5 text-sm">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="text-xs sm:text-sm text-slate-600 flex items-center gap-2.5 flex-wrap font-medium">
+                <span>দুধ: <b class="text-slate-900 num-font font-bold">${item.powder}g</b></span> •
+                <span>জবাদি: <b class="text-slate-900 num-font font-bold">${item.zabadi}g</b></span> •
+                <span>গরম: <b class="text-rose-600 num-font font-bold">${item.hotWater} জগ</b></span> •
+                <span>ঠান্ডা: <b class="text-sky-600 num-font font-bold">${item.coldWater} জগ</b></span>
+              </div>
+
+              ${item.diagnosis ? `
+                <div class="text-xs bg-emerald-50/60 text-emerald-950 border border-emerald-100 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                  <i class="fa-solid fa-sparkles text-emerald-600"></i>
+                  <span>${item.diagnosis}</span>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      calculateSmartBatch();
+      updateStockUI();
+    }
+
+    initData();
+  </script>
+</body>
+</html>
